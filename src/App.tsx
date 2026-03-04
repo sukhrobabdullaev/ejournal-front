@@ -1,0 +1,145 @@
+import React, { Suspense as ReactSuspense } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router';
+import { AuthProvider } from './contexts/AuthContext';
+import { Header } from './components/Header';
+import { Footer } from './components/Footer';
+import { APIStatusIndicator } from './components/APIStatusIndicator';
+import { EnvNotification } from './components/EnvNotification';
+import { Toaster } from './components/ui/sonner';
+
+const Home = React.lazy(() =>
+  import('./pages/Home').then((m) => ({ default: m.Home })),
+);
+const Articles = React.lazy(() =>
+  import('./pages/Articles').then((m) => ({ default: m.Articles })),
+);
+const ArticleDetail = React.lazy(() =>
+  import('./pages/ArticleDetail').then((m) => ({ default: m.ArticleDetail })),
+);
+const SubmitPaper = React.lazy(() =>
+  import('./pages/SubmitPaper').then((m) => ({ default: m.SubmitPaper })),
+);
+const AuthorGuidelines = React.lazy(() =>
+  import('./pages/AuthorGuidelines').then((m) => ({ default: m.AuthorGuidelines })),
+);
+const AimsScope = React.lazy(() =>
+  import('./pages/AimsScope').then((m) => ({ default: m.AimsScope })),
+);
+const EditorialBoard = React.lazy(() =>
+  import('./pages/EditorialBoard').then((m) => ({ default: m.EditorialBoard })),
+);
+const Policies = React.lazy(() =>
+  import('./pages/Policies').then((m) => ({ default: m.Policies })),
+);
+const About = React.lazy(() =>
+  import('./pages/About').then((m) => ({ default: m.About })),
+);
+const Contact = React.lazy(() =>
+  import('./pages/Contact').then((m) => ({ default: m.Contact })),
+);
+const DatabaseSetup = React.lazy(() =>
+  import('./pages/DatabaseSetup').then((m) => ({ default: m.DatabaseSetup })),
+);
+const StorageSetup = React.lazy(() =>
+  import('./pages/StorageSetup').then((m) => ({ default: m.StorageSetup })),
+);
+const MigrationFix = React.lazy(() =>
+  import('./pages/MigrationFix').then((m) => ({ default: m.MigrationFix })),
+);
+const Phase2Migration = React.lazy(() =>
+  import('./pages/Phase2Migration').then((m) => ({ default: m.Phase2Migration })),
+);
+const RolesMigration = React.lazy(() =>
+  import('./pages/RolesMigration').then((m) => ({ default: m.RolesMigration })),
+);
+const Login = React.lazy(() =>
+  import('./pages/Login').then((m) => ({ default: m.Login })),
+);
+const Register = React.lazy(() =>
+  import('./pages/Register').then((m) => ({ default: m.Register })),
+);
+const DashboardNew = React.lazy(() =>
+  import('./pages/DashboardNew').then((m) => ({ default: m.DashboardNew })),
+);
+const SubmissionDetail = React.lazy(() =>
+  import('./pages/SubmissionDetail').then((m) => ({ default: m.SubmissionDetail })),
+);
+const EditorDashboard = React.lazy(() =>
+  import('./pages/EditorDashboard').then((m) => ({ default: m.EditorDashboard })),
+);
+const EditorSubmissionDetail = React.lazy(() =>
+  import('./pages/EditorSubmissionDetail').then((m) => ({
+    default: m.EditorSubmissionDetail,
+  })),
+);
+const ReviewInvite = React.lazy(() =>
+  import('./pages/ReviewInvite').then((m) => ({ default: m.ReviewInvite })),
+);
+const ReviewInviteNew = React.lazy(() =>
+  import('./pages/ReviewInviteNew').then((m) => ({ default: m.ReviewInviteNew })),
+);
+const ReviewDashboard = React.lazy(() =>
+  import('./pages/ReviewDashboard').then((m) => ({ default: m.ReviewDashboard })),
+);
+const ReviewAssignmentDetail = React.lazy(() =>
+  import('./pages/ReviewAssignmentDetail').then((m) => ({
+    default: m.ReviewAssignmentDetail,
+  })),
+);
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <div className="flex flex-col min-h-screen bg-white">
+          <Header />
+          <main className="grow">
+            <ReactSuspense
+              fallback={
+                <div className="min-h-[50vh] flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                    <p className="text-gray-600 text-sm">Loading page...</p>
+                  </div>
+                </div>
+              }
+            >
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/articles" element={<Articles />} />
+                <Route path="/articles/:articleSlug" element={<ArticleDetail />} />
+                <Route path="/submit" element={<SubmitPaper />} />
+                <Route path="/submit/:submissionId" element={<SubmitPaper />} />
+                <Route path="/guidelines" element={<AuthorGuidelines />} />
+                <Route path="/aims-scope" element={<AimsScope />} />
+                <Route path="/editorial-board" element={<EditorialBoard />} />
+                <Route path="/policies" element={<Policies />} />
+                <Route path="/about" element={<About />} />
+                <Route path="/contact" element={<Contact />} />
+                <Route path="/setup-database" element={<DatabaseSetup />} />
+                <Route path="/setup-storage" element={<StorageSetup />} />
+                <Route path="/migration-fix" element={<MigrationFix />} />
+                <Route path="/phase2-migration" element={<Phase2Migration />} />
+                <Route path="/roles-migration" element={<RolesMigration />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/dashboard" element={<DashboardNew />} />
+                <Route path="/submission/:id" element={<SubmissionDetail />} />
+                <Route path="/editor" element={<EditorDashboard />} />
+                <Route path="/editor/submissions/:id" element={<EditorSubmissionDetail />} />
+                <Route path="/review-invite" element={<ReviewInvite />} />
+                <Route path="/review/invite/:token" element={<ReviewInviteNew />} />
+                <Route path="/review/dashboard" element={<ReviewDashboard />} />
+                <Route path="/review/assignments/:id" element={<ReviewAssignmentDetail />} />
+              </Routes>
+            </ReactSuspense>
+          </main>
+          <Footer />
+        </div>
+        <APIStatusIndicator />
+        <EnvNotification />
+        <Toaster />
+      </Router>
+    </AuthProvider>
+  );
+}

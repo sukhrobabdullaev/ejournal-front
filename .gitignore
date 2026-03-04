@@ -1,0 +1,16 @@
+/node_modules
+/dist
+/build
+/coverage
+/logs
+/temp
+/uploads
+/backups
+/cache
+/docs
+/tests
+/test-results
+/test-reports
+/test-coverage
+node_modules
+.env
