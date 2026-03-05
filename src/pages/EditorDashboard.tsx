@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { FileText, Clock, Users, CheckCircle, AlertCircle, Eye, Send } from 'lucide-react';
 import type { Submission, ReviewAssignment } from '../lib/api';
@@ -15,102 +15,64 @@ import {
   publishSubmission,
   remindReviewer,
 } from '../lib/queries-api';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 type TabType = 'new' | 'screening' | 'review' | 'decisions';
 
 export function EditorDashboard() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  const [loading, setLoading] = useState(true);
-  const [authorized, setAuthorized] = useState(false);
   const [activeTab, setActiveTab] = useState<TabType>('new');
-
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [selectedSubmission, setSelectedSubmission] = useState<Submission | null>(null);
-
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
   // Reviewer invite form
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteDueDate, setInviteDueDate] = useState('');
-  const [inviting, setInviting] = useState(false);
 
   // Decision form
   const [decision, setDecision] = useState<'accept' | 'reject' | 'revision_required'>('accept');
   const [decisionLetter, setDecisionLetter] = useState('');
-  const [deciding, setDeciding] = useState(false);
-  const [movingToDecision, setMovingToDecision] = useState(false);
-  const [publishing, setPublishing] = useState(false);
 
-  // Auth check
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        setLoading(true);
-        const role = await getMyRole();
-        if (role === 'editor' || role === 'admin') {
-          setAuthorized(true);
-        } else {
-          setAuthorized(false);
-        }
-      } catch (err: any) {
-        console.error('Editor auth check failed:', err);
-        setAuthorized(false);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const { data: role, isLoading: roleLoading } = useQuery({
+    queryKey: ['my-role'],
+    queryFn: getMyRole,
+    retry: false,
+  });
 
-    void checkAuth();
-  }, []);
+  const authorized = role === 'editor' || role === 'admin';
 
-  // Load submissions whenever tab or auth changes
-  useEffect(() => {
-    if (!authorized) return;
-    void loadSubmissions();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [authorized, activeTab]);
+  // Query key for the current tab's submissions
+  const submissionsQueryKey = ['editor-submissions', activeTab];
 
-  const loadSubmissions = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      setSelectedSubmission(null);
-
-      let list: Submission[] = [];
-
+  const { data: submissions = [], isLoading: subsLoading } = useQuery({
+    queryKey: submissionsQueryKey,
+    queryFn: async () => {
       switch (activeTab) {
         case 'new':
-          list = await getSubmissionsByStatus('submitted');
-          break;
+          return getSubmissionsByStatus('submitted');
         case 'screening':
-          list = await getSubmissionsByStatus('screening');
-          break;
+          return getSubmissionsByStatus('screening');
         case 'review':
-          list = await getSubmissionsByStatus('under_review');
-          break;
+          return getSubmissionsByStatus('under_review');
         case 'decisions': {
           const all = await getAllSubmissions();
-          list = all.filter((s) =>
+          return all.filter((s) =>
             ['decision_pending', 'revision_required', 'accepted', 'rejected', 'published'].includes(
               s.status
             )
           );
-          break;
         }
         default:
-          list = await getAllSubmissions();
+          return getAllSubmissions();
       }
+    },
+    enabled: authorized,
+  });
 
-      setSubmissions(list);
-    } catch (err: any) {
-      console.error('Error loading editor submissions:', err);
-      setError(err.message || 'Failed to load submissions');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const loading = roleLoading || (authorized && subsLoading);
 
   const loadSubmissionDetails = async (id: number) => {
     try {
@@ -123,158 +85,140 @@ export function EditorDashboard() {
       }
       setSelectedSubmission(data);
     } catch (err: any) {
-      console.error('Error loading submission detail:', err);
       setError(err.message || 'Failed to load submission detail');
     }
   };
 
-  const handleStartScreening = async () => {
+  const refreshSelected = async () => {
     if (!selectedSubmission) return;
-    try {
-      setSuccess(null);
-      setError(null);
-      setLoading(true);
-
-      await startScreening(selectedSubmission.id.toString());
-      setSuccess('Submission moved to Screening.');
-      await loadSubmissions();
-    } catch (err: any) {
-      console.error('Error starting screening:', err);
-      setError(err.message || 'Failed to move submission to screening');
-    } finally {
-      setLoading(false);
-    }
+    const refreshed = await getSubmissionByIdForEditor(selectedSubmission.id.toString());
+    if (refreshed) setSelectedSubmission(refreshed);
+    queryClient.invalidateQueries({ queryKey: submissionsQueryKey });
   };
 
-  const handleSendToReview = async () => {
-    if (!selectedSubmission) return;
-    try {
-      setSuccess(null);
-      setError(null);
-      setLoading(true);
+  const screeningMutation = useMutation({
+    mutationFn: () => startScreening(selectedSubmission!.id.toString()),
+    onSuccess: async () => {
+      setSuccess('Submission moved to Screening.');
+      await refreshSelected();
+    },
+    onError: (err: any) => setError(err.message || 'Failed to move submission to screening'),
+  });
 
-      // backend enforces presence of assignments; we just surface errors
-      await sendToReview(selectedSubmission.id.toString());
+  const sendToReviewMutation = useMutation({
+    mutationFn: () => sendToReview(selectedSubmission!.id.toString()),
+    onSuccess: async () => {
       setSuccess('Submission moved to Under Review.');
-      await loadSubmissions();
-    } catch (err: any) {
-      console.error('Error sending to review:', err);
+      await refreshSelected();
+    },
+    onError: (err: any) =>
       setError(
         err?.detail ||
           err.message ||
           'Failed to move submission to review. Make sure at least one reviewer is invited.'
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+      ),
+  });
 
-  const handleInviteReviewer = async () => {
-    if (!selectedSubmission || !inviteEmail) return;
-    try {
-      setInviting(true);
-      setSuccess(null);
-      setError(null);
-
-      await inviteReviewer(selectedSubmission.id.toString(), {
+  const inviteReviewerMutation = useMutation({
+    mutationFn: () =>
+      inviteReviewer(selectedSubmission!.id.toString(), {
         reviewer_email: inviteEmail,
         due_date: inviteDueDate || new Date().toISOString().slice(0, 10),
-      });
-
+      }),
+    onSuccess: async () => {
       setSuccess('Reviewer invited successfully.');
       setInviteEmail('');
       setInviteDueDate('');
+      await refreshSelected();
+    },
+    onError: (err: any) => setError(err?.detail || err.message || 'Failed to invite reviewer'),
+  });
 
-      const refreshed = await getSubmissionByIdForEditor(selectedSubmission.id.toString());
-      if (refreshed) setSelectedSubmission(refreshed);
-    } catch (err: any) {
-      console.error('Error inviting reviewer:', err);
-      setError(err?.detail || err.message || 'Failed to invite reviewer');
-    } finally {
-      setInviting(false);
-    }
-  };
+  const remindMutation = useMutation({
+    mutationFn: (assignment: ReviewAssignment) => remindReviewer(assignment.id.toString()),
+    onSuccess: () => setSuccess('Reminder sent to reviewer.'),
+    onError: (err: any) => setError(err?.detail || err.message || 'Failed to send reminder'),
+  });
 
-  const handleRemindReviewer = async (assignment: ReviewAssignment) => {
-    try {
-      setSuccess(null);
-      setError(null);
-      await remindReviewer(assignment.id.toString());
-      setSuccess('Reminder sent to reviewer.');
-    } catch (err: any) {
-      console.error('Error reminding reviewer:', err);
-      setError(err?.detail || err.message || 'Failed to send reminder');
-    }
-  };
-
-  const handleMoveToDecision = async () => {
-    if (!selectedSubmission) return;
-    try {
-      setMovingToDecision(true);
-      setSuccess(null);
-      setError(null);
-
-      await moveToDecision(selectedSubmission.id.toString());
-      const refreshed = await getSubmissionByIdForEditor(selectedSubmission.id.toString());
-      if (refreshed) setSelectedSubmission(refreshed);
+  const moveToDecisionMutation = useMutation({
+    mutationFn: () => moveToDecision(selectedSubmission!.id.toString()),
+    onSuccess: async () => {
+      await refreshSelected();
       setSuccess('Submission moved to Decision Pending.');
-    } catch (err: any) {
-      console.error('Error moving to decision:', err);
-      setError(err?.detail || err.message || 'Failed to move submission to decision');
-    } finally {
-      setMovingToDecision(false);
-    }
-  };
+    },
+    onError: (err: any) =>
+      setError(err?.detail || err.message || 'Failed to move submission to decision'),
+  });
 
-  const handleMakeDecision = async () => {
-    if (!selectedSubmission || !decisionLetter.trim()) {
-      setError('Decision letter is required.');
-      return;
-    }
-
-    try {
-      setDeciding(true);
-      setSuccess(null);
-      setError(null);
-
-      await makeEditorialDecision(
-        selectedSubmission.id.toString(),
+  const makeDecisionMutation = useMutation({
+    mutationFn: () => {
+      if (!decisionLetter.trim()) throw new Error('Decision letter is required.');
+      return makeEditorialDecision(
+        selectedSubmission!.id.toString(),
         decision,
         decisionLetter.trim()
       );
-
-      const refreshed = await getSubmissionByIdForEditor(selectedSubmission.id.toString());
-      if (refreshed) setSelectedSubmission(refreshed);
-
+    },
+    onSuccess: async () => {
+      await refreshSelected();
       setSuccess('Editorial decision recorded.');
-    } catch (err: any) {
-      console.error('Error making decision:', err);
-      setError(err?.detail || err.message || 'Failed to record decision');
-    } finally {
-      setDeciding(false);
-    }
-  };
+    },
+    onError: (err: any) => setError(err?.detail || err.message || 'Failed to record decision'),
+  });
 
-  const handlePublish = async () => {
-    if (!selectedSubmission) return;
-    try {
-      setPublishing(true);
-      setSuccess(null);
-      setError(null);
-
-      await publishSubmission(selectedSubmission.id.toString());
-      const refreshed = await getSubmissionByIdForEditor(selectedSubmission.id.toString());
-      if (refreshed) setSelectedSubmission(refreshed);
+  const publishMutation = useMutation({
+    mutationFn: () => publishSubmission(selectedSubmission!.id.toString()),
+    onSuccess: async () => {
+      await refreshSelected();
       setSuccess('Submission published.');
-    } catch (err: any) {
-      console.error('Error publishing submission:', err);
-      setError(err?.detail || err.message || 'Failed to publish submission');
-    } finally {
-      setPublishing(false);
-    }
+    },
+    onError: (err: any) => setError(err?.detail || err.message || 'Failed to publish submission'),
+  });
+
+  // Aliases for JSX compatibility
+  const inviting = inviteReviewerMutation.isPending;
+  const deciding = makeDecisionMutation.isPending;
+  const movingToDecision = moveToDecisionMutation.isPending;
+  const publishing = publishMutation.isPending;
+
+  const handleStartScreening = () => {
+    setSuccess(null);
+    setError(null);
+    screeningMutation.mutate();
+  };
+  const handleSendToReview = () => {
+    setSuccess(null);
+    setError(null);
+    sendToReviewMutation.mutate();
+  };
+  const handleInviteReviewer = () => {
+    if (!selectedSubmission || !inviteEmail) return;
+    setSuccess(null);
+    setError(null);
+    inviteReviewerMutation.mutate();
+  };
+  const handleRemindReviewer = (assignment: ReviewAssignment) => {
+    setSuccess(null);
+    setError(null);
+    remindMutation.mutate(assignment);
+  };
+  const handleMoveToDecision = () => {
+    setSuccess(null);
+    setError(null);
+    moveToDecisionMutation.mutate();
+  };
+  const handleMakeDecision = () => {
+    setSuccess(null);
+    setError(null);
+    makeDecisionMutation.mutate();
+  };
+  const handlePublish = () => {
+    setSuccess(null);
+    setError(null);
+    publishMutation.mutate();
   };
 
-  if (loading && !submissions.length && !selectedSubmission) {
+  if (loading) {
     return (
       <div
         style={{ backgroundColor: '#F8FAFC', minHeight: '100vh' }}

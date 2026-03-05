@@ -1,13 +1,18 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router';
 import { Search, Filter, Download, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { getPublishedArticles } from '../lib/queries-api';
-import type { Article } from '../lib/api';
 
 export function Articles() {
-  const [articles, setArticles] = useState<Article[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const {
+    data: articles = [],
+    isLoading: loading,
+    isError,
+  } = useQuery({
+    queryKey: ['articles'],
+    queryFn: getPublishedArticles,
+  });
 
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedYear, setSelectedYear] = useState('all');
@@ -15,24 +20,6 @@ export function Articles() {
   const [sortBy, setSortBy] = useState('newest');
   const [currentPage, setCurrentPage] = useState(1);
   const articlesPerPage = 10;
-
-  useEffect(() => {
-    async function loadArticles() {
-      try {
-        setLoading(true);
-        setError(null);
-        const articlesData = await getPublishedArticles();
-        setArticles(articlesData);
-      } catch (err) {
-        console.error('Error loading articles:', err);
-        setError('Failed to load articles');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadArticles();
-  }, []);
 
   // Extract unique years and topics from articles
   const years = useMemo(() => {
@@ -118,12 +105,19 @@ export function Articles() {
     );
   }
 
+  if (isError) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
+        <p className="text-red-600">Failed to load articles. Please try again later.</p>
+      </div>
+    );
+  }
+
   if (error) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
           <h2 className="mb-2 text-2xl font-bold text-gray-900">Error Loading Articles</h2>
-          <p className="text-gray-600">{error}</p>
         </div>
       </div>
     );
@@ -321,10 +315,10 @@ export function Articles() {
                     Published:{' '}
                     {article.published_at
                       ? new Date(article.published_at).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        })
                       : 'N/A'}
                     {article.doi && <> | DOI: {article.doi}</>}
                   </span>
@@ -379,10 +373,11 @@ export function Articles() {
                 <button
                   key={pageNum}
                   onClick={() => setCurrentPage(pageNum)}
-                  className={`px-4 py-1.5 text-sm font-medium ${currentPage === pageNum
+                  className={`px-4 py-1.5 text-sm font-medium ${
+                    currentPage === pageNum
                       ? 'bg-blue-600 text-white'
                       : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
-                    }`}
+                  }`}
                 >
                   {pageNum}
                 </button>

@@ -1,46 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, Link } from 'react-router';
 import { Download, Copy, CheckCircle, Calendar, FileText, ChevronRight } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { getArticleBySlug } from '../lib/queries-api';
-import type { Article, ArticleAuthor } from '../lib/api';
 
 export function ArticleDetail() {
   const { articleSlug } = useParams<{ articleSlug: string }>();
-  const [article, setArticle] = useState<Article | null>(null);
-  const [authors, setAuthors] = useState<ArticleAuthor[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [citationCopied, setCitationCopied] = useState(false);
 
-  useEffect(() => {
-    async function loadArticle() {
-      if (!articleSlug) {
-        setError('No article specified');
-        setLoading(false);
-        return;
-      }
+  const {
+    data: article,
+    isLoading: loading,
+    isError,
+  } = useQuery({
+    queryKey: ['article', articleSlug],
+    queryFn: () => getArticleBySlug(articleSlug!),
+    enabled: !!articleSlug,
+  });
 
-      try {
-        setLoading(true);
-        setError(null);
-
-        const articleData = await getArticleBySlug(articleSlug);
-        if (!articleData) {
-          setError('Article not found');
-          return;
-        }
-        setArticle(articleData);
-        setAuthors(articleData.authors || []);
-      } catch (err) {
-        console.error('Error loading article:', err);
-        setError('Failed to load article');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    loadArticle();
-  }, [articleSlug]);
+  const authors = article?.authors || [];
 
   const handleCopyCitation = () => {
     if (!article) return;
@@ -87,7 +65,7 @@ export function ArticleDetail() {
     );
   }
 
-  if (error || !article) {
+  if (isError || (!loading && !article)) {
     return (
       <div
         style={{ backgroundColor: '#F8FAFC', minHeight: '100vh' }}
@@ -98,7 +76,7 @@ export function ArticleDetail() {
             Article Not Available
           </h2>
           <p className="mb-6" style={{ color: '#64748B' }}>
-            {error || 'The article you are looking for does not exist or is not published yet.'}
+            The article you are looking for does not exist or is not published yet.
           </p>
           <Link
             to="/articles"

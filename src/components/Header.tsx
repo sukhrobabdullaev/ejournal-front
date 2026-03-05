@@ -1,60 +1,38 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { Menu, X, User } from 'lucide-react';
-import { logout, isAuthenticated, getMyRoles, getMyAssignments } from '../lib/queries-api';
+import { useQuery } from '@tanstack/react-query';
+import { logout, getMyAssignments, getCurrentUser } from '../lib/queries-api';
 
 export function Header() {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [userRoles, setUserRoles] = useState<string[]>([]);
-  const [hasReviewAssignments, setHasReviewAssignments] = useState(false);
-  const [isUserAuthenticated, setIsUserAuthenticated] = useState(false);
 
-  useEffect(() => {
-    let mounted = true;
+  const { data: currentUser } = useQuery({
+    queryKey: ['me'],
+    queryFn: getCurrentUser,
+    retry: false,
+  });
 
-    const fetchUserData = async () => {
-      try {
-        const authenticated = await isAuthenticated();
+  const userRoles = currentUser?.roles || [];
+  const isUserAuthenticated = !!currentUser;
+  const canReview =
+    userRoles.includes('reviewer') || userRoles.includes('editor') || userRoles.includes('admin');
 
-        if (!mounted) return;
+  const { data: assignments = [] } = useQuery({
+    queryKey: ['my-assignments'],
+    queryFn: getMyAssignments,
+    enabled: canReview,
+    retry: false,
+  });
 
-        setIsUserAuthenticated(authenticated);
+  const hasReviewAssignments = assignments.length > 0;
 
-        if (!authenticated) {
-          setUserRoles([]);
-          setHasReviewAssignments(false);
-          return;
-        }
-
-        const roles = await getMyRoles();
-
-        if (!mounted) return;
-
-        setUserRoles(roles || []);
-
-        const canReview = roles.includes('reviewer') || roles.includes('editor') || roles.includes('admin');
-        if (canReview) {
-          const assignments = await getMyAssignments();
-          if (mounted) setHasReviewAssignments(assignments.length > 0);
-        }
-      } catch (error) {
-        console.error('Error fetching user data:', error);
-        if (mounted) {
-          setIsUserAuthenticated(false);
-          setUserRoles([]);
-          setHasReviewAssignments(false);
-        }
-      }
-    };
-
-    fetchUserData();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
 
   const navLinks = [
     { name: 'Home', path: '/' },
@@ -86,8 +64,9 @@ export function Header() {
               <Link
                 key={link.path}
                 to={link.path}
-                className={`text-sm transition-colors ${isActive(link.path) ? 'border-b-2 pb-0.5 font-medium' : 'hover:opacity-80'
-                  }`}
+                className={`text-sm transition-colors ${
+                  isActive(link.path) ? 'border-b-2 pb-0.5 font-medium' : 'hover:opacity-80'
+                }`}
                 style={{
                   color: isActive(link.path) ? '#2563EB' : '#475569',
                   borderColor: isActive(link.path) ? '#2563EB' : 'transparent',
@@ -207,10 +186,11 @@ export function Header() {
                 key={link.path}
                 to={link.path}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`block rounded px-3 py-2 text-sm ${isActive(link.path)
+                className={`block rounded px-3 py-2 text-sm ${
+                  isActive(link.path)
                     ? 'bg-blue-50 font-medium text-[#1d4ed8]'
                     : 'text-gray-700 hover:bg-gray-50 hover:text-[#1d4ed8]'
-                  }`}
+                }`}
               >
                 {link.name}
               </Link>

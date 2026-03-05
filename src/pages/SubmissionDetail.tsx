@@ -1,75 +1,37 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import type { Submission } from '../lib/api';
 import { getSubmissionById, submitSubmission } from '../lib/queries-api';
 import { FileText, ArrowLeft } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 export function SubmissionDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  const [submission, setSubmission] = useState<Submission | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const {
+    data: submission,
+    isLoading: loading,
+    isError,
+  } = useQuery({
+    queryKey: ['submission', id],
+    queryFn: () => getSubmissionById(id!),
+    enabled: !!id,
+  });
 
-  useEffect(() => {
-    if (!id) {
-      setError('Submission ID is missing in the URL');
-      setLoading(false);
-      return;
-    }
-
-    void load();
-  }, [id]);
-
-  const load = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const data = await getSubmissionById(id!);
-      if (!data) {
-        setError('Submission not found or access denied');
-        return;
-      }
-
-      setSubmission(data);
-    } catch (err: any) {
-      console.error('Error loading submission:', err);
-      setError(err.message || 'Failed to load submission');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSubmit = async () => {
-    if (!submission || submission.status !== 'draft') return;
-    try {
-      setSubmitting(true);
-      setError(null);
-
-      const { data, error } = await submitSubmission(submission.id.toString());
+  const submitMutation = useMutation({
+    mutationFn: () => submitSubmission(submission!.id.toString()),
+    onSuccess: ({ data, error }: any) => {
       if (error) {
-        console.error('Error submitting manuscript:', error);
         const message = error.detail || error.message || 'Failed to submit manuscript';
-        setError(message);
+        console.error('Submit error:', message);
         return;
       }
-
-      if (data) {
-        setSubmission(data);
-      } else {
-        const updated = await getSubmissionById(submission.id.toString());
-        if (updated) setSubmission(updated);
-      }
-    } catch (err: any) {
-      console.error('Error submitting manuscript:', err);
-      setError(err.message || 'Failed to submit manuscript');
-    } finally {
-      setSubmitting(false);
-    }
-  };
+      queryClient.invalidateQueries({ queryKey: ['submission', id] });
+    },
+    onError: (err: any) => console.error('Error submitting manuscript:', err),
+  });
 
   if (loading) {
     return (
@@ -82,11 +44,11 @@ export function SubmissionDetail() {
     );
   }
 
-  if (error || !submission) {
+  if (isError || (!loading && !submission)) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-white">
         <div className="text-center">
-          <p className="mb-4 text-sm text-red-600">{error || 'Submission not found'}</p>
+          <p className="mb-4 text-sm text-red-600">Submission not found or access denied</p>
           <button
             onClick={() => navigate('/dashboard')}
             className="bg-blue-600 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-700"
@@ -130,11 +92,11 @@ export function SubmissionDetail() {
               <span className={statusClass}>{statusLabel}</span>
               {submission.status === 'draft' && (
                 <button
-                  onClick={handleSubmit}
-                  disabled={submitting}
+                  onClick={() => submitMutation.mutate()}
+                  disabled={submitMutation.isPending}
                   className="bg-blue-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
                 >
-                  {submitting ? 'Submitting...' : 'Submit Manuscript'}
+                  {submitMutation.isPending ? 'Submitting...' : 'Submit Manuscript'}
                 </button>
               )}
             </div>

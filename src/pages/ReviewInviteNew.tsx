@@ -1,78 +1,59 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { getAssignmentByToken, getSubmissionFiles, acceptReviewInvitation, declineReviewInvitation, getCurrentUser } from '../lib/queries-api';
+import {
+  getAssignmentByToken,
+  getSubmissionFiles,
+  acceptReviewInvitation,
+  declineReviewInvitation,
+  getCurrentUser,
+} from '../lib/queries-api';
 import { CheckCircle, XCircle, FileText, Download } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 export function ReviewInviteNew() {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
-  const [assignment, setAssignment] = useState<any>(null);
-  const [files, setFiles] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [responding, setResponding] = useState(false);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    if (token) {
-      loadInvitation();
-    }
-  }, [token]);
+  const {
+    data: assignment,
+    isLoading: loading,
+    isError,
+  } = useQuery({
+    queryKey: ['assignment-by-token', token],
+    queryFn: () => getAssignmentByToken(token!),
+    enabled: !!token,
+    retry: false,
+  });
 
-  const loadInvitation = async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  const { data: files = [] } = useQuery({
+    queryKey: ['submission-files', assignment?.submission],
+    queryFn: () => getSubmissionFiles(String(assignment!.submission)),
+    enabled: !!assignment && assignment.status === 'accepted' && !!assignment.submission,
+  });
 
-      const assignmentData = await getAssignmentByToken(token!);
-
-      if (!assignmentData) {
-        setError('Invitation not found or expired');
-        return;
-      }
-
-      setAssignment(assignmentData);
-
-      // Load files if assignment is accepted (reviewer can view)
-      if (assignmentData.status === 'accepted' && assignmentData.submission) {
-        const filesData = await getSubmissionFiles(String(assignmentData.submission));
-        setFiles(filesData);
-      }
-    } catch (err: any) {
-      console.error('Error loading invitation:', err);
-      setError('Failed to load invitation');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleResponse = async (accepted: boolean) => {
-    try {
-      setResponding(true);
-      setError(null);
-
-      // Check if user is logged in
+  const responseMutation = useMutation({
+    mutationFn: async (accepted: boolean) => {
       const user = await getCurrentUser();
       if (!user) {
         navigate(`/login?returnTo=/review/invite/${token}`);
-        return;
+        throw new Error('not logged in');
       }
-
       if (accepted) {
-        const { error: respError } = await acceptReviewInvitation(String(assignment.id));
-        if (respError) throw new Error(respError.detail || 'Failed to accept invitation');
+        const { error: err } = await acceptReviewInvitation(String(assignment!.id));
+        if (err) throw new Error(err.detail || 'Failed to accept invitation');
       } else {
-        const { error: respError } = await declineReviewInvitation(String(assignment.id));
-        if (respError) throw new Error(respError.detail || 'Failed to decline invitation');
+        const { error: err } = await declineReviewInvitation(String(assignment!.id));
+        if (err) throw new Error(err.detail || 'Failed to decline invitation');
       }
-
-      await loadInvitation();
-    } catch (err: any) {
-      console.error('Error responding to invitation:', err);
-      setError('Failed to respond to invitation');
-    } finally {
-      setResponding(false);
-    }
-  };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['assignment-by-token', token] });
+    },
+    onError: (err: any) => {
+      if (err.message !== 'not logged in') console.error('Error responding to invitation:', err);
+    },
+  });
 
   const handleDownload = (file: any) => {
     const url = file.manuscript_url || file.file || file.url;
@@ -94,15 +75,13 @@ export function ReviewInviteNew() {
     );
   }
 
-  if (error || !assignment) {
+  if (isError || !assignment) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-white">
         <div className="max-w-md text-center">
           <XCircle size={48} className="mx-auto mb-4 text-red-600" />
           <h2 className="mb-2 text-2xl font-bold text-gray-900">Invitation Not Found</h2>
-          <p className="mb-6 text-gray-600">
-            {error || 'This invitation link is invalid or has expired.'}
-          </p>
+          <p className="mb-6 text-gray-600">This invitation link is invalid or has expired.</p>
           <button
             onClick={() => navigate('/dashboard')}
             className="bg-blue-600 px-6 py-3 font-medium text-white hover:bg-blue-700"
@@ -145,7 +124,9 @@ export function ReviewInviteNew() {
             {(assignment as any).submission_topic_area && (
               <div className="mb-4">
                 <span className="text-sm text-gray-600">Topic Area:</span>
-                <p className="mt-1 text-sm text-gray-900">{(assignment as any).submission_topic_area}</p>
+                <p className="mt-1 text-sm text-gray-900">
+                  {(assignment as any).submission_topic_area}
+                </p>
               </div>
             )}
 
@@ -159,7 +140,7 @@ export function ReviewInviteNew() {
             )}
           </div>
 
-          {/* Files Section */}}
+          {/* Files Section */}
           {files.length > 0 && (
             <div className="mb-6 border border-gray-300 bg-white p-6">
               <h3 className="mb-4 text-lg font-semibold text-gray-900">Manuscript Files</h3>
@@ -257,7 +238,9 @@ export function ReviewInviteNew() {
           {(assignment as any).submission_topic_area && (
             <div className="mb-4">
               <span className="text-sm text-gray-600">Topic Area:</span>
-              <p className="mt-1 text-sm text-gray-900">{(assignment as any).submission_topic_area}</p>
+              <p className="mt-1 text-sm text-gray-900">
+                {(assignment as any).submission_topic_area}
+              </p>
             </div>
           )}
 
@@ -280,29 +263,31 @@ export function ReviewInviteNew() {
           </p>
         </div>
 
-        {error && (
+        {responseMutation.isError && (
           <div className="mb-6 border border-red-300 bg-red-50 p-4">
-            <p className="text-sm text-red-800">{error}</p>
+            <p className="text-sm text-red-800">
+              Failed to respond to invitation. Please try again.
+            </p>
           </div>
         )}
 
         {/* Action Buttons */}
         <div className="flex justify-center gap-4">
           <button
-            onClick={() => handleResponse(false)}
-            disabled={responding}
+            onClick={() => responseMutation.mutate(false)}
+            disabled={responseMutation.isPending}
             className="flex items-center border border-gray-300 px-8 py-3 font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
           >
             <XCircle size={18} className="mr-2" />
-            {responding ? 'Processing...' : 'Decline'}
+            {responseMutation.isPending ? 'Processing...' : 'Decline'}
           </button>
           <button
-            onClick={() => handleResponse(true)}
-            disabled={responding}
+            onClick={() => responseMutation.mutate(true)}
+            disabled={responseMutation.isPending}
             className="flex items-center bg-green-600 px-8 py-3 font-medium text-white hover:bg-green-700 disabled:opacity-50"
           >
             <CheckCircle size={18} className="mr-2" />
-            {responding ? 'Processing...' : 'Accept Invitation'}
+            {responseMutation.isPending ? 'Processing...' : 'Accept Invitation'}
           </button>
         </div>
       </div>

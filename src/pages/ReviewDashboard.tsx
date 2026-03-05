@@ -4,53 +4,55 @@ import { FileText, Clock, CheckCircle, AlertCircle, Download, X, Send } from 'lu
 import { TokenManager } from '../lib/api';
 import type { ReviewAssignment } from '../lib/api';
 import { getMyAssignments, getSubmissionFiles, submitReview } from '../lib/queries-api';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 export function ReviewDashboard() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [assignments, setAssignments] = useState<ReviewAssignment[]>([]);
+  const queryClient = useQueryClient();
   const [selectedAssignment, setSelectedAssignment] = useState<ReviewAssignment | null>(null);
-  const [files, setFiles] = useState<any[]>([]);
   const [existingReview, setExistingReview] = useState<any | null>(null);
 
   // Review form state
   const [recommendation, setRecommendation] = useState('');
   const [commentsToAuthor, setCommentsToAuthor] = useState('');
   const [commentsToEditor, setCommentsToEditor] = useState('');
-  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const isLoggedIn = !!TokenManager.getAccessToken();
+
+  const { data: assignments = [], isLoading: loading } = useQuery({
+    queryKey: ['my-assignments'],
+    queryFn: getMyAssignments,
+    enabled: isLoggedIn,
+  });
+
   useEffect(() => {
-    const checkAccessAndLoad = async () => {
-      setLoading(true);
+    if (!isLoggedIn) navigate('/login');
+  }, [isLoggedIn]);
 
-      if (!TokenManager.getAccessToken()) {
-        navigate('/login');
+  const { data: files = [] } = useQuery({
+    queryKey: ['submission-files', selectedAssignment?.submission],
+    queryFn: () => getSubmissionFiles(String(selectedAssignment!.submission)),
+    enabled: !!selectedAssignment,
+  });
+
+  const submitReviewMutation = useMutation({
+    mutationFn: (vars: { id: string; payload: any }) => submitReview(vars.id, vars.payload),
+    onSuccess: ({ error: submitError }: any) => {
+      if (submitError) {
+        setError(submitError.detail || 'Failed to submit review');
         return;
       }
+      queryClient.invalidateQueries({ queryKey: ['my-assignments'] });
+      closeReviewModal();
+      alert('Review submitted successfully!');
+    },
+    onError: (err: any) => setError('Failed to submit review: ' + err.message),
+  });
 
-      // Load assignments
-      const assignmentsData = await getMyAssignments();
-
-      if (assignmentsData.length === 0) {
-        setError('You do not have any review assignments.');
-        setLoading(false);
-        return;
-      }
-
-      setAssignments(assignmentsData);
-      setLoading(false);
-    };
-
-    checkAccessAndLoad();
-  }, [navigate]);
-
-  const openReviewModal = async (assignment: ReviewAssignment) => {
+  const openReviewModal = (assignment: ReviewAssignment) => {
     setSelectedAssignment(assignment);
     setError(null);
-
-    const filesData = await getSubmissionFiles(String(assignment.submission));
-    setFiles(filesData);
 
     if (assignment.review) {
       setExistingReview(assignment.review);
@@ -75,7 +77,7 @@ export function ReviewDashboard() {
     setError(null);
   };
 
-  const handleSubmitReview = async () => {
+  const handleSubmitReview = () => {
     if (!selectedAssignment) return;
 
     if (!recommendation) {
@@ -88,31 +90,17 @@ export function ReviewDashboard() {
       return;
     }
 
-    setSubmitting(true);
     setError(null);
-
-    try {
-      const { error: submitError } = await submitReview(String(selectedAssignment.id), {
+    submitReviewMutation.mutate({
+      id: String(selectedAssignment.id),
+      payload: {
         summary: commentsToAuthor,
         strengths: '',
         weaknesses: '',
         confidential_to_editor: commentsToEditor,
         recommendation: recommendation as any,
-      });
-
-      if (submitError) throw new Error(submitError.detail || 'Failed to submit review');
-
-      const updatedAssignments = await getMyAssignments();
-      setAssignments(updatedAssignments);
-
-      closeReviewModal();
-      alert('Review submitted successfully!');
-    } catch (err: any) {
-      console.error('Error submitting review:', err);
-      setError('Failed to submit review: ' + err.message);
-    } finally {
-      setSubmitting(false);
-    }
+      },
+    });
   };
 
   const downloadFile = (file: any) => {
@@ -197,7 +185,7 @@ export function ReviewDashboard() {
             No Review Assignments
           </h1>
           <p className="mb-6" style={{ color: '#64748B' }}>
-            {error}
+            You do not have any review assignments.
           </p>
           <button
             onClick={() => navigate('/dashboard')}
@@ -543,18 +531,18 @@ export function ReviewDashboard() {
               <div className="flex justify-end gap-3 border-t border-gray-300 bg-gray-50 p-4">
                 <button
                   onClick={closeReviewModal}
-                  disabled={submitting}
+                  disabled={submitReviewMutation.isPending}
                   className="border border-gray-300 px-6 py-2 text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:bg-gray-100"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSubmitReview}
-                  disabled={submitting}
+                  disabled={submitReviewMutation.isPending}
                   className="flex items-center gap-2 bg-blue-600 px-6 py-2 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
                 >
                   <Send className="h-4 w-4" />
-                  {submitting ? 'Submitting...' : 'Submit Review'}
+                  {submitReviewMutation.isPending ? 'Submitting...' : 'Submit Review'}
                 </button>
               </div>
             )}

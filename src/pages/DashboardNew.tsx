@@ -2,16 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router';
 import { logout } from '../lib/queries-api';
 import {
-  getMyProfile,
-  getMySubmissions,
-  getMyAssignments,
-  getMyRoles,
-  getMyActiveRole,
   setMyActiveRole,
   initializeActiveRole,
   getAllSubmissions,
+  getCurrentUser,
+  getMySubmissions,
+  getMyAssignments,
 } from '../lib/queries-api';
-import type { User, Submission, ReviewAssignment } from '../lib/api';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import type { Submission, ReviewAssignment } from '../lib/api';
 import {
   FileText,
   Plus,
@@ -29,111 +28,66 @@ import {
 
 export function DashboardNew() {
   const navigate = useNavigate();
-  const [profile, setProfile] = useState<User | null>(null);
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
-  const [reviewAssignments, setReviewAssignments] = useState<ReviewAssignment[]>([]);
-  const [allSubmissions, setAllSubmissions] = useState<any[]>([]);
-  const [roles, setRoles] = useState<string[]>([]);
-  const [activeRole, setActiveRoleState] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const [activeRole, setActiveRoleState] = useState<string | null>(() =>
+    localStorage.getItem('active_role')
+  );
   const [showRoleDropdown, setShowRoleDropdown] = useState(false);
-  const [switchingRole, setSwitchingRole] = useState(false);
 
+  const {
+    data: currentUser,
+    isLoading: userLoading,
+    isError: userError,
+  } = useQuery({
+    queryKey: ['me'],
+    queryFn: getCurrentUser,
+    retry: false,
+  });
+
+  const roles = currentUser?.roles || [];
+  const isReviewer =
+    roles.includes('reviewer') || roles.includes('editor') || roles.includes('admin');
+  const isEditorOrAdmin = activeRole === 'editor' || activeRole === 'admin';
+
+  const { data: submissions = [] } = useQuery({
+    queryKey: ['my-submissions'],
+    queryFn: getMySubmissions,
+    enabled: !!currentUser,
+  });
+
+  const roleSwitchMutation = useMutation({
+    mutationFn: setMyActiveRole,
+    onSuccess: (success, newRole) => {
+      if (success) {
+        setActiveRoleState(newRole);
+        setShowRoleDropdown(false);
+      } else {
+        alert('Failed to switch role.');
+      }
+    },
+    onError: () => alert('An error occurred while switching roles.'),
+  });
+
+  // Initialize active role on mount
   useEffect(() => {
-    loadDashboardData();
-  }, []);
+    if (currentUser && roles.length > 0 && !activeRole) {
+      initializeActiveRole().then((role) => setActiveRoleState(role));
+    }
+  }, [currentUser]);
 
+  // Redirect if unauthenticated
   useEffect(() => {
-    if (activeRole === 'editor' || activeRole === 'admin') {
-      loadEditorData();
+    if (!userLoading && (userError || !currentUser)) {
+      navigate('/login');
     }
-  }, [activeRole]);
+  }, [userLoading, userError, currentUser]);
 
-  const loadDashboardData = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      // Load roles first
-      const rolesData = await getMyRoles();
-      console.log('[Dashboard] Roles loaded:', rolesData);
-
-      // If no roles, user not authenticated
-      if (!rolesData || rolesData.length === 0) {
-        navigate('/login');
-        return;
-      }
-
-      setRoles(rolesData);
-
-      // Initialize and get active role
-      const initializedActiveRole = await initializeActiveRole();
-      console.log('[Dashboard] Active role initialized:', initializedActiveRole);
-      setActiveRoleState(initializedActiveRole);
-
-      // Load profile and data
-      const isReviewer = rolesData.includes('reviewer') || rolesData.includes('editor') || rolesData.includes('admin');
-      const [profileData, submissionsData, reviewAssignmentsData] = await Promise.all([
-        getMyProfile(),
-        getMySubmissions(),
-        isReviewer ? getMyAssignments() : Promise.resolve([]),
-      ]);
-
-      if (!profileData) {
-        setError('Profile not found');
-        navigate('/login');
-        return;
-      }
-
-      setProfile(profileData);
-      setSubmissions(submissionsData);
-      setReviewAssignments(reviewAssignmentsData);
-    } catch (err: any) {
-      console.error('Error loading dashboard:', err);
-      setError('Failed to load dashboard data');
-      // If unauthorized, redirect to login
-      if (err.message?.includes('401') || err.message?.includes('expired')) {
-        navigate('/login');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const loadEditorData = async () => {
-    try {
-      const allSubs = await getAllSubmissions();
-      setAllSubmissions(allSubs);
-    } catch (err) {
-      console.error('Error loading editor data:', err);
-    }
-  };
-
-  const handleRoleSwitch = async (newRole: string) => {
+  const handleRoleSwitch = (newRole: string) => {
     if (!roles.includes(newRole)) {
       alert('You do not have permission to switch to this role.');
       return;
     }
-
-    setSwitchingRole(true);
-
-    try {
-      const success = await setMyActiveRole(newRole);
-
-      if (success) {
-        // Optimistic UI update
-        setActiveRoleState(newRole);
-        setShowRoleDropdown(false);
-      } else {
-        alert('Failed to switch role. The active_role column may not exist in the database.');
-      }
-    } catch (err) {
-      console.error('Error switching role:', err);
-      alert('An error occurred while switching roles.');
-    } finally {
-      setSwitchingRole(false);
-    }
+    roleSwitchMutation.mutate(newRole);
   };
 
   const handleLogout = async () => {
@@ -180,7 +134,7 @@ export function DashboardNew() {
     return role.charAt(0).toUpperCase() + role.slice(1);
   };
 
-  if (loading) {
+  if (userLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-white">
         <div className="text-center">
@@ -191,47 +145,12 @@ export function DashboardNew() {
     );
   }
 
-  if (error && roles.length === 0) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-white">
-        <div className="max-w-md text-center">
-          <AlertCircle className="mx-auto mb-4 h-16 w-16 text-yellow-600" />
-          <h2 className="mb-2 text-2xl font-bold text-gray-900">No Roles Assigned</h2>
-          <p className="mb-6 text-gray-600">{error}</p>
-          <button
-            onClick={handleLogout}
-            className="bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700"
-          >
-            Logout
-          </button>
-        </div>
-      </div>
-    );
+  if (!currentUser) {
+    return null;
   }
 
-  if (error || !profile) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-white">
-        <div className="text-center">
-          <h2 className="mb-2 text-2xl font-bold text-gray-900">Error</h2>
-          <p className="mb-6 text-gray-600">{error || 'Failed to load dashboard'}</p>
-          <button
-            onClick={() => navigate('/login')}
-            className="bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700"
-          >
-            Back to Login
-          </button>
-        </div>
-      </div>
-    );
-  }
+  const profile = currentUser;
 
-  const submittedCount = allSubmissions.filter((s) => s.status === 'submitted').length;
-  const underReviewCount = allSubmissions.filter((s) => s.status === 'under_review').length;
-  const acceptedCount = allSubmissions.filter((s) => s.status === 'accepted').length;
-  const rejectedCount = allSubmissions.filter((s) => s.status === 'rejected').length;
-
-  console.log(allSubmissions);
   return (
     <div className="min-h-screen bg-white">
       {/* Page Header */}
@@ -253,7 +172,7 @@ export function DashboardNew() {
                   <button
                     onClick={() => setShowRoleDropdown(!showRoleDropdown)}
                     className="flex min-w-[140px] items-center justify-between gap-2 border border-gray-300 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"
-                    disabled={switchingRole}
+                    disabled={roleSwitchMutation.isPending}
                   >
                     <span className="capitalize">
                       {activeRole ? getRoleTitleCase(activeRole) : 'Select Role'}
@@ -270,11 +189,12 @@ export function DashboardNew() {
                         <button
                           key={role}
                           onClick={() => handleRoleSwitch(role)}
-                          className={`w-full px-4 py-2 text-left text-sm capitalize transition-colors hover:bg-gray-50 ${role === activeRole
+                          className={`w-full px-4 py-2 text-left text-sm capitalize transition-colors hover:bg-gray-50 ${
+                            role === activeRole
                               ? 'bg-blue-50 font-medium text-blue-700'
                               : 'text-gray-700'
-                            }`}
-                          disabled={switchingRole}
+                          }`}
+                          disabled={roleSwitchMutation.isPending}
                         >
                           {getRoleTitleCase(role)}
                         </button>
@@ -307,359 +227,15 @@ export function DashboardNew() {
 
       <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* REVIEWER DASHBOARD */}
-        {activeRole === 'reviewer' && (
-          <div>
-            <div className="mb-8">
-              <h2 className="mb-2 text-2xl font-bold text-gray-900">Reviewer Dashboard</h2>
-              <p className="text-sm text-gray-600">Review manuscripts assigned to you</p>
-            </div>
+        {activeRole === 'reviewer' && <ReviewerSection />}
 
-            {/* Review Statistics */}
-            <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
-              <div className="border border-gray-300 bg-white p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="mb-1 text-sm text-gray-600">Total Assignments</p>
-                    <p className="text-3xl font-bold text-gray-900">{reviewAssignments.length}</p>
-                  </div>
-                  <FileText className="h-8 w-8 text-blue-600" />
-                </div>
-              </div>
-              <div className="border border-gray-300 bg-white p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="mb-1 text-sm text-gray-600">Pending Invites</p>
-                    <p className="text-3xl font-bold text-yellow-600">
-                      {reviewAssignments.filter((a) => a.status === 'invited').length}
-                    </p>
-                  </div>
-                  <Clock className="h-8 w-8 text-yellow-600" />
-                </div>
-              </div>
-              <div className="border border-gray-300 bg-white p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="mb-1 text-sm text-gray-600">In Progress</p>
-                    <p className="text-3xl font-bold text-blue-600">
-                      {reviewAssignments.filter((a) => a.status === 'accepted').length}
-                    </p>
-                  </div>
-                  <Eye className="h-8 w-8 text-blue-600" />
-                </div>
-              </div>
-              <div className="border border-gray-300 bg-white p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="mb-1 text-sm text-gray-600">Completed</p>
-                    <p className="text-3xl font-bold text-green-600">
-                      {reviewAssignments.filter((a) => a.status === 'review_submitted').length}
-                    </p>
-                  </div>
-                  <CheckCircle className="h-8 w-8 text-green-600" />
-                </div>
-              </div>
-            </div>
-
-            {/* Review Assignments List */}
-            <div className="border border-gray-300 bg-white p-6">
-              <h3 className="mb-4 text-xl font-semibold text-gray-900">My Review Assignments</h3>
-              {reviewAssignments.length === 0 ? (
-                <p className="text-sm text-gray-600">No review assignments yet.</p>
-              ) : (
-                <div className="space-y-4">
-                  {reviewAssignments.map((assignment) => (
-                    <div
-                      key={assignment.id}
-                      className="border border-gray-300 p-4 transition-colors hover:bg-gray-50"
-                    >
-                      <div className="mb-2 flex items-start justify-between">
-                        <div className="flex-1">
-                          <h4 className="mb-1 text-lg font-medium text-gray-900">
-                            {assignment.submission_title || 'Untitled Manuscript'}
-                          </h4>
-                          <p className="text-sm text-gray-600">
-                            Invited:{' '}
-                            {assignment.invited_at
-                              ? new Date(assignment.invited_at).toLocaleDateString('en-US', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric',
-                              })
-                              : 'N/A'}
-                          </p>
-                          {assignment.due_date && (
-                            <p className="text-sm text-gray-600">
-                              Due:{' '}
-                              {new Date(assignment.due_date).toLocaleDateString('en-US', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric',
-                              })}
-                            </p>
-                          )}
-                        </div>
-                        <span
-                          className={`border px-3 py-1 text-xs capitalize ${assignment.status === 'invited'
-                              ? 'border-yellow-300 bg-yellow-50 text-yellow-700'
-                              : assignment.status === 'accepted'
-                                ? 'border-blue-300 bg-blue-50 text-blue-700'
-                                : assignment.status === 'declined'
-                                  ? 'border-red-300 bg-red-50 text-red-700'
-                                  : assignment.status === 'review_submitted'
-                                    ? 'border-green-300 bg-green-50 text-green-700'
-                                    : 'border-gray-300 bg-gray-100 text-gray-700'
-                            }`}
-                        >
-                          {assignment.status.replace('_', ' ')}
-                        </span>
-                      </div>
-                      {assignment.submission_abstract && (
-                        <p className="mb-3 line-clamp-2 text-sm text-gray-700">
-                          {assignment.submission_abstract}
-                        </p>
-                      )}
-                      <Link
-                        to={`/review/assignments/${assignment.id}`}
-                        className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-700"
-                      >
-                        View Assignment Details →
-                      </Link>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* EDITOR DASHBOARD */}
-        {activeRole === 'editor' && (
-          <div>
-            <div className="mb-8">
-              <h2 className="mb-2 text-2xl font-bold text-gray-900">Editor Dashboard</h2>
-              <p className="text-sm text-gray-600">Manage submissions and editorial workflow</p>
-            </div>
-
-            {/* Editorial Statistics */}
-            <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
-              <div className="border border-gray-300 bg-white p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="mb-1 text-sm text-gray-600">New Submissions</p>
-                    <p className="text-3xl font-bold text-blue-600">{submittedCount}</p>
-                  </div>
-                  <FileText className="h-8 w-8 text-blue-600" />
-                </div>
-              </div>
-              <div className="border border-gray-300 bg-white p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="mb-1 text-sm text-gray-600">Under Review</p>
-                    <p className="text-3xl font-bold text-yellow-600">{underReviewCount}</p>
-                  </div>
-                  <Clock className="h-8 w-8 text-yellow-600" />
-                </div>
-              </div>
-              <div className="border border-gray-300 bg-white p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="mb-1 text-sm text-gray-600">Accepted</p>
-                    <p className="text-3xl font-bold text-green-600">{acceptedCount}</p>
-                  </div>
-                  <CheckCircle className="h-8 w-8 text-green-600" />
-                </div>
-              </div>
-              <div className="border border-gray-300 bg-white p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="mb-1 text-sm text-gray-600">Rejected</p>
-                    <p className="text-3xl font-bold text-red-600">{rejectedCount}</p>
-                  </div>
-                  <AlertCircle className="h-8 w-8 text-red-600" />
-                </div>
-              </div>
-            </div>
-
-            {/* Submissions List */}
-            <div className="border border-gray-300 bg-white p-6">
-              <h3 className="mb-4 text-xl font-semibold text-gray-900">All Submissions</h3>
-              {allSubmissions.length === 0 ? (
-                <p className="text-sm text-gray-600">No submissions yet.</p>
-              ) : (
-                <div className="space-y-4">
-                  {allSubmissions.slice(0, 10).map((submission) => (
-                    <div
-                      key={submission.id}
-                      className="border border-gray-300 p-4 transition-colors hover:bg-gray-50"
-                    >
-                      <div className="mb-2 flex items-start justify-between">
-                        <div className="flex-1">
-                          <h4 className="mb-1 text-lg font-medium text-gray-900">
-                            {submission.title || 'Untitled Submission'}
-                          </h4>
-                          <p className="text-sm text-gray-600">
-                            Author: {submission.profiles?.full_name || 'Unknown'}
-                          </p>
-                          <p className="text-sm text-gray-600">
-                            Submitted:{' '}
-                            {submission.created_at
-                              ? new Date(submission.created_at).toLocaleDateString('en-US', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric',
-                              })
-                              : 'N/A'}
-                          </p>
-                        </div>
-                        <span
-                          className={`border px-3 py-1 text-xs ${getStatusColor(submission.status)}`}
-                        >
-                          {getStatusLabel(submission.status)}
-                        </span>
-                      </div>
-                      {submission.abstract && (
-                        <p className="mb-3 line-clamp-2 text-sm text-gray-700">
-                          {submission.abstract}
-                        </p>
-                      )}
-                      <Link
-                        to={`/editor/submissions/${submission.id}`}
-                        className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-700"
-                      >
-                        <Eye size={16} className="mr-1" />
-                        View Submission Details
-                      </Link>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              <div className="mt-6">
-                <Link
-                  to="/editor"
-                  className="inline-flex items-center px-4 py-2 text-sm font-medium"
-                >
-                  Go to Full Editor Dashboard →
-                </Link>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ADMIN DASHBOARD */}
-        {activeRole === 'admin' && (
-          <div>
-            <div className="mb-8">
-              <h2 className="mb-2 text-2xl font-bold text-gray-900">Admin Dashboard</h2>
-              <p className="text-sm text-gray-600">System administration and user management</p>
-            </div>
-
-            {/* Admin Statistics */}
-            <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
-              <div className="border border-gray-300 bg-white p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="mb-1 text-sm text-gray-600">Total Submissions</p>
-                    <p className="text-3xl font-bold text-gray-900">{allSubmissions.length}</p>
-                  </div>
-                  <FileText className="h-8 w-8 text-gray-600" />
-                </div>
-              </div>
-              <div className="border border-gray-300 bg-white p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="mb-1 text-sm text-gray-600">Active Reviews</p>
-                    <p className="text-3xl font-bold text-blue-600">{underReviewCount}</p>
-                  </div>
-                  <Users className="h-8 w-8 text-blue-600" />
-                </div>
-              </div>
-              <div className="border border-gray-300 bg-white p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="mb-1 text-sm text-gray-600">Published</p>
-                    <p className="text-3xl font-bold text-green-600">
-                      {allSubmissions.filter((s) => s.status === 'published').length}
-                    </p>
-                  </div>
-                  <CheckCircle className="h-8 w-8 text-green-600" />
-                </div>
-              </div>
-              <div className="border border-gray-300 bg-white p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="mb-1 text-sm text-gray-600">System Status</p>
-                    <p className="text-lg font-bold text-green-600">Healthy</p>
-                  </div>
-                  <Settings className="h-8 w-8 text-green-600" />
-                </div>
-              </div>
-            </div>
-
-            {/* Admin Quick Actions */}
-            <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
-              <div className="border border-gray-300 bg-white p-6">
-                <h3 className="mb-4 text-lg font-semibold text-gray-900">Editorial Management</h3>
-                <p className="mb-4 text-sm text-gray-600">
-                  Manage all submissions, assign editors, and oversee the editorial workflow.
-                </p>
-                <Link
-                  to="/editor"
-                  className="inline-flex items-center bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-                >
-                  <FileText size={16} className="mr-2" />
-                  Editorial Dashboard
-                </Link>
-              </div>
-
-              <div className="border border-gray-300 bg-white p-6">
-                <h3 className="mb-4 text-lg font-semibold text-gray-900">User Management</h3>
-                <p className="mb-4 text-sm text-gray-600">
-                  Manage user roles, permissions, and review role requests.
-                </p>
-                <button
-                  className="inline-flex cursor-not-allowed items-center bg-gray-300 px-4 py-2 text-sm font-medium text-gray-500"
-                  disabled
-                >
-                  <Users size={16} className="mr-2" />
-                  Coming Soon
-                </button>
-              </div>
-            </div>
-
-            {/* Recent Submissions */}
-            <div className="border border-gray-300 bg-white p-6">
-              <h3 className="mb-4 text-xl font-semibold text-gray-900">Recent Submissions</h3>
-              {allSubmissions.length === 0 ? (
-                <p className="text-sm text-gray-600">No submissions yet.</p>
-              ) : (
-                <div className="space-y-4">
-                  {allSubmissions.slice(0, 5).map((submission) => (
-                    <div key={submission.id} className="border border-gray-300 p-4">
-                      <div className="mb-2 flex items-start justify-between">
-                        <div className="flex-1">
-                          <h4 className="mb-1 text-base font-medium text-gray-900">
-                            {submission.title || 'Untitled Submission'}
-                          </h4>
-                          <p className="text-sm text-gray-600">
-                            Author: {submission.profiles?.full_name || 'Unknown'} • Submitted:{' '}
-                            {submission.created_at
-                              ? new Date(submission.created_at).toLocaleDateString()
-                              : 'N/A'}
-                          </p>
-                        </div>
-                        <span
-                          className={`border px-3 py-1 text-xs ${getStatusColor(submission.status)}`}
-                        >
-                          {getStatusLabel(submission.status)}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
+        {/* EDITOR / ADMIN DASHBOARD */}
+        {(activeRole === 'editor' || activeRole === 'admin') && (
+          <EditorAdminSection
+            role={activeRole as 'editor' | 'admin'}
+            getStatusColor={getStatusColor}
+            getStatusLabel={getStatusLabel}
+          />
         )}
 
         {/* Author/Other roles - show author submissions */}
@@ -701,10 +277,10 @@ export function DashboardNew() {
                             Submitted:{' '}
                             {submission.created_at
                               ? new Date(submission.created_at).toLocaleDateString('en-US', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric',
-                              })
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric',
+                                })
                               : 'N/A'}
                           </p>
                         </div>
@@ -766,6 +342,378 @@ export function DashboardNew() {
             )}
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Role-specific sub-components ───────────────────────────────────────────
+// These components own their own queries so the hooks are only registered when
+// the user actually has the matching role, keeping the devtools clean.
+
+function ReviewerSection() {
+  const { data: reviewAssignments = [] } = useQuery({
+    queryKey: ['my-assignments'],
+    queryFn: getMyAssignments,
+  });
+
+  return (
+    <div>
+      <div className="mb-8">
+        <h2 className="mb-2 text-2xl font-bold text-gray-900">Reviewer Dashboard</h2>
+        <p className="text-sm text-gray-600">Review manuscripts assigned to you</p>
+      </div>
+
+      <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
+        <div className="border border-gray-300 bg-white p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="mb-1 text-sm text-gray-600">Total Assignments</p>
+              <p className="text-3xl font-bold text-gray-900">{reviewAssignments.length}</p>
+            </div>
+            <FileText className="h-8 w-8 text-blue-600" />
+          </div>
+        </div>
+        <div className="border border-gray-300 bg-white p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="mb-1 text-sm text-gray-600">Pending Invites</p>
+              <p className="text-3xl font-bold text-yellow-600">
+                {reviewAssignments.filter((a) => a.status === 'invited').length}
+              </p>
+            </div>
+            <Clock className="h-8 w-8 text-yellow-600" />
+          </div>
+        </div>
+        <div className="border border-gray-300 bg-white p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="mb-1 text-sm text-gray-600">In Progress</p>
+              <p className="text-3xl font-bold text-blue-600">
+                {reviewAssignments.filter((a) => a.status === 'accepted').length}
+              </p>
+            </div>
+            <Eye className="h-8 w-8 text-blue-600" />
+          </div>
+        </div>
+        <div className="border border-gray-300 bg-white p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="mb-1 text-sm text-gray-600">Completed</p>
+              <p className="text-3xl font-bold text-green-600">
+                {reviewAssignments.filter((a) => a.status === 'review_submitted').length}
+              </p>
+            </div>
+            <CheckCircle className="h-8 w-8 text-green-600" />
+          </div>
+        </div>
+      </div>
+
+      <div className="border border-gray-300 bg-white p-6">
+        <h3 className="mb-4 text-xl font-semibold text-gray-900">My Review Assignments</h3>
+        {reviewAssignments.length === 0 ? (
+          <p className="text-sm text-gray-600">No review assignments yet.</p>
+        ) : (
+          <div className="space-y-4">
+            {reviewAssignments.map((assignment) => (
+              <div
+                key={assignment.id}
+                className="border border-gray-300 p-4 transition-colors hover:bg-gray-50"
+              >
+                <div className="mb-2 flex items-start justify-between">
+                  <div className="flex-1">
+                    <h4 className="mb-1 text-lg font-medium text-gray-900">
+                      {assignment.submission_title || 'Untitled Manuscript'}
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      Invited:{' '}
+                      {assignment.invited_at
+                        ? new Date(assignment.invited_at).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                          })
+                        : 'N/A'}
+                    </p>
+                    {assignment.due_date && (
+                      <p className="text-sm text-gray-600">
+                        Due:{' '}
+                        {new Date(assignment.due_date).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        })}
+                      </p>
+                    )}
+                  </div>
+                  <span
+                    className={`border px-3 py-1 text-xs capitalize ${
+                      assignment.status === 'invited'
+                        ? 'border-yellow-300 bg-yellow-50 text-yellow-700'
+                        : assignment.status === 'accepted'
+                          ? 'border-blue-300 bg-blue-50 text-blue-700'
+                          : assignment.status === 'declined'
+                            ? 'border-red-300 bg-red-50 text-red-700'
+                            : assignment.status === 'review_submitted'
+                              ? 'border-green-300 bg-green-50 text-green-700'
+                              : 'border-gray-300 bg-gray-100 text-gray-700'
+                    }`}
+                  >
+                    {assignment.status.replace('_', ' ')}
+                  </span>
+                </div>
+                {assignment.submission_abstract && (
+                  <p className="mb-3 line-clamp-2 text-sm text-gray-700">
+                    {assignment.submission_abstract}
+                  </p>
+                )}
+                <Link
+                  to={`/review/assignments/${assignment.id}`}
+                  className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-700"
+                >
+                  View Assignment Details →
+                </Link>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function EditorAdminSection({
+  role,
+  getStatusColor,
+  getStatusLabel,
+}: {
+  role: 'editor' | 'admin';
+  getStatusColor: (s: string) => string;
+  getStatusLabel: (s: string) => string;
+}) {
+  const { data: allSubmissions = [] } = useQuery({
+    queryKey: ['all-submissions'],
+    queryFn: getAllSubmissions,
+  });
+
+  const submittedCount = allSubmissions.filter((s) => s.status === 'submitted').length;
+  const underReviewCount = allSubmissions.filter((s) => s.status === 'under_review').length;
+  const acceptedCount = allSubmissions.filter((s) => s.status === 'accepted').length;
+  const rejectedCount = allSubmissions.filter((s) => s.status === 'rejected').length;
+
+  if (role === 'editor') {
+    return (
+      <div>
+        <div className="mb-8">
+          <h2 className="mb-2 text-2xl font-bold text-gray-900">Editor Dashboard</h2>
+          <p className="text-sm text-gray-600">Manage submissions and editorial workflow</p>
+        </div>
+
+        <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
+          <div className="border border-gray-300 bg-white p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="mb-1 text-sm text-gray-600">New Submissions</p>
+                <p className="text-3xl font-bold text-blue-600">{submittedCount}</p>
+              </div>
+              <FileText className="h-8 w-8 text-blue-600" />
+            </div>
+          </div>
+          <div className="border border-gray-300 bg-white p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="mb-1 text-sm text-gray-600">Under Review</p>
+                <p className="text-3xl font-bold text-yellow-600">{underReviewCount}</p>
+              </div>
+              <Clock className="h-8 w-8 text-yellow-600" />
+            </div>
+          </div>
+          <div className="border border-gray-300 bg-white p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="mb-1 text-sm text-gray-600">Accepted</p>
+                <p className="text-3xl font-bold text-green-600">{acceptedCount}</p>
+              </div>
+              <CheckCircle className="h-8 w-8 text-green-600" />
+            </div>
+          </div>
+          <div className="border border-gray-300 bg-white p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="mb-1 text-sm text-gray-600">Rejected</p>
+                <p className="text-3xl font-bold text-red-600">{rejectedCount}</p>
+              </div>
+              <AlertCircle className="h-8 w-8 text-red-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="border border-gray-300 bg-white p-6">
+          <h3 className="mb-4 text-xl font-semibold text-gray-900">All Submissions</h3>
+          {allSubmissions.length === 0 ? (
+            <p className="text-sm text-gray-600">No submissions yet.</p>
+          ) : (
+            <div className="space-y-4">
+              {allSubmissions.slice(0, 10).map((submission) => (
+                <div
+                  key={submission.id}
+                  className="border border-gray-300 p-4 transition-colors hover:bg-gray-50"
+                >
+                  <div className="mb-2 flex items-start justify-between">
+                    <div className="flex-1">
+                      <h4 className="mb-1 text-lg font-medium text-gray-900">
+                        {submission.title || 'Untitled Submission'}
+                      </h4>
+                      <p className="text-sm text-gray-600">
+                        Author: {submission.profiles?.full_name || 'Unknown'}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        Submitted:{' '}
+                        {submission.created_at
+                          ? new Date(submission.created_at).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                            })
+                          : 'N/A'}
+                      </p>
+                    </div>
+                    <span
+                      className={`border px-3 py-1 text-xs ${getStatusColor(submission.status)}`}
+                    >
+                      {getStatusLabel(submission.status)}
+                    </span>
+                  </div>
+                  {submission.abstract && (
+                    <p className="mb-3 line-clamp-2 text-sm text-gray-700">{submission.abstract}</p>
+                  )}
+                  <Link
+                    to={`/editor/submissions/${submission.id}`}
+                    className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-700"
+                  >
+                    <Eye size={16} className="mr-1" />
+                    View Submission Details
+                  </Link>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="mt-6">
+            <Link to="/editor" className="inline-flex items-center px-4 py-2 text-sm font-medium">
+              Go to Full Editor Dashboard →
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Admin view
+  return (
+    <div>
+      <div className="mb-8">
+        <h2 className="mb-2 text-2xl font-bold text-gray-900">Admin Dashboard</h2>
+        <p className="text-sm text-gray-600">System administration and user management</p>
+      </div>
+
+      <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
+        <div className="border border-gray-300 bg-white p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="mb-1 text-sm text-gray-600">Total Submissions</p>
+              <p className="text-3xl font-bold text-gray-900">{allSubmissions.length}</p>
+            </div>
+            <FileText className="h-8 w-8 text-gray-600" />
+          </div>
+        </div>
+        <div className="border border-gray-300 bg-white p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="mb-1 text-sm text-gray-600">Active Reviews</p>
+              <p className="text-3xl font-bold text-blue-600">{underReviewCount}</p>
+            </div>
+            <Users className="h-8 w-8 text-blue-600" />
+          </div>
+        </div>
+        <div className="border border-gray-300 bg-white p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="mb-1 text-sm text-gray-600">Published</p>
+              <p className="text-3xl font-bold text-green-600">
+                {allSubmissions.filter((s) => s.status === 'published').length}
+              </p>
+            </div>
+            <CheckCircle className="h-8 w-8 text-green-600" />
+          </div>
+        </div>
+        <div className="border border-gray-300 bg-white p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="mb-1 text-sm text-gray-600">System Status</p>
+              <p className="text-lg font-bold text-green-600">Healthy</p>
+            </div>
+            <Settings className="h-8 w-8 text-green-600" />
+          </div>
+        </div>
+      </div>
+
+      <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
+        <div className="border border-gray-300 bg-white p-6">
+          <h3 className="mb-4 text-lg font-semibold text-gray-900">Editorial Management</h3>
+          <p className="mb-4 text-sm text-gray-600">
+            Manage all submissions, assign editors, and oversee the editorial workflow.
+          </p>
+          <Link
+            to="/editor"
+            className="inline-flex items-center bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          >
+            <FileText size={16} className="mr-2" />
+            Editorial Dashboard
+          </Link>
+        </div>
+        <div className="border border-gray-300 bg-white p-6">
+          <h3 className="mb-4 text-lg font-semibold text-gray-900">User Management</h3>
+          <p className="mb-4 text-sm text-gray-600">
+            Manage user roles, permissions, and review role requests.
+          </p>
+          <button
+            className="inline-flex cursor-not-allowed items-center bg-gray-300 px-4 py-2 text-sm font-medium text-gray-500"
+            disabled
+          >
+            <Users size={16} className="mr-2" />
+            Coming Soon
+          </button>
+        </div>
+      </div>
+
+      <div className="border border-gray-300 bg-white p-6">
+        <h3 className="mb-4 text-xl font-semibold text-gray-900">Recent Submissions</h3>
+        {allSubmissions.length === 0 ? (
+          <p className="text-sm text-gray-600">No submissions yet.</p>
+        ) : (
+          <div className="space-y-4">
+            {allSubmissions.slice(0, 5).map((submission) => (
+              <div key={submission.id} className="border border-gray-300 p-4">
+                <div className="mb-2 flex items-start justify-between">
+                  <div className="flex-1">
+                    <h4 className="mb-1 text-base font-medium text-gray-900">
+                      {submission.title || 'Untitled Submission'}
+                    </h4>
+                    <p className="text-sm text-gray-600">
+                      Author: {submission.profiles?.full_name || 'Unknown'} • Submitted:{' '}
+                      {submission.created_at
+                        ? new Date(submission.created_at).toLocaleDateString()
+                        : 'N/A'}
+                    </p>
+                  </div>
+                  <span className={`border px-3 py-1 text-xs ${getStatusColor(submission.status)}`}>
+                    {getStatusLabel(submission.status)}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

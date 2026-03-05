@@ -8,6 +8,7 @@ import {
   declineReviewInvitation,
   submitReview,
 } from '../lib/queries-api';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 type RouteParams = {
   id: string;
@@ -16,9 +17,8 @@ type RouteParams = {
 export function ReviewAssignmentDetail() {
   const { id } = useParams<RouteParams>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
-  const [assignment, setAssignment] = useState<ReviewAssignment | null>(null);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -28,46 +28,21 @@ export function ReviewAssignmentDetail() {
   const [confidentialToEditor, setConfidentialToEditor] = useState('');
   const [recommendation, setRecommendation] = useState<Recommendation>('accept');
 
-  const [actionLoading, setActionLoading] = useState(false);
-  const [submittingReview, setSubmittingReview] = useState(false);
+  const { data: assignment, isLoading: loading } = useQuery({
+    queryKey: ['assignment', id],
+    queryFn: () => getAssignmentById(id!),
+    enabled: !!id,
+  });
 
+  // Populate form fields when assignment or review changes
   useEffect(() => {
-    if (!id) {
-      setError('Assignment ID is missing.');
-      setLoading(false);
-      return;
-    }
-
-    const load = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const data = await getAssignmentById(id);
-        if (!data) {
-          setError('Assignment not found or access denied.');
-          setAssignment(null);
-          return;
-        }
-        applyAssignment(data);
-      } catch (err: any) {
-        console.error('Error loading assignment:', err);
-        setError(err.message || 'Failed to load assignment.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    void load();
-  }, [id]);
-
-  const applyAssignment = (data: ReviewAssignment) => {
-    setAssignment(data);
-    if (data.review) {
-      setSummary(data.review.summary || '');
-      setStrengths(data.review.strengths || '');
-      setWeaknesses(data.review.weaknesses || '');
-      setConfidentialToEditor(data.review.confidential_to_editor || '');
-      setRecommendation(data.review.recommendation || 'accept');
+    if (!assignment) return;
+    if (assignment.review) {
+      setSummary(assignment.review.summary || '');
+      setStrengths(assignment.review.strengths || '');
+      setWeaknesses(assignment.review.weaknesses || '');
+      setConfidentialToEditor(assignment.review.confidential_to_editor || '');
+      setRecommendation(assignment.review.recommendation || 'accept');
     } else {
       setSummary('');
       setStrengths('');
@@ -75,95 +50,78 @@ export function ReviewAssignmentDetail() {
       setConfidentialToEditor('');
       setRecommendation('accept');
     }
-  };
+  }, [assignment]);
 
-  const handleAccept = async () => {
-    if (!id) return;
-    try {
-      setActionLoading(true);
-      setError(null);
-      setSuccess(null);
-      const { data, error: apiError } = await acceptReviewInvitation(id);
+  const invalidateAssignment = () =>
+    queryClient.invalidateQueries({ queryKey: ['assignment', id] });
+
+  const acceptMutation = useMutation({
+    mutationFn: () => acceptReviewInvitation(id!),
+    onSuccess: ({ error: apiError }) => {
       if (apiError) {
         setError(apiError.detail || 'Failed to accept invitation.');
         return;
       }
-      if (data) {
-        applyAssignment(data);
-        setSuccess('Invitation accepted. You can now submit your review.');
-      }
-    } catch (err: any) {
-      console.error('Error accepting invitation:', err);
-      setError(err.message || 'Failed to accept invitation.');
-    } finally {
-      setActionLoading(false);
-    }
-  };
+      setSuccess('Invitation accepted. You can now submit your review.');
+      invalidateAssignment();
+    },
+    onError: (err: any) => setError(err.message || 'Failed to accept invitation.'),
+  });
 
-  const handleDecline = async () => {
-    if (!id) return;
-    try {
-      setActionLoading(true);
-      setError(null);
-      setSuccess(null);
-      const { data, error: apiError } = await declineReviewInvitation(id);
+  const declineMutation = useMutation({
+    mutationFn: () => declineReviewInvitation(id!),
+    onSuccess: ({ error: apiError }) => {
       if (apiError) {
         setError(apiError.detail || 'Failed to decline invitation.');
         return;
       }
-      if (data) {
-        applyAssignment(data);
-        setSuccess('Invitation declined.');
-      }
-    } catch (err: any) {
-      console.error('Error declining invitation:', err);
-      setError(err.message || 'Failed to decline invitation.');
-    } finally {
-      setActionLoading(false);
-    }
-  };
+      setSuccess('Invitation declined.');
+      invalidateAssignment();
+    },
+    onError: (err: any) => setError(err.message || 'Failed to decline invitation.'),
+  });
 
-  const handleSubmitReview = async () => {
-    if (!id || !assignment) return;
-
-    if (!summary.trim()) {
-      setError('Summary is required.');
-      return;
-    }
-
-    if (!strengths.trim() || !weaknesses.trim()) {
-      setError('Please describe both strengths and weaknesses.');
-      return;
-    }
-
-    try {
-      setSubmittingReview(true);
-      setError(null);
-      setSuccess(null);
-
-      const { data, error: apiError } = await submitReview(id, {
+  const submitReviewMutation = useMutation({
+    mutationFn: () => {
+      if (!summary.trim()) throw new Error('Summary is required.');
+      if (!strengths.trim() || !weaknesses.trim())
+        throw new Error('Please describe both strengths and weaknesses.');
+      return submitReview(id!, {
         summary: summary.trim(),
         strengths: strengths.trim(),
         weaknesses: weaknesses.trim(),
         confidential_to_editor: confidentialToEditor.trim(),
         recommendation,
       });
-
+    },
+    onSuccess: ({ error: apiError }) => {
       if (apiError) {
         setError(apiError.detail || 'Failed to submit review.');
         return;
       }
+      setSuccess('Review submitted successfully.');
+      invalidateAssignment();
+    },
+    onError: (err: any) => setError(err.message || 'Failed to submit review.'),
+  });
 
-      if (data) {
-        applyAssignment(data);
-        setSuccess('Review submitted successfully.');
-      }
-    } catch (err: any) {
-      console.error('Error submitting review:', err);
-      setError(err.message || 'Failed to submit review.');
-    } finally {
-      setSubmittingReview(false);
-    }
+  const actionLoading = acceptMutation.isPending || declineMutation.isPending;
+  const submittingReview = submitReviewMutation.isPending;
+
+  const handleAccept = () => {
+    setError(null);
+    setSuccess(null);
+    acceptMutation.mutate();
+  };
+  const handleDecline = () => {
+    setError(null);
+    setSuccess(null);
+    declineMutation.mutate();
+  };
+  const handleSubmitReview = () => {
+    setError(null);
+    setSuccess(null);
+    submitReviewMutation.mutate();
   };
 
   if (loading) {
@@ -183,7 +141,7 @@ export function ReviewAssignmentDetail() {
     );
   }
 
-  if (!assignment) {
+  if (!assignment && !loading) {
     return (
       <div
         style={{ backgroundColor: '#F8FAFC', minHeight: '100vh' }}

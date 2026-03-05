@@ -4,7 +4,6 @@ import { AuthProvider } from './contexts/AuthContext';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { APIStatusIndicator } from './components/APIStatusIndicator';
-import { EnvNotification } from './components/EnvNotification';
 import { Toaster } from './components/ui/sonner';
 
 const Home = React.lazy(() => import('./pages/Home').then((m) => ({ default: m.Home })));
@@ -109,7 +108,6 @@ export default function App() {
           <Footer />
         </div>
         <APIStatusIndicator />
-        <EnvNotification />
         <Toaster />
       </Router>
     </AuthProvider>

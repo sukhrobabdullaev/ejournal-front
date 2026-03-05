@@ -1,44 +1,22 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { FileText, ArrowLeft } from 'lucide-react';
-import type { Submission } from '../lib/api';
 import { getSubmissionByIdForEditor } from '../lib/queries-api';
+import { useQuery } from '@tanstack/react-query';
 
 export function EditorSubmissionDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const [submission, setSubmission] = useState<Submission | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!id) {
-      setError('Submission ID is missing in the URL');
-      setLoading(false);
-      return;
-    }
-    void load();
-  }, [id]);
-
-  const load = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-
-      const data = await getSubmissionByIdForEditor(id!);
-      if (!data) {
-        setError('Submission not found or access denied');
-        return;
-      }
-      setSubmission(data);
-    } catch (err: any) {
-      console.error('Error loading submission for editor:', err);
-      setError(err.message || 'Failed to load submission');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const {
+    data: submission,
+    isLoading: loading,
+    isError,
+  } = useQuery({
+    queryKey: ['editor-submission', id],
+    queryFn: () => getSubmissionByIdForEditor(id!),
+    enabled: !!id,
+  });
 
   if (loading) {
     return (
@@ -51,11 +29,11 @@ export function EditorSubmissionDetail() {
     );
   }
 
-  if (error || !submission) {
+  if (isError || (!loading && !submission)) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-white">
         <div className="text-center">
-          <p className="mb-4 text-sm text-red-600">{error || 'Submission not found'}</p>
+          <p className="mb-4 text-sm text-red-600">Submission not found or access denied</p>
           <button
             onClick={() => navigate('/editor')}
             className="bg-blue-600 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-700"

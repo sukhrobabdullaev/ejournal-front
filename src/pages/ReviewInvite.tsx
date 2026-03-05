@@ -10,7 +10,13 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import { TokenManager } from '../lib/api';
-import { getMyProfile, getAssignmentByToken, acceptByToken, declineByToken } from '../lib/queries-api';
+import {
+  getCurrentUser,
+  getAssignmentByToken,
+  acceptByToken,
+  declineByToken,
+} from '../lib/queries-api';
+import { useQuery, useMutation } from '@tanstack/react-query';
 
 export function ReviewInvite() {
   const navigate = useNavigate();
@@ -18,120 +24,60 @@ export function ReviewInvite() {
   const token = searchParams.get('token');
   const action = searchParams.get('action');
 
-  const [loading, setLoading] = useState(true);
-  const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [invitation, setInvitation] = useState<any>(null);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
 
+  const isLoggedIn = !!TokenManager.getAccessToken();
+
+  // Redirect to login if not authenticated
   useEffect(() => {
-    const checkAuthAndLoadInvitation = async () => {
-      setLoading(true);
-      setError(null);
-
-      if (!TokenManager.getAccessToken()) {
-        const currentUrl = `/review-invite?token=${token}&action=${action || ''}`;
-        sessionStorage.setItem('returnUrl', currentUrl);
-        navigate('/login');
-        return;
-      }
-
-      // Get user profile to check email
-      const profile = await getMyProfile();
-      if (!profile || !profile.email) {
-        setError('Unable to retrieve your profile information.');
-        setLoading(false);
-        return;
-      }
-
-      setUserEmail(profile.email);
-
-      // Validate token
-      if (!token) {
-        setError('Invalid invitation link: missing token.');
-        setLoading(false);
-        return;
-      }
-
-      // Load invitation via REST API
-      const assignmentData = await getAssignmentByToken(token);
-
-      if (!assignmentData) {
-        setError('Invalid or expired invitation link.');
-        setLoading(false);
-        return;
-      }
-
-      // Validate invitation status
-      if (assignmentData.status !== 'invited') {
-        if (assignmentData.status === 'accepted') {
-          setError('This invitation has already been accepted.');
-        } else if (assignmentData.status === 'declined') {
-          setError('This invitation has already been declined.');
-        } else {
-          setError('This invitation is no longer available.');
-        }
-        setLoading(false);
-        return;
-      }
-
-      // Validate email match
-      if (
-        assignmentData.reviewer_email &&
-        profile.email.toLowerCase() !== assignmentData.reviewer_email.toLowerCase()
-      ) {
-        setError(
-          `This invitation is for a different email address (${assignmentData.reviewer_email}). ` +
-          `You are currently logged in as ${profile.email}.`
-        );
-        setLoading(false);
-        return;
-      }
-
-      setInvitation(assignmentData);
-      setLoading(false);
-
-      // If action is already specified in URL, process it automatically
-      if (action === 'accept' || action === 'decline') {
-        await processAction(action);
-      }
-    };
-
-    checkAuthAndLoadInvitation();
-  }, [token, action, navigate]);
-
-  const processAction = async (actionType: string) => {
-    setProcessing(true);
-    setError(null);
-
-    try {
-      if (actionType === 'accept') {
-        const { error: respError } = await acceptByToken(token!);
-        if (respError) throw new Error(respError.detail || 'Failed to accept');
-      } else {
-        const { error: respError } = await declineByToken(token!);
-        if (respError) throw new Error(respError.detail || 'Failed to decline');
-      }
-
-      setSuccess(true);
-    } catch (err: any) {
-      console.error('Error processing invitation response:', err);
-      setError('Failed to process your response: ' + err.message);
-    } finally {
-      setProcessing(false);
+    if (!isLoggedIn) {
+      sessionStorage.setItem('returnUrl', `/review-invite?token=${token}&action=${action || ''}`);
+      navigate('/login');
     }
-  };
+  }, [isLoggedIn]);
 
-  const handleAccept = async () => {
-    if (!invitation) return;
-    await processAction('accept');
-  };
+  const { data: currentUser } = useQuery({
+    queryKey: ['me'],
+    queryFn: getCurrentUser,
+    enabled: isLoggedIn,
+    retry: false,
+  });
 
-  const handleDecline = async () => {
-    if (!invitation) return;
-    await processAction('decline');
-  };
+  const { data: invitation, isLoading: loading } = useQuery({
+    queryKey: ['assignment-by-token', token],
+    queryFn: () => getAssignmentByToken(token!),
+    enabled: isLoggedIn && !!token && !!currentUser,
+    retry: false,
+  });
+
+  const userEmail = currentUser?.email ?? null;
+
+  const actionMutation = useMutation({
+    mutationFn: async (actionType: 'accept' | 'decline') => {
+      if (actionType === 'accept') {
+        const { error: err } = await acceptByToken(token!);
+        if (err) throw new Error(err.detail || 'Failed to accept');
+      } else {
+        const { error: err } = await declineByToken(token!);
+        if (err) throw new Error(err.detail || 'Failed to decline');
+      }
+    },
+    onSuccess: () => setSuccess(true),
+    onError: (err: any) => setError('Failed to process your response: ' + err.message),
+  });
+
+  // Auto-process action from URL once invitation is loaded
+  useEffect(() => {
+    if (invitation && (action === 'accept' || action === 'decline') && !success) {
+      actionMutation.mutate(action as 'accept' | 'decline');
+    }
+  }, [invitation]);
+
+  const processing = actionMutation.isPending;
+
+  const handleAccept = () => actionMutation.mutate('accept');
+  const handleDecline = () => actionMutation.mutate('decline');
 
   if (loading) {
     return (
