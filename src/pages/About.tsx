@@ -1,5 +1,4 @@
-import React from 'react';
-import { Rocket, Target, TrendingUp, Award, Users, Zap } from 'lucide-react';
+import { Target, TrendingUp, Award, Users, Zap } from 'lucide-react';
 import { Link } from 'react-router';
 
 export function About() {
@@ -43,7 +42,7 @@ export function About() {
     <div style={{ backgroundColor: '#F8FAFC' }}>
       {/* Hero Header */}
       <div style={{ backgroundColor: '#0B1C4D', paddingTop: '80px', paddingBottom: '60px' }}>
-        <div className="mx-auto max-w-[1120px] px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-280 px-4 sm:px-6 lg:px-8">
           <h1 className="mb-4 text-5xl font-bold" style={{ color: '#FFFFFF' }}>
             About Ditech Asia Journal
           </h1>
@@ -54,7 +53,7 @@ export function About() {
       </div>
 
       <div
-        className="mx-auto max-w-[1120px] px-4 sm:px-6 lg:px-8"
+        className="mx-auto max-w-280 px-4 sm:px-6 lg:px-8"
         style={{ paddingTop: '80px', paddingBottom: '80px' }}
       >
         {/* Our Story */}
@@ -108,7 +107,7 @@ export function About() {
         >
           <div className="mb-6 flex items-start">
             <TrendingUp
-              className="mt-1 mr-4 flex-shrink-0"
+              className="mt-1 mr-4 shrink-0"
               size={32}
               style={{ color: '#2563EB' }}
             />
@@ -123,7 +122,7 @@ export function About() {
               <ul className="space-y-3">
                 <li className="flex items-start">
                   <span
-                    className="mt-1.5 mr-3 flex-shrink-0 rounded-full"
+                    className="mt-1.5 mr-3 shrink-0 rounded-full"
                     style={{ width: '6px', height: '6px', backgroundColor: '#2563EB' }}
                   ></span>
                   <span style={{ color: '#475569', lineHeight: '1.7' }}>
@@ -132,7 +131,7 @@ export function About() {
                 </li>
                 <li className="flex items-start">
                   <span
-                    className="mt-1.5 mr-3 flex-shrink-0 rounded-full"
+                    className="mt-1.5 mr-3 shrink-0 rounded-full"
                     style={{ width: '6px', height: '6px', backgroundColor: '#2563EB' }}
                   ></span>
                   <span style={{ color: '#475569', lineHeight: '1.7' }}>
@@ -141,7 +140,7 @@ export function About() {
                 </li>
                 <li className="flex items-start">
                   <span
-                    className="mt-1.5 mr-3 flex-shrink-0 rounded-full"
+                    className="mt-1.5 mr-3 shrink-0 rounded-full"
                     style={{ width: '6px', height: '6px', backgroundColor: '#2563EB' }}
                   ></span>
                   <span style={{ color: '#475569', lineHeight: '1.7' }}>
@@ -150,7 +149,7 @@ export function About() {
                 </li>
                 <li className="flex items-start">
                   <span
-                    className="mt-1.5 mr-3 flex-shrink-0 rounded-full"
+                    className="mt-1.5 mr-3 shrink-0 rounded-full"
                     style={{ width: '6px', height: '6px', backgroundColor: '#2563EB' }}
                   ></span>
                   <span style={{ color: '#475569', lineHeight: '1.7' }}>
@@ -159,7 +158,7 @@ export function About() {
                 </li>
                 <li className="flex items-start">
                   <span
-                    className="mt-1.5 mr-3 flex-shrink-0 rounded-full"
+                    className="mt-1.5 mr-3 shrink-0 rounded-full"
                     style={{ width: '6px', height: '6px', backgroundColor: '#2563EB' }}
                   ></span>
                   <span style={{ color: '#475569', lineHeight: '1.7' }}>
@@ -238,7 +237,7 @@ export function About() {
               <ul className="ml-6 space-y-3">
                 <li className="flex items-start">
                   <span
-                    className="mt-1.5 mr-3 flex-shrink-0 rounded-full"
+                    className="mt-1.5 mr-3 shrink-0 rounded-full"
                     style={{ width: '6px', height: '6px', backgroundColor: '#2563EB' }}
                   ></span>
                   <span style={{ color: '#475569', lineHeight: '1.7' }}>
@@ -248,7 +247,7 @@ export function About() {
                 </li>
                 <li className="flex items-start">
                   <span
-                    className="mt-1.5 mr-3 flex-shrink-0 rounded-full"
+                    className="mt-1.5 mr-3 shrink-0 rounded-full"
                     style={{ width: '6px', height: '6px', backgroundColor: '#2563EB' }}
                   ></span>
                   <span style={{ color: '#475569', lineHeight: '1.7' }}>
@@ -257,7 +256,7 @@ export function About() {
                 </li>
                 <li className="flex items-start">
                   <span
-                    className="mt-1.5 mr-3 flex-shrink-0 rounded-full"
+                    className="mt-1.5 mr-3 shrink-0 rounded-full"
                     style={{ width: '6px', height: '6px', backgroundColor: '#2563EB' }}
                   ></span>
                   <span style={{ color: '#475569', lineHeight: '1.7' }}>
@@ -283,7 +282,7 @@ export function About() {
               <ul className="ml-6 space-y-3">
                 <li className="flex items-start">
                   <span
-                    className="mt-1.5 mr-3 flex-shrink-0 rounded-full"
+                    className="mt-1.5 mr-3 shrink-0 rounded-full"
                     style={{ width: '6px', height: '6px', backgroundColor: '#2563EB' }}
                   ></span>
                   <span style={{ color: '#475569', lineHeight: '1.7' }}>
@@ -293,7 +292,7 @@ export function About() {
                 </li>
                 <li className="flex items-start">
                   <span
-                    className="mt-1.5 mr-3 flex-shrink-0 rounded-full"
+                    className="mt-1.5 mr-3 shrink-0 rounded-full"
                     style={{ width: '6px', height: '6px', backgroundColor: '#2563EB' }}
                   ></span>
                   <span style={{ color: '#475569', lineHeight: '1.7' }}>
@@ -303,7 +302,7 @@ export function About() {
                 </li>
                 <li className="flex items-start">
                   <span
-                    className="mt-1.5 mr-3 flex-shrink-0 rounded-full"
+                    className="mt-1.5 mr-3 shrink-0 rounded-full"
                     style={{ width: '6px', height: '6px', backgroundColor: '#2563EB' }}
                   ></span>
                   <span style={{ color: '#475569', lineHeight: '1.7' }}>
@@ -313,7 +312,7 @@ export function About() {
                 </li>
                 <li className="flex items-start">
                   <span
-                    className="mt-1.5 mr-3 flex-shrink-0 rounded-full"
+                    className="mt-1.5 mr-3 shrink-0 rounded-full"
                     style={{ width: '6px', height: '6px', backgroundColor: '#2563EB' }}
                   ></span>
                   <span style={{ color: '#475569', lineHeight: '1.7' }}>
@@ -339,7 +338,7 @@ export function About() {
               <ul className="ml-6 space-y-3">
                 <li className="flex items-start">
                   <span
-                    className="mt-1.5 mr-3 flex-shrink-0 rounded-full"
+                    className="mt-1.5 mr-3 shrink-0 rounded-full"
                     style={{ width: '6px', height: '6px', backgroundColor: '#2563EB' }}
                   ></span>
                   <span style={{ color: '#475569', lineHeight: '1.7' }}>
@@ -348,7 +347,7 @@ export function About() {
                 </li>
                 <li className="flex items-start">
                   <span
-                    className="mt-1.5 mr-3 flex-shrink-0 rounded-full"
+                    className="mt-1.5 mr-3 shrink-0 rounded-full"
                     style={{ width: '6px', height: '6px', backgroundColor: '#2563EB' }}
                   ></span>
                   <span style={{ color: '#475569', lineHeight: '1.7' }}>
@@ -358,7 +357,7 @@ export function About() {
                 </li>
                 <li className="flex items-start">
                   <span
-                    className="mt-1.5 mr-3 flex-shrink-0 rounded-full"
+                    className="mt-1.5 mr-3 shrink-0 rounded-full"
                     style={{ width: '6px', height: '6px', backgroundColor: '#2563EB' }}
                   ></span>
                   <span style={{ color: '#475569', lineHeight: '1.7' }}>
@@ -368,7 +367,7 @@ export function About() {
                 </li>
                 <li className="flex items-start">
                   <span
-                    className="mt-1.5 mr-3 flex-shrink-0 rounded-full"
+                    className="mt-1.5 mr-3 shrink-0 rounded-full"
                     style={{ width: '6px', height: '6px', backgroundColor: '#2563EB' }}
                   ></span>
                   <span style={{ color: '#475569', lineHeight: '1.7' }}>
@@ -394,7 +393,7 @@ export function About() {
               <ul className="ml-6 space-y-3">
                 <li className="flex items-start">
                   <span
-                    className="mt-1.5 mr-3 flex-shrink-0 rounded-full"
+                    className="mt-1.5 mr-3 shrink-0 rounded-full"
                     style={{ width: '6px', height: '6px', backgroundColor: '#2563EB' }}
                   ></span>
                   <span style={{ color: '#475569', lineHeight: '1.7' }}>
@@ -404,7 +403,7 @@ export function About() {
                 </li>
                 <li className="flex items-start">
                   <span
-                    className="mt-1.5 mr-3 flex-shrink-0 rounded-full"
+                    className="mt-1.5 mr-3 shrink-0 rounded-full"
                     style={{ width: '6px', height: '6px', backgroundColor: '#2563EB' }}
                   ></span>
                   <span style={{ color: '#475569', lineHeight: '1.7' }}>
@@ -414,7 +413,7 @@ export function About() {
                 </li>
                 <li className="flex items-start">
                   <span
-                    className="mt-1.5 mr-3 flex-shrink-0 rounded-full"
+                    className="mt-1.5 mr-3 shrink-0 rounded-full"
                     style={{ width: '6px', height: '6px', backgroundColor: '#2563EB' }}
                   ></span>
                   <span style={{ color: '#475569', lineHeight: '1.7' }}>
@@ -424,7 +423,7 @@ export function About() {
                 </li>
                 <li className="flex items-start">
                   <span
-                    className="mt-1.5 mr-3 flex-shrink-0 rounded-full"
+                    className="mt-1.5 mr-3 shrink-0 rounded-full"
                     style={{ width: '6px', height: '6px', backgroundColor: '#2563EB' }}
                   ></span>
                   <span style={{ color: '#475569', lineHeight: '1.7' }}>
@@ -462,7 +461,7 @@ export function About() {
                 }}
               >
                 <div
-                  className="mr-4 flex flex-shrink-0 items-center justify-center rounded-lg"
+                  className="mr-4 flex shrink-0 items-center justify-center rounded-lg"
                   style={{
                     width: '80px',
                     height: '80px',

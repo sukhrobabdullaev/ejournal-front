@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { Eye, EyeOff } from 'lucide-react';
-import { login, isAuthenticated } from '../lib/queries-api';
+import { login } from '../lib/queries-api';
+import { TokenManager } from '../lib/api';
+import { useQueryClient } from '@tanstack/react-query';
 
 export function Login() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const queryClient = useQueryClient();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -13,21 +16,16 @@ export function Login() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check if user is already logged in
-    const checkUser = async () => {
-      const authenticated = await isAuthenticated();
-      if (authenticated) {
-        // Check for ?next parameter or sessionStorage
-        const nextUrl = searchParams.get('next') || sessionStorage.getItem('returnUrl');
-        if (nextUrl) {
-          sessionStorage.removeItem('returnUrl');
-          navigate(nextUrl);
-        } else {
-          navigate('/dashboard');
-        }
+    // Check if user is already logged in by token presence only (no API call)
+    if (TokenManager.getAccessToken()) {
+      const nextUrl = searchParams.get('next') || sessionStorage.getItem('returnUrl');
+      if (nextUrl) {
+        sessionStorage.removeItem('returnUrl');
+        navigate(nextUrl);
+      } else {
+        navigate('/dashboard');
       }
-    };
-    checkUser();
+    }
   }, [navigate, searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -49,7 +47,8 @@ export function Login() {
       }
 
       if (data) {
-        // Check for ?next parameter or sessionStorage
+        // Clear stale ['me'] cache so dashboard fetches fresh user data with the new token
+        queryClient.removeQueries({ queryKey: ['me'] });
         const nextUrl = searchParams.get('next') || sessionStorage.getItem('returnUrl');
         if (nextUrl) {
           sessionStorage.removeItem('returnUrl');

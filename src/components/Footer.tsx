@@ -1,4 +1,3 @@
-import React from 'react';
 import { Link } from 'react-router';
 
 export function Footer() {
@@ -71,7 +70,7 @@ export function Footer() {
             className="flex flex-col items-center justify-between text-sm md:flex-row"
             style={{ color: '#475569' }}
           >
-            <p>© 2025 Ditech Asia. All rights reserved.</p>
+            <p>© 2026 Ditech Asia. All rights reserved.</p>
             <p className="mt-2 md:mt-0">ISSN: Pending</p>
           </div>
         </div>

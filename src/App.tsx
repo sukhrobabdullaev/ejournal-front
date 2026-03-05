@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router';
 import { AuthProvider } from './contexts/AuthContext';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
-import { APIStatusIndicator } from './components/APIStatusIndicator';
 import { Toaster } from './components/ui/sonner';
 
 const Home = React.lazy(() => import('./pages/Home').then((m) => ({ default: m.Home })));
@@ -107,7 +106,6 @@ export default function App() {
           </main>
           <Footer />
         </div>
-        <APIStatusIndicator />
         <Toaster />
       </Router>
     </AuthProvider>

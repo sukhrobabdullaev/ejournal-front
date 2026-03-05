@@ -12,13 +12,9 @@ import {
   uploadSubmissionFile,
 } from '../../lib/queries-api';
 import { getStatusChipClasses, getStatusLabel } from './status-ui';
-
-type Policies = {
-  originality: boolean;
-  plagiarism: boolean;
-  ethics: boolean;
-  copyright: boolean;
-};
+import type { Policies } from './types';
+import { allPoliciesAccepted } from './helpers';
+import { PolicyCheckbox } from './shared/PolicyCheckbox';
 
 type ManuscriptForm = {
   title: string;
@@ -37,9 +33,6 @@ const parseNumericId = (value: string | null | undefined): string | undefined =>
   if (!/^\d+$/.test(value)) return undefined;
   return value;
 };
-
-const allPoliciesAccepted = (p: Policies) =>
-  p.originality && p.plagiarism && p.ethics && p.copyright;
 
 const validateManuscript = (f: ManuscriptForm): string | null => {
   if (!f.title.trim()) return 'Title is required';
@@ -640,23 +633,4 @@ export function SubmitPaperForm({
   );
 }
 
-type PolicyCheckboxProps = {
-  checked: boolean;
-  onChange: (value: boolean) => void;
-  title: string;
-  children: React.ReactNode;
-};
 
-const PolicyCheckbox: React.FC<PolicyCheckboxProps> = ({ checked, onChange, title, children }) => (
-  <label className="flex cursor-pointer items-start gap-3">
-    <input
-      type="checkbox"
-      checked={checked}
-      onChange={(e) => onChange(e.target.checked)}
-      className="mt-1 h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500"
-    />
-    <span className="text-sm text-gray-700">
-      <strong>{title}:</strong> {children}
-    </span>
-  </label>
-);
