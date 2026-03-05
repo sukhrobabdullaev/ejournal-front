@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
-import { 
-  CheckCircle, 
-  XCircle, 
-  AlertCircle, 
+import {
+  CheckCircle,
+  XCircle,
+  AlertCircle,
   Clock,
   Mail,
   FileText,
-  ChevronRight
+  ChevronRight,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { getMyProfile } from '../lib/queries';
@@ -31,8 +31,10 @@ export function ReviewInvite() {
       setError(null);
 
       // Check if user is logged in
-      const { data: { session } } = await supabase.auth.getSession();
-      
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       if (!session) {
         // Save current URL to return after login
         const currentUrl = `/review-invite?token=${token}&action=${action || ''}`;
@@ -61,7 +63,8 @@ export function ReviewInvite() {
       // Load invitation from review_assignments
       const { data: assignmentData, error: assignmentError } = await supabase
         .from('review_assignments')
-        .select(`
+        .select(
+          `
           id,
           submission_id,
           invited_email,
@@ -77,7 +80,8 @@ export function ReviewInvite() {
             topic,
             topic_area
           )
-        `)
+        `
+        )
         .eq('invite_token', token)
         .limit(1)
         .single();
@@ -117,7 +121,7 @@ export function ReviewInvite() {
       if (assignmentData.invited_email.toLowerCase() !== profile.email.toLowerCase()) {
         setError(
           `This invitation is for a different email address (${assignmentData.invited_email}). ` +
-          `You are currently logged in as ${profile.email}.`
+            `You are currently logged in as ${profile.email}.`
         );
         setLoading(false);
         return;
@@ -169,23 +173,27 @@ export function ReviewInvite() {
 
   const handleAccept = async () => {
     if (!invitation) return;
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
     if (!session) return;
     await processAction('accept', invitation.id, session.user.id);
   };
 
   const handleDecline = async () => {
     if (!invitation) return;
-    const { data: { session } } = await supabase.auth.getSession();
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
     if (!session) return;
     await processAction('decline', invitation.id, session.user.id);
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
-        <div className="bg-white border border-gray-300 p-8 max-w-md w-full text-center">
-          <Clock className="w-12 h-12 text-blue-500 mx-auto mb-4 animate-spin" />
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12">
+        <div className="w-full max-w-md border border-gray-300 bg-white p-8 text-center">
+          <Clock className="mx-auto mb-4 h-12 w-12 animate-spin text-blue-500" />
           <p className="text-gray-600">Loading invitation...</p>
         </div>
       </div>
@@ -194,16 +202,16 @@ export function ReviewInvite() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
-        <div className="bg-white border border-gray-300 p-8 max-w-md w-full">
-          <AlertCircle className="w-12 h-12 text-red-500 mx-auto mb-4" />
-          <h1 className="text-xl font-bold text-gray-900 mb-2 text-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12">
+        <div className="w-full max-w-md border border-gray-300 bg-white p-8">
+          <AlertCircle className="mx-auto mb-4 h-12 w-12 text-red-500" />
+          <h1 className="mb-2 text-center text-xl font-bold text-gray-900">
             Unable to Process Invitation
           </h1>
-          <p className="text-gray-600 mb-6 text-center">{error}</p>
+          <p className="mb-6 text-center text-gray-600">{error}</p>
           <button
             onClick={() => navigate('/dashboard')}
-            className="w-full px-4 py-2 bg-blue-600 text-white hover:bg-blue-700"
+            className="w-full bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
           >
             Go to Dashboard
           </button>
@@ -215,19 +223,19 @@ export function ReviewInvite() {
   if (success) {
     const wasAccepted = action === 'accept';
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4">
-        <div className="bg-white border border-gray-300 p-8 max-w-md w-full">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12">
+        <div className="w-full max-w-md border border-gray-300 bg-white p-8">
           {wasAccepted ? (
-            <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
+            <CheckCircle className="mx-auto mb-4 h-16 w-16 text-green-500" />
           ) : (
-            <XCircle className="w-16 h-16 text-gray-500 mx-auto mb-4" />
+            <XCircle className="mx-auto mb-4 h-16 w-16 text-gray-500" />
           )}
-          
-          <h1 className="text-2xl font-bold text-gray-900 mb-2 text-center">
+
+          <h1 className="mb-2 text-center text-2xl font-bold text-gray-900">
             {wasAccepted ? 'Invitation Accepted!' : 'Invitation Declined'}
           </h1>
-          
-          <p className="text-gray-600 mb-6 text-center">
+
+          <p className="mb-6 text-center text-gray-600">
             {wasAccepted
               ? 'Thank you for accepting this review invitation. You can now access the submission materials in your reviewer dashboard.'
               : 'Your response has been recorded. Thank you for your time.'}
@@ -235,9 +243,9 @@ export function ReviewInvite() {
 
           {wasAccepted && (
             <>
-              <div className="bg-blue-50 border border-blue-200 p-4 mb-6">
-                <h2 className="font-semibold text-blue-900 mb-2">Next Steps:</h2>
-                <ul className="text-sm text-blue-800 space-y-1">
+              <div className="mb-6 border border-blue-200 bg-blue-50 p-4">
+                <h2 className="mb-2 font-semibold text-blue-900">Next Steps:</h2>
+                <ul className="space-y-1 text-sm text-blue-800">
                   <li>• Access the manuscript in your reviewer dashboard</li>
                   <li>• Review the submission materials</li>
                   {invitation?.review_due_at && (
@@ -251,17 +259,17 @@ export function ReviewInvite() {
 
               <button
                 onClick={() => navigate('/review/dashboard')}
-                className="w-full px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 flex items-center justify-center gap-2 mb-3"
+                className="mb-3 flex w-full items-center justify-center gap-2 bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
               >
                 Go to Reviewer Dashboard
-                <ChevronRight className="w-4 h-4" />
+                <ChevronRight className="h-4 w-4" />
               </button>
             </>
           )}
 
           <button
             onClick={() => navigate('/dashboard')}
-            className="w-full px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50"
+            className="w-full border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50"
           >
             Return to Dashboard
           </button>
@@ -272,47 +280,49 @@ export function ReviewInvite() {
 
   // Show invitation details and action buttons
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4">
-      <div className="max-w-3xl mx-auto">
-        <div className="bg-white border border-gray-300 mb-6">
-          <div className="bg-blue-600 text-white p-6">
-            <h1 className="text-2xl font-bold mb-2">Review Invitation</h1>
-            <p className="text-blue-100">
-              You have been invited to review a manuscript
-            </p>
+    <div className="min-h-screen bg-gray-50 px-4 py-12">
+      <div className="mx-auto max-w-3xl">
+        <div className="mb-6 border border-gray-300 bg-white">
+          <div className="bg-blue-600 p-6 text-white">
+            <h1 className="mb-2 text-2xl font-bold">Review Invitation</h1>
+            <p className="text-blue-100">You have been invited to review a manuscript</p>
           </div>
 
-          <div className="p-6 space-y-6">
+          <div className="space-y-6 p-6">
             {/* User Info */}
-            <div className="bg-gray-50 border border-gray-200 p-4">
+            <div className="border border-gray-200 bg-gray-50 p-4">
               <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Mail className="w-4 h-4" />
-                <span>Invitation sent to: <strong>{invitation?.invited_email}</strong></span>
+                <Mail className="h-4 w-4" />
+                <span>
+                  Invitation sent to: <strong>{invitation?.invited_email}</strong>
+                </span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600 mt-2">
-                <CheckCircle className="w-4 h-4" />
-                <span>Logged in as: <strong>{userEmail}</strong></span>
+              <div className="mt-2 flex items-center gap-2 text-sm text-gray-600">
+                <CheckCircle className="h-4 w-4" />
+                <span>
+                  Logged in as: <strong>{userEmail}</strong>
+                </span>
               </div>
             </div>
 
             {/* Manuscript Details */}
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                <FileText className="w-5 h-5" />
+              <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-gray-900">
+                <FileText className="h-5 w-5" />
                 Manuscript Details
               </h2>
-              
+
               <div className="space-y-3">
                 <div>
-                  <h3 className="font-medium text-gray-900 mb-1">
+                  <h3 className="mb-1 font-medium text-gray-900">
                     {invitation?.submissions?.title || 'Untitled Submission'}
                   </h3>
                 </div>
 
                 {invitation?.submissions?.abstract && (
                   <div>
-                    <h4 className="text-sm font-semibold text-gray-700 mb-1">Abstract</h4>
-                    <p className="text-sm text-gray-600 leading-relaxed line-clamp-6">
+                    <h4 className="mb-1 text-sm font-semibold text-gray-700">Abstract</h4>
+                    <p className="line-clamp-6 text-sm leading-relaxed text-gray-600">
                       {invitation.submissions.abstract}
                     </p>
                   </div>
@@ -320,8 +330,8 @@ export function ReviewInvite() {
 
                 {(invitation?.submissions?.topic_area || invitation?.submissions?.topic) && (
                   <div>
-                    <h4 className="text-sm font-semibold text-gray-700 mb-1">Topic</h4>
-                    <span className="inline-block px-3 py-1 bg-blue-100 text-blue-800 text-sm">
+                    <h4 className="mb-1 text-sm font-semibold text-gray-700">Topic</h4>
+                    <span className="inline-block bg-blue-100 px-3 py-1 text-sm text-blue-800">
                       {invitation.submissions.topic_area || invitation.submissions.topic}
                     </span>
                   </div>
@@ -331,33 +341,33 @@ export function ReviewInvite() {
 
             {/* Timeline */}
             <div>
-              <h2 className="text-lg font-semibold text-gray-900 mb-3 flex items-center gap-2">
-                <Clock className="w-5 h-5" />
+              <h2 className="mb-3 flex items-center gap-2 text-lg font-semibold text-gray-900">
+                <Clock className="h-5 w-5" />
                 Review Timeline
               </h2>
-              
+
               <div className="space-y-2 text-sm">
                 {invitation?.response_due_at && (
-                  <div className="flex justify-between py-2 border-b border-gray-200">
+                  <div className="flex justify-between border-b border-gray-200 py-2">
                     <span className="text-gray-600">Response Due:</span>
                     <span className="font-medium text-gray-900">
                       {new Date(invitation.response_due_at).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
-                        day: 'numeric'
+                        day: 'numeric',
                       })}
                     </span>
                   </div>
                 )}
-                
+
                 {invitation?.review_due_at && (
-                  <div className="flex justify-between py-2 border-b border-gray-200">
+                  <div className="flex justify-between border-b border-gray-200 py-2">
                     <span className="text-gray-600">Review Due:</span>
                     <span className="font-medium text-gray-900">
                       {new Date(invitation.review_due_at).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
-                        day: 'numeric'
+                        day: 'numeric',
                       })}
                     </span>
                   </div>
@@ -370,7 +380,7 @@ export function ReviewInvite() {
                       {new Date(invitation.invited_at).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
-                        day: 'numeric'
+                        day: 'numeric',
                       })}
                     </span>
                   </div>
@@ -379,12 +389,12 @@ export function ReviewInvite() {
             </div>
 
             {/* Commitment Message */}
-            <div className="bg-yellow-50 border border-yellow-200 p-4">
-              <h3 className="font-semibold text-yellow-900 mb-2">Review Commitment</h3>
+            <div className="border border-yellow-200 bg-yellow-50 p-4">
+              <h3 className="mb-2 font-semibold text-yellow-900">Review Commitment</h3>
               <p className="text-sm text-yellow-800">
                 By accepting this invitation, you commit to:
               </p>
-              <ul className="text-sm text-yellow-800 mt-2 space-y-1 list-disc list-inside">
+              <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-yellow-800">
                 <li>Reviewing the manuscript thoroughly and objectively</li>
                 <li>Maintaining confidentiality of the submission</li>
                 <li>Submitting your review by the specified deadline</li>
@@ -393,18 +403,18 @@ export function ReviewInvite() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex gap-4 pt-4 border-t border-gray-200">
+            <div className="flex gap-4 border-t border-gray-200 pt-4">
               <button
                 onClick={handleDecline}
                 disabled={processing}
-                className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed font-medium"
+                className="flex-1 border border-gray-300 px-6 py-3 font-medium text-gray-700 hover:bg-gray-50 disabled:cursor-not-allowed disabled:bg-gray-100"
               >
                 {processing ? 'Processing...' : 'Decline Invitation'}
               </button>
               <button
                 onClick={handleAccept}
                 disabled={processing}
-                className="flex-1 px-6 py-3 bg-green-600 text-white hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-medium"
+                className="flex-1 bg-green-600 px-6 py-3 font-medium text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-400"
               >
                 {processing ? 'Processing...' : 'Accept Invitation'}
               </button>

@@ -174,7 +174,7 @@ export function ReviewAssignmentDetail() {
       >
         <div className="text-center">
           <div
-            className="w-16 h-16 border-4 border-t-transparent rounded-full animate-spin mx-auto mb-4"
+            className="mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-4 border-t-transparent"
             style={{ borderColor: '#2563EB', borderTopColor: 'transparent' }}
           />
           <p style={{ color: '#64748B' }}>Loading assignment details...</p>
@@ -190,7 +190,7 @@ export function ReviewAssignmentDetail() {
         className="flex items-center justify-center px-4"
       >
         <div
-          className="bg-white text-center max-w-md w-full"
+          className="w-full max-w-md bg-white text-center"
           style={{
             borderRadius: '16px',
             padding: '40px',
@@ -198,8 +198,8 @@ export function ReviewAssignmentDetail() {
             borderTop: '4px solid #F59E0B',
           }}
         >
-          <AlertCircle className="w-16 h-16 mx-auto mb-4" style={{ color: '#F59E0B' }} />
-          <h1 className="text-2xl font-bold mb-3" style={{ color: '#0B1C4D' }}>
+          <AlertCircle className="mx-auto mb-4 h-16 w-16" style={{ color: '#F59E0B' }} />
+          <h1 className="mb-3 text-2xl font-bold" style={{ color: '#0B1C4D' }}>
             Assignment Not Found
           </h1>
           <p className="mb-6" style={{ color: '#64748B' }}>
@@ -207,7 +207,7 @@ export function ReviewAssignmentDetail() {
           </p>
           <button
             onClick={() => navigate('/dashboard')}
-            className="px-6 py-3 font-medium rounded-lg transition-all"
+            className="rounded-lg px-6 py-3 font-medium transition-all"
             style={{
               background: 'linear-gradient(135deg, #0B1C4D 0%, #2563EB 100%)',
               color: '#FFFFFF',
@@ -228,32 +228,28 @@ export function ReviewAssignmentDetail() {
   return (
     <div style={{ backgroundColor: '#F8FAFC', minHeight: '100vh' }}>
       {/* Header */}
-      <div
-        style={{ backgroundColor: '#0B1C4D', paddingTop: '40px', paddingBottom: '40px' }}
-      >
-        <div className="max-w-[960px] mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+      <div style={{ backgroundColor: '#0B1C4D', paddingTop: '40px', paddingBottom: '40px' }}>
+        <div className="mx-auto flex max-w-[960px] items-center justify-between px-4 sm:px-6 lg:px-8">
           <button
             type="button"
             onClick={() => navigate('/dashboard')}
             className="inline-flex items-center text-sm text-blue-100 hover:text-white"
           >
-            <ArrowLeft className="w-4 h-4 mr-1" />
+            <ArrowLeft className="mr-1 h-4 w-4" />
             Back to Dashboard
           </button>
           <div className="text-right">
-            <p className="text-xs text-blue-100 mb-1">Assignment ID</p>
-            <p className="text-sm font-mono text-white">
-              {assignment.id.toString().toUpperCase()}
-            </p>
+            <p className="mb-1 text-xs text-blue-100">Assignment ID</p>
+            <p className="font-mono text-sm text-white">{assignment.id.toString().toUpperCase()}</p>
           </div>
         </div>
       </div>
 
-      <div className="max-w-[960px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto max-w-[960px] px-4 py-8 sm:px-6 lg:px-8">
         {/* Messages */}
         {success && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-300 text-green-800 flex items-center gap-2">
-            <CheckCircle className="w-5 h-5" />
+          <div className="mb-6 flex items-center gap-2 border border-green-300 bg-green-50 p-4 text-green-800">
+            <CheckCircle className="h-5 w-5" />
             <span>{success}</span>
             <button
               onClick={() => setSuccess(null)}
@@ -265,8 +261,8 @@ export function ReviewAssignmentDetail() {
         )}
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-300 text-red-800 flex items-center gap-2">
-            <AlertCircle className="w-5 h-5" />
+          <div className="mb-6 flex items-center gap-2 border border-red-300 bg-red-50 p-4 text-red-800">
+            <AlertCircle className="h-5 w-5" />
             <span>{error}</span>
             <button
               onClick={() => setError(null)}
@@ -277,22 +273,19 @@ export function ReviewAssignmentDetail() {
           </div>
         )}
 
-        <div className="bg-white border border-gray-300 p-6 space-y-6">
+        <div className="space-y-6 border border-gray-300 bg-white p-6">
           {/* Manuscript overview */}
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
-              <h1 className="text-2xl font-bold text-gray-900 mb-1">
+              <h1 className="mb-1 text-2xl font-bold text-gray-900">
                 {assignment.submission_title || 'Untitled Manuscript'}
               </h1>
-              <p className="text-sm text-gray-600 mb-2">
-                Status:{' '}
-                <span className="font-medium">
-                  {assignment.status.replace('_', ' ')}
-                </span>
+              <p className="mb-2 text-sm text-gray-600">
+                Status: <span className="font-medium">{assignment.status.replace('_', ' ')}</span>
               </p>
               <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500">
                 <span className="flex items-center gap-1">
-                  <Clock className="w-3 h-3" />
+                  <Clock className="h-3 w-3" />
                   Invited:{' '}
                   {new Date(assignment.invited_at).toLocaleDateString('en-US', {
                     year: 'numeric',
@@ -302,7 +295,7 @@ export function ReviewAssignmentDetail() {
                 </span>
                 {assignment.due_date && (
                   <span className="flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
+                    <Clock className="h-3 w-3" />
                     Due:{' '}
                     {new Date(assignment.due_date).toLocaleDateString('en-US', {
                       year: 'numeric',
@@ -318,23 +311,23 @@ export function ReviewAssignmentDetail() {
           {/* Abstract & manuscript link */}
           <div className="space-y-3">
             <div>
-              <h2 className="text-sm font-semibold text-gray-700 mb-1">Abstract</h2>
-              <p className="text-sm text-gray-700 leading-relaxed">
+              <h2 className="mb-1 text-sm font-semibold text-gray-700">Abstract</h2>
+              <p className="text-sm leading-relaxed text-gray-700">
                 {assignment.submission_abstract || 'No abstract provided.'}
               </p>
             </div>
 
             <div>
-              <h2 className="text-sm font-semibold text-gray-700 mb-1">Manuscript</h2>
+              <h2 className="mb-1 text-sm font-semibold text-gray-700">Manuscript</h2>
               {assignment.manuscript_url ? (
                 <a
                   href={assignment.manuscript_url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center justify-between p-2 bg-blue-50 border border-blue-200 hover:bg-blue-100 transition-colors text-sm"
+                  className="flex items-center justify-between border border-blue-200 bg-blue-50 p-2 text-sm transition-colors hover:bg-blue-100"
                 >
                   <div className="flex items-center gap-2">
-                    <FileText className="w-4 h-4 text-blue-600" />
+                    <FileText className="h-4 w-4 text-blue-600" />
                     <span className="font-medium text-blue-900">Open Manuscript PDF</span>
                   </div>
                   <span className="text-xs font-semibold text-blue-700 uppercase">View</span>
@@ -347,21 +340,21 @@ export function ReviewAssignmentDetail() {
 
           {/* Invitation actions */}
           {isInvited && (
-            <div className="pt-4 border-t border-gray-200 flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col gap-3 border-t border-gray-200 pt-4 sm:flex-row">
               <button
                 type="button"
                 onClick={handleAccept}
                 disabled={actionLoading}
-                className="flex-1 px-4 py-2 bg-green-600 text-white text-sm font-medium hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex flex-1 items-center justify-center gap-2 bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-400"
               >
-                <CheckCircle className="w-4 h-4" />
+                <CheckCircle className="h-4 w-4" />
                 {actionLoading ? 'Updating...' : 'Accept Invitation'}
               </button>
               <button
                 type="button"
                 onClick={handleDecline}
                 disabled={actionLoading}
-                className="flex-1 px-4 py-2 bg-red-50 text-red-700 text-sm font-medium hover:bg-red-100 disabled:bg-gray-100 disabled:text-red-400 disabled:cursor-not-allowed border border-red-200"
+                className="flex-1 border border-red-200 bg-red-50 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-red-400"
               >
                 <XIcon />
                 Decline
@@ -371,7 +364,7 @@ export function ReviewAssignmentDetail() {
 
           {/* Review form */}
           {isAcceptedOrSubmitted && (
-            <div className="pt-4 border-t border-gray-200 space-y-4">
+            <div className="space-y-4 border-t border-gray-200 pt-4">
               <h2 className="text-sm font-semibold text-gray-800">
                 {assignment.status === 'review_submitted'
                   ? 'Update Your Review'
@@ -380,74 +373,72 @@ export function ReviewAssignmentDetail() {
 
               <div className="space-y-3">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
                     Overall Summary *
                   </label>
                   <textarea
                     rows={3}
                     value={summary}
                     onChange={(e) => setSummary(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
                     Strengths *
                   </label>
                   <textarea
                     rows={3}
                     value={strengths}
                     onChange={(e) => setStrengths(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
                     Weaknesses *
                   </label>
                   <textarea
                     rows={3}
                     value={weaknesses}
                     onChange={(e) => setWeaknesses(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="mb-1 block text-sm font-medium text-gray-700">
                     Confidential Comments to Editor
                   </label>
                   <textarea
                     rows={3}
                     value={confidentialToEditor}
                     onChange={(e) => setConfidentialToEditor(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                   />
                 </div>
 
                 <div>
-                  <p className="text-sm font-medium text-gray-700 mb-2">Recommendation *</p>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm text-gray-700">
-                    {(['accept', 'minor_revision', 'major_revision', 'reject'] as Recommendation[]).map(
-                      (value) => (
-                        <label
-                          key={value}
-                          className="flex items-center gap-2 px-2 py-1 border border-gray-300 cursor-pointer hover:bg-gray-50"
-                        >
-                          <input
-                            type="radio"
-                            value={value}
-                            checked={recommendation === value}
-                            onChange={() => setRecommendation(value)}
-                          />
-                          <span className="capitalize">
-                            {value.replace('_', ' ')}
-                          </span>
-                        </label>
-                      ),
-                    )}
+                  <p className="mb-2 text-sm font-medium text-gray-700">Recommendation *</p>
+                  <div className="grid grid-cols-2 gap-2 text-sm text-gray-700 sm:grid-cols-4">
+                    {(
+                      ['accept', 'minor_revision', 'major_revision', 'reject'] as Recommendation[]
+                    ).map((value) => (
+                      <label
+                        key={value}
+                        className="flex cursor-pointer items-center gap-2 border border-gray-300 px-2 py-1 hover:bg-gray-50"
+                      >
+                        <input
+                          type="radio"
+                          value={value}
+                          checked={recommendation === value}
+                          onChange={() => setRecommendation(value)}
+                        />
+                        <span className="capitalize">{value.replace('_', ' ')}</span>
+                      </label>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -456,9 +447,9 @@ export function ReviewAssignmentDetail() {
                 type="button"
                 onClick={handleSubmitReview}
                 disabled={submittingReview}
-                className="w-full px-4 py-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="flex w-full items-center justify-center gap-2 bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
               >
-                <Send className="w-4 h-4" />
+                <Send className="h-4 w-4" />
                 {submittingReview ? 'Submitting Review...' : 'Submit Review'}
               </button>
             </div>
@@ -470,4 +461,3 @@ export function ReviewAssignmentDetail() {
 }
 
 const XIcon: React.FC = () => <span className="text-base leading-none">×</span>;
-

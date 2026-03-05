@@ -1,10 +1,20 @@
-import { supabase, Journal, Article, Author, Profile, Submission, SubmissionFile } from './supabase';
+import {
+  supabase,
+  Journal,
+  Article,
+  Author,
+  Profile,
+  Submission,
+  SubmissionFile,
+} from './supabase';
 
 // QUERY 1: getActiveJournals
 export async function getActiveJournals(): Promise<Journal[]> {
   const { data, error } = await supabase
     .from('journals')
-    .select('id, slug, name, short_name, tagline, description, scope, issn_print, issn_online, doi_prefix, publisher, created_at')
+    .select(
+      'id, slug, name, short_name, tagline, description, scope, issn_print, issn_online, doi_prefix, publisher, created_at'
+    )
     .eq('is_active', true)
     .order('created_at', { ascending: true });
 
@@ -21,7 +31,9 @@ export async function getJournalBySlug(slug: string): Promise<Journal | null> {
   try {
     const { data, error } = await supabase
       .from('journals')
-      .select('id, slug, name, short_name, tagline, description, scope, issn_print, issn_online, doi_prefix, publisher, created_at, is_active')
+      .select(
+        'id, slug, name, short_name, tagline, description, scope, issn_print, issn_online, doi_prefix, publisher, created_at, is_active'
+      )
       .eq('slug', slug)
       .eq('is_active', true)
       .limit(1)
@@ -46,7 +58,9 @@ export async function getPublishedArticlesByJournal(
 ): Promise<Article[]> {
   let query = supabase
     .from('articles')
-    .select('id, slug, title, abstract, keywords, topic_tags, published_at, doi, pdf_public_url, received_at, accepted_at')
+    .select(
+      'id, slug, title, abstract, keywords, topic_tags, published_at, doi, pdf_public_url, received_at, accepted_at'
+    )
     .eq('journal_id', journalId)
     .eq('status', 'published')
     .order('published_at', { ascending: false });
@@ -69,7 +83,9 @@ export async function getPublishedArticlesByJournal(
 export async function getArticleBySlug(slug: string): Promise<Article | null> {
   const { data, error } = await supabase
     .from('articles')
-    .select('id, slug, journal_id, title, abstract, keywords, topic_tags, published_at, received_at, accepted_at, doi, pdf_public_url, status')
+    .select(
+      'id, slug, journal_id, title, abstract, keywords, topic_tags, published_at, received_at, accepted_at, doi, pdf_public_url, status'
+    )
     .eq('slug', slug)
     .eq('status', 'published')
     .limit(1)
@@ -87,7 +103,8 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
 export async function getAuthorsByArticle(articleId: string): Promise<Author[]> {
   const { data, error } = await supabase
     .from('article_authors')
-    .select(`
+    .select(
+      `
       author_order,
       is_corresponding,
       authors (
@@ -95,7 +112,8 @@ export async function getAuthorsByArticle(articleId: string): Promise<Author[]> 
         affiliation,
         orcid
       )
-    `)
+    `
+    )
     .eq('article_id', articleId)
     .order('author_order', { ascending: true });
 
@@ -116,14 +134,16 @@ export async function getAuthorsByArticle(articleId: string): Promise<Author[]> 
 
 // QUERY 6: getMyProfile
 export async function getMyProfile(): Promise<Profile | null> {
-  const { data: { user } } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user) {
     return null;
   }
 
   // Try to fetch with active_role column
-  let { data, error } = await supabase
+  const { data, error } = await supabase
     .from('profiles')
     .select('id, full_name, email, affiliation, orcid, country, created_at, active_role')
     .eq('id', user.id)
@@ -138,12 +158,12 @@ export async function getMyProfile(): Promise<Profile | null> {
       .eq('id', user.id)
       .limit(1)
       .single();
-    
+
     if (result.error) {
       console.error('Error fetching user profile:', result.error);
       return null;
     }
-    
+
     return result.data;
   }
 
@@ -157,15 +177,19 @@ export async function getMyProfile(): Promise<Profile | null> {
 
 // QUERY 7: getMySubmissions
 export async function getMySubmissions(): Promise<Submission[]> {
-  const { data: { user } } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user) {
     return [];
   }
 
   const { data, error } = await supabase
     .from('submissions')
-    .select('id, author_user_id, journal_id, title, abstract, keywords, topic_area, status, created_at, updated_at')
+    .select(
+      'id, author_user_id, journal_id, title, abstract, keywords, topic_area, status, created_at, updated_at'
+    )
     .eq('author_user_id', user.id)
     .order('updated_at', { ascending: false });
 
@@ -196,15 +220,19 @@ export async function getJournalIdBySlug(slug: string): Promise<string | null> {
 
 // QUERY 9: getSubmissionById
 export async function getSubmissionById(submissionId: string): Promise<Submission | null> {
-  const { data: { user } } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user) {
     return null;
   }
 
   const { data, error } = await supabase
     .from('submissions')
-    .select('id, author_user_id, journal_id, title, abstract, keywords, topic_area, status, step, submitted_at, created_at, updated_at')
+    .select(
+      'id, author_user_id, journal_id, title, abstract, keywords, topic_area, status, step, submitted_at, created_at, updated_at'
+    )
     .eq('id', submissionId)
     .eq('author_user_id', user.id)
     .limit(1)
@@ -236,8 +264,10 @@ export async function getSubmissionFiles(submissionId: string): Promise<Submissi
 
 // QUERY 11: getMyRole
 export async function getMyRole(): Promise<string | null> {
-  const { data: { user } } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user) {
     return null;
   }
@@ -259,9 +289,10 @@ export async function getMyRole(): Promise<string | null> {
 
 // QUERY 12: getSubmissionsByStatus (for editors)
 export async function getSubmissionsByStatus(status: string): Promise<any[]> {
-  let { data, error } = await supabase
+  const { data, error } = await supabase
     .from('submissions')
-    .select(`
+    .select(
+      `
       id,
       author_user_id,
       journal_id,
@@ -278,7 +309,8 @@ export async function getSubmissionsByStatus(status: string): Promise<any[]> {
         email,
         affiliation
       )
-    `)
+    `
+    )
     .eq('status', status)
     .order('submitted_at', { ascending: false });
 
@@ -286,7 +318,8 @@ export async function getSubmissionsByStatus(status: string): Promise<any[]> {
   if (error && error.code === 'PGRST200') {
     const result = await supabase
       .from('submissions')
-      .select(`
+      .select(
+        `
         id,
         author_user_id,
         journal_id,
@@ -298,7 +331,8 @@ export async function getSubmissionsByStatus(status: string): Promise<any[]> {
         submitted_at,
         created_at,
         updated_at
-      `)
+      `
+      )
       .eq('status', status)
       .order('submitted_at', { ascending: false });
 
@@ -309,8 +343,8 @@ export async function getSubmissionsByStatus(status: string): Promise<any[]> {
 
     // Manually fetch profiles for each submission
     if (result.data && result.data.length > 0) {
-      const userIds = [...new Set(result.data.map(s => s.author_user_id).filter(Boolean))];
-      
+      const userIds = [...new Set(result.data.map((s) => s.author_user_id).filter(Boolean))];
+
       if (userIds.length > 0) {
         const { data: profilesData } = await supabase
           .from('profiles')
@@ -318,11 +352,11 @@ export async function getSubmissionsByStatus(status: string): Promise<any[]> {
           .in('id', userIds);
 
         if (profilesData) {
-          const profileMap = new Map(profilesData.map(p => [p.id, p]));
-          
-          return result.data.map(submission => ({
+          const profileMap = new Map(profilesData.map((p) => [p.id, p]));
+
+          return result.data.map((submission) => ({
             ...submission,
-            profiles: profileMap.get(submission.author_user_id) || null
+            profiles: profileMap.get(submission.author_user_id) || null,
           }));
         }
       }
@@ -341,9 +375,7 @@ export async function getSubmissionsByStatus(status: string): Promise<any[]> {
 
 // QUERY 13: getAllSubmissions (for editors - with optional status filter)
 export async function getAllSubmissions(statusFilter?: string): Promise<any[]> {
-  let query = supabase
-    .from('submissions')
-    .select(`
+  let query = supabase.from('submissions').select(`
       id,
       author_user_id,
       journal_id,
@@ -368,13 +400,11 @@ export async function getAllSubmissions(statusFilter?: string): Promise<any[]> {
 
   query = query.order('submitted_at', { ascending: false });
 
-  let { data, error } = await query;
+  const { data, error } = await query;
 
   // If the foreign key relationship doesn't exist, fetch submissions without profiles
   if (error && error.code === 'PGRST200') {
-    const simpleQuery = supabase
-      .from('submissions')
-      .select(`
+    const simpleQuery = supabase.from('submissions').select(`
         id,
         author_user_id,
         journal_id,
@@ -395,7 +425,7 @@ export async function getAllSubmissions(statusFilter?: string): Promise<any[]> {
     simpleQuery.order('submitted_at', { ascending: false });
 
     const result = await simpleQuery;
-    
+
     if (result.error) {
       console.error('Error fetching all submissions:', result.error);
       return [];
@@ -403,8 +433,8 @@ export async function getAllSubmissions(statusFilter?: string): Promise<any[]> {
 
     // Manually fetch profiles for each submission
     if (result.data && result.data.length > 0) {
-      const userIds = [...new Set(result.data.map(s => s.author_user_id).filter(Boolean))];
-      
+      const userIds = [...new Set(result.data.map((s) => s.author_user_id).filter(Boolean))];
+
       if (userIds.length > 0) {
         const { data: profilesData } = await supabase
           .from('profiles')
@@ -413,12 +443,12 @@ export async function getAllSubmissions(statusFilter?: string): Promise<any[]> {
 
         if (profilesData) {
           // Create a map of user_id to profile
-          const profileMap = new Map(profilesData.map(p => [p.id, p]));
-          
+          const profileMap = new Map(profilesData.map((p) => [p.id, p]));
+
           // Attach profiles to submissions
-          return result.data.map(submission => ({
+          return result.data.map((submission) => ({
             ...submission,
-            profiles: profileMap.get(submission.author_user_id) || null
+            profiles: profileMap.get(submission.author_user_id) || null,
           }));
         }
       }
@@ -438,11 +468,12 @@ export async function getAllSubmissions(statusFilter?: string): Promise<any[]> {
 // QUERY 14: getReviewAssignments
 export async function getReviewAssignments(submissionId: string): Promise<any[]> {
   console.log('[getReviewAssignments] Fetching assignments for submission:', submissionId);
-  
+
   // Use reviewer_user_id (the correct column name) and try to join with profiles
   const { data, error } = await supabase
     .from('review_assignments')
-    .select(`
+    .select(
+      `
       *,
       profiles:reviewer_user_id (
         id,
@@ -450,14 +481,15 @@ export async function getReviewAssignments(submissionId: string): Promise<any[]>
         email,
         affiliation
       )
-    `)
+    `
+    )
     .eq('submission_id', submissionId)
     .order('invited_at', { ascending: false });
 
   // If foreign key doesn't exist, fetch separately
   if (error && error.code === 'PGRST200') {
     console.log('[getReviewAssignments] Foreign key not found, fetching separately...');
-    
+
     const { data: assignmentsData, error: assignError } = await supabase
       .from('review_assignments')
       .select('*')
@@ -473,12 +505,10 @@ export async function getReviewAssignments(submissionId: string): Promise<any[]>
 
     // Manually fetch profiles
     if (assignmentsData && assignmentsData.length > 0) {
-      const reviewerIds = [...new Set(
-        assignmentsData
-          .map(r => r.reviewer_user_id)
-          .filter(Boolean)
-      )];
-      
+      const reviewerIds = [
+        ...new Set(assignmentsData.map((r) => r.reviewer_user_id).filter(Boolean)),
+      ];
+
       console.log('[getReviewAssignments] Reviewer IDs to fetch:', reviewerIds);
 
       if (reviewerIds.length > 0) {
@@ -489,12 +519,12 @@ export async function getReviewAssignments(submissionId: string): Promise<any[]>
 
         if (profilesData) {
           console.log('[getReviewAssignments] Profiles fetched:', profilesData);
-          const profileMap = new Map(profilesData.map(p => [p.id, p]));
-          
-          return assignmentsData.map(assignment => ({
+          const profileMap = new Map(profilesData.map((p) => [p.id, p]));
+
+          return assignmentsData.map((assignment) => ({
             ...assignment,
             profiles: profileMap.get(assignment.reviewer_user_id) || null,
-            reviewer_profile: profileMap.get(assignment.reviewer_user_id) || null
+            reviewer_profile: profileMap.get(assignment.reviewer_user_id) || null,
           }));
         }
       }
@@ -514,9 +544,10 @@ export async function getReviewAssignments(submissionId: string): Promise<any[]>
 
 // QUERY 15: getSubmissionByIdForEditor (no user restriction)
 export async function getSubmissionByIdForEditor(submissionId: string): Promise<any | null> {
-  let { data, error } = await supabase
+  const { data, error } = await supabase
     .from('submissions')
-    .select(`
+    .select(
+      `
       id,
       author_user_id,
       journal_id,
@@ -535,7 +566,8 @@ export async function getSubmissionByIdForEditor(submissionId: string): Promise<
         affiliation,
         orcid
       )
-    `)
+    `
+    )
     .eq('id', submissionId)
     .limit(1)
     .single();
@@ -544,7 +576,8 @@ export async function getSubmissionByIdForEditor(submissionId: string): Promise<
   if (error && error.code === 'PGRST200') {
     const result = await supabase
       .from('submissions')
-      .select(`
+      .select(
+        `
         id,
         author_user_id,
         journal_id,
@@ -557,7 +590,8 @@ export async function getSubmissionByIdForEditor(submissionId: string): Promise<
         submitted_at,
         created_at,
         updated_at
-      `)
+      `
+      )
       .eq('id', submissionId)
       .limit(1)
       .single();
@@ -578,7 +612,7 @@ export async function getSubmissionByIdForEditor(submissionId: string): Promise<
 
       return {
         ...result.data,
-        profiles: profileData || null
+        profiles: profileData || null,
       };
     }
 
@@ -597,12 +631,15 @@ export async function getSubmissionByIdForEditor(submissionId: string): Promise<
 
 // Get all review assignments for the current user
 export async function getMyAssignments(): Promise<any[]> {
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   if (!session) return [];
 
   const { data, error } = await supabase
     .from('review_assignments')
-    .select(`
+    .select(
+      `
       id,
       submission_id,
       invited_email,
@@ -618,7 +655,8 @@ export async function getMyAssignments(): Promise<any[]> {
         topic_area,
         submitted_at
       )
-    `)
+    `
+    )
     .eq('reviewer_user_id', session.user.id)
     .order('invited_at', { ascending: false });
 
@@ -650,11 +688,13 @@ export async function getExistingReview(assignmentId: string): Promise<any | nul
 
 // Get all roles for the current user
 export async function getMyRoles(): Promise<string[]> {
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   if (!session) return [];
 
   // Try to fetch with 'role' column first
-  let { data, error } = await supabase
+  const { data, error } = await supabase
     .from('user_roles')
     .select('role')
     .eq('user_id', session.user.id);
@@ -665,7 +705,7 @@ export async function getMyRoles(): Promise<string[]> {
       .from('user_roles')
       .select('user_role')
       .eq('user_id', session.user.id);
-    
+
     if (!result.error && result.data) {
       return result.data.map((r: any) => r.user_role).filter(Boolean);
     }
@@ -676,12 +716,14 @@ export async function getMyRoles(): Promise<string[]> {
     return [];
   }
 
-  return data?.map(r => r.role).filter(Boolean) || [];
+  return data?.map((r) => r.role).filter(Boolean) || [];
 }
 
 // Get all role requests for the current user
 export async function getMyRoleRequests(): Promise<any[]> {
-  const { data: { session } } = await supabase.auth.getSession();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   if (!session) return [];
 
   const { data, error } = await supabase
@@ -703,20 +745,24 @@ export async function getMyRoleRequests(): Promise<any[]> {
 // Get all reviewers (profiles with reviewer role)
 export async function getAllReviewers(): Promise<any[]> {
   console.log('[getAllReviewers] Fetching reviewers...');
-  
+
   // First, let's check what's actually in the user_roles table
   const { data: allRoles, error: allRolesError } = await supabase
     .from('user_roles')
     .select('*')
     .limit(10);
-  
+
   console.log('[getAllReviewers] Sample user_roles data:', allRoles);
-  console.log('[getAllReviewers] Column names:', allRoles && allRoles.length > 0 ? Object.keys(allRoles[0]) : 'No data');
-  
+  console.log(
+    '[getAllReviewers] Column names:',
+    allRoles && allRoles.length > 0 ? Object.keys(allRoles[0]) : 'No data'
+  );
+
   // Try with 'role' column first
   let { data, error } = await supabase
     .from('user_roles')
-    .select(`
+    .select(
+      `
       user_id,
       profiles!user_roles_user_id_fkey (
         id,
@@ -725,7 +771,8 @@ export async function getAllReviewers(): Promise<any[]> {
         affiliation,
         orcid
       )
-    `)
+    `
+    )
     .eq('role', 'reviewer');
 
   // If 'role' column doesn't exist, try 'user_role' column
@@ -733,7 +780,8 @@ export async function getAllReviewers(): Promise<any[]> {
     console.log('[getAllReviewers] Trying with user_role column...');
     const result = await supabase
       .from('user_roles')
-      .select(`
+      .select(
+        `
         user_id,
         profiles!user_roles_user_id_fkey (
           id,
@@ -742,9 +790,10 @@ export async function getAllReviewers(): Promise<any[]> {
           affiliation,
           orcid
         )
-      `)
+      `
+      )
       .eq('user_role', 'reviewer');
-    
+
     data = result.data;
     error = result.error;
   }
@@ -752,24 +801,35 @@ export async function getAllReviewers(): Promise<any[]> {
   // If the foreign key relationship doesn't exist, fetch user_roles and profiles separately
   if (error && error.code === 'PGRST200') {
     console.log('[getAllReviewers] Foreign key not found, fetching separately...');
-    
+
     // Try with 'role' column
     let result = await supabase
       .from('user_roles')
       .select('user_id, role, user_role')
       .eq('role', 'reviewer');
 
-    console.log('[getAllReviewers] Query with role column result:', { data: result.data, error: result.error });
+    console.log('[getAllReviewers] Query with role column result:', {
+      data: result.data,
+      error: result.error,
+    });
 
     // If 'role' doesn't work, try 'user_role'
-    if ((result.error && (result.error.code === '42703' || result.error.message?.includes('column'))) || !result.data || result.data.length === 0) {
+    if (
+      (result.error &&
+        (result.error.code === '42703' || result.error.message?.includes('column'))) ||
+      !result.data ||
+      result.data.length === 0
+    ) {
       console.log('[getAllReviewers] Trying user_role column...');
       result = await supabase
         .from('user_roles')
         .select('user_id, role, user_role')
         .eq('user_role', 'reviewer');
-      
-      console.log('[getAllReviewers] Query with user_role column result:', { data: result.data, error: result.error });
+
+      console.log('[getAllReviewers] Query with user_role column result:', {
+        data: result.data,
+        error: result.error,
+      });
     }
 
     if (result.error) {
@@ -781,9 +841,9 @@ export async function getAllReviewers(): Promise<any[]> {
 
     // Manually fetch profiles for each reviewer
     if (result.data && result.data.length > 0) {
-      const userIds = result.data.map(r => r.user_id).filter(Boolean);
+      const userIds = result.data.map((r) => r.user_id).filter(Boolean);
       console.log('[getAllReviewers] Found reviewer user IDs:', userIds);
-      
+
       if (userIds.length > 0) {
         const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
@@ -818,7 +878,8 @@ export async function getAllReviewers(): Promise<any[]> {
 export async function getAssignmentByToken(token: string): Promise<any | null> {
   const { data, error } = await supabase
     .from('review_assignments')
-    .select(`
+    .select(
+      `
       *,
       submissions (
         id,
@@ -828,7 +889,8 @@ export async function getAssignmentByToken(token: string): Promise<any | null> {
         topic_area,
         submitted_at
       )
-    `)
+    `
+    )
     .eq('invite_token', token)
     .limit(1)
     .single();
@@ -843,16 +905,19 @@ export async function getAssignmentByToken(token: string): Promise<any | null> {
 
 // Get my reviewer assignments (for reviewer dashboard)
 export async function getMyReviewAssignments(): Promise<any[]> {
-  const { data: { user } } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user) {
     return [];
   }
 
   // Try with reviewer_id first
-  let { data, error } = await supabase
+  const { data, error } = await supabase
     .from('review_assignments')
-    .select(`
+    .select(
+      `
       *,
       submissions (
         id,
@@ -863,14 +928,17 @@ export async function getMyReviewAssignments(): Promise<any[]> {
         submitted_at,
         status
       )
-    `)
+    `
+    )
     .eq('reviewer_id', user.id)
     .order('invited_at', { ascending: false });
 
   // If column doesn't exist or table doesn't exist, return empty array
   if (error) {
     if (error.code === '42703' || error.code === '42P01') {
-      console.warn('review_assignments table or reviewer_id column does not exist. Please run /phase2-migration');
+      console.warn(
+        'review_assignments table or reviewer_id column does not exist. Please run /phase2-migration'
+      );
       return [];
     }
     console.error('Error fetching my review assignments:', error);
@@ -884,8 +952,10 @@ export async function getMyReviewAssignments(): Promise<any[]> {
 
 // Get active role for current user
 export async function getMyActiveRole(): Promise<string | null> {
-  const { data: { user } } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user) {
     return null;
   }
@@ -912,16 +982,15 @@ export async function getMyActiveRole(): Promise<string | null> {
 
 // Set active role for current user
 export async function setMyActiveRole(role: string): Promise<boolean> {
-  const { data: { user } } = await supabase.auth.getUser();
-  
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   if (!user) {
     return false;
   }
 
-  const { error } = await supabase
-    .from('profiles')
-    .update({ active_role: role })
-    .eq('id', user.id);
+  const { error } = await supabase.from('profiles').update({ active_role: role }).eq('id', user.id);
 
   // If column doesn't exist, silently fail (migration not run yet)
   if (error && error.code === '42703') {
@@ -940,13 +1009,13 @@ export async function setMyActiveRole(role: string): Promise<boolean> {
 // Initialize active role (set to first available role if not set or invalid)
 export async function initializeActiveRole(): Promise<string | null> {
   const roles = await getMyRoles();
-  
+
   if (!roles || roles.length === 0) {
     return null;
   }
 
   const activeRole = await getMyActiveRole();
-  
+
   // If active role is not set or not in the list of roles, set it to the first role
   if (!activeRole || !roles.includes(activeRole)) {
     const firstRole = roles[0];

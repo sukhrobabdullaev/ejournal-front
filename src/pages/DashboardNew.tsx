@@ -24,7 +24,7 @@ import {
   CheckCircle,
   Eye,
   UserPlus,
-  Settings
+  Settings,
 } from 'lucide-react';
 
 export function DashboardNew() {
@@ -171,7 +171,7 @@ export function DashboardNew() {
   const getStatusLabel = (status: string) => {
     return status
       .split('_')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
   };
 
@@ -181,9 +181,9 @@ export function DashboardNew() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-white">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
           <p className="text-gray-600">Loading dashboard...</p>
         </div>
       </div>
@@ -192,14 +192,14 @@ export function DashboardNew() {
 
   if (error && roles.length === 0) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <AlertCircle className="w-16 h-16 text-yellow-600 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">No Roles Assigned</h2>
-          <p className="text-gray-600 mb-6">{error}</p>
+      <div className="flex min-h-screen items-center justify-center bg-white">
+        <div className="max-w-md text-center">
+          <AlertCircle className="mx-auto mb-4 h-16 w-16 text-yellow-600" />
+          <h2 className="mb-2 text-2xl font-bold text-gray-900">No Roles Assigned</h2>
+          <p className="mb-6 text-gray-600">{error}</p>
           <button
             onClick={handleLogout}
-            className="px-6 py-3 bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors"
+            className="bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700"
           >
             Logout
           </button>
@@ -210,13 +210,13 @@ export function DashboardNew() {
 
   if (error || !profile) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-white">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Error</h2>
-          <p className="text-gray-600 mb-6">{error || 'Failed to load dashboard'}</p>
+          <h2 className="mb-2 text-2xl font-bold text-gray-900">Error</h2>
+          <p className="mb-6 text-gray-600">{error || 'Failed to load dashboard'}</p>
           <button
             onClick={() => navigate('/login')}
-            className="px-6 py-3 bg-blue-600 text-white font-medium hover:bg-blue-700 transition-colors"
+            className="bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700"
           >
             Back to Login
           </button>
@@ -225,20 +225,20 @@ export function DashboardNew() {
     );
   }
 
-  const submittedCount = allSubmissions.filter(s => s.status === 'submitted').length;
-  const underReviewCount = allSubmissions.filter(s => s.status === 'under_review').length;
-  const acceptedCount = allSubmissions.filter(s => s.status === 'accepted').length;
-  const rejectedCount = allSubmissions.filter(s => s.status === 'rejected').length;
+  const submittedCount = allSubmissions.filter((s) => s.status === 'submitted').length;
+  const underReviewCount = allSubmissions.filter((s) => s.status === 'under_review').length;
+  const acceptedCount = allSubmissions.filter((s) => s.status === 'accepted').length;
+  const rejectedCount = allSubmissions.filter((s) => s.status === 'rejected').length;
 
   console.log(allSubmissions);
   return (
     <div className="min-h-screen bg-white">
       {/* Page Header */}
-      <div className="bg-white border-b border-gray-300">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="border-b border-gray-300 bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="mb-2 text-3xl font-bold text-gray-900">
                 Welcome, {profile.full_name}
               </h1>
               <p className="text-sm text-gray-600">{profile.email}</p>
@@ -248,24 +248,32 @@ export function DashboardNew() {
               {/* Role Switcher */}
               {roles.length > 0 && (
                 <div className="relative">
-                  <label className="block text-xs text-gray-600 mb-1">Active Role</label>
+                  <label className="mb-1 block text-xs text-gray-600">Active Role</label>
                   <button
                     onClick={() => setShowRoleDropdown(!showRoleDropdown)}
-                    className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors text-sm min-w-[140px] justify-between"
+                    className="flex min-w-[140px] items-center justify-between gap-2 border border-gray-300 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"
                     disabled={switchingRole}
                   >
-                    <span className="capitalize">{activeRole ? getRoleTitleCase(activeRole) : 'Select Role'}</span>
-                    <ChevronDown size={16} className={`transition-transform ${showRoleDropdown ? 'rotate-180' : ''}`} />
+                    <span className="capitalize">
+                      {activeRole ? getRoleTitleCase(activeRole) : 'Select Role'}
+                    </span>
+                    <ChevronDown
+                      size={16}
+                      className={`transition-transform ${showRoleDropdown ? 'rotate-180' : ''}`}
+                    />
                   </button>
 
                   {showRoleDropdown && (
-                    <div className="absolute right-0 mt-1 w-full bg-white border border-gray-300 shadow-lg z-50">
+                    <div className="absolute right-0 z-50 mt-1 w-full border border-gray-300 bg-white shadow-lg">
                       {roles.map((role) => (
                         <button
                           key={role}
                           onClick={() => handleRoleSwitch(role)}
-                          className={`w-full text-left px-4 py-2 text-sm hover:bg-gray-50 transition-colors capitalize ${role === activeRole ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700'
-                            }`}
+                          className={`w-full px-4 py-2 text-left text-sm capitalize transition-colors hover:bg-gray-50 ${
+                            role === activeRole
+                              ? 'bg-blue-50 font-medium text-blue-700'
+                              : 'text-gray-700'
+                          }`}
                           disabled={switchingRole}
                         >
                           {getRoleTitleCase(role)}
@@ -281,7 +289,7 @@ export function DashboardNew() {
                 {roles.length > 0 && <div className="h-4"></div>}
                 <button
                   onClick={handleLogout}
-                  className="flex items-center px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors text-sm"
+                  className="flex items-center border border-gray-300 px-4 py-2 text-sm text-gray-700 transition-colors hover:bg-gray-50"
                 >
                   <LogOut size={16} className="mr-2" />
                   Logout
@@ -291,70 +299,70 @@ export function DashboardNew() {
           </div>
 
           {/* Dev Info */}
-          <div className="mt-4 text-xs text-gray-500 font-mono">
+          <div className="mt-4 font-mono text-xs text-gray-500">
             Roles loaded: {roles.join(', ')} | Active role: {activeRole || 'none'}
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* REVIEWER DASHBOARD */}
         {activeRole === 'reviewer' && (
           <div>
             <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Reviewer Dashboard</h2>
+              <h2 className="mb-2 text-2xl font-bold text-gray-900">Reviewer Dashboard</h2>
               <p className="text-sm text-gray-600">Review manuscripts assigned to you</p>
             </div>
 
             {/* Review Statistics */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-              <div className="bg-white border border-gray-300 p-6">
+            <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
+              <div className="border border-gray-300 bg-white p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">Total Assignments</p>
+                    <p className="mb-1 text-sm text-gray-600">Total Assignments</p>
                     <p className="text-3xl font-bold text-gray-900">{reviewAssignments.length}</p>
                   </div>
-                  <FileText className="w-8 h-8 text-blue-600" />
+                  <FileText className="h-8 w-8 text-blue-600" />
                 </div>
               </div>
-              <div className="bg-white border border-gray-300 p-6">
+              <div className="border border-gray-300 bg-white p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">Pending Invites</p>
+                    <p className="mb-1 text-sm text-gray-600">Pending Invites</p>
                     <p className="text-3xl font-bold text-yellow-600">
-                      {reviewAssignments.filter(a => a.status === 'invited').length}
+                      {reviewAssignments.filter((a) => a.status === 'invited').length}
                     </p>
                   </div>
-                  <Clock className="w-8 h-8 text-yellow-600" />
+                  <Clock className="h-8 w-8 text-yellow-600" />
                 </div>
               </div>
-              <div className="bg-white border border-gray-300 p-6">
+              <div className="border border-gray-300 bg-white p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">In Progress</p>
+                    <p className="mb-1 text-sm text-gray-600">In Progress</p>
                     <p className="text-3xl font-bold text-blue-600">
-                      {reviewAssignments.filter(a => a.status === 'accepted').length}
+                      {reviewAssignments.filter((a) => a.status === 'accepted').length}
                     </p>
                   </div>
-                  <Eye className="w-8 h-8 text-blue-600" />
+                  <Eye className="h-8 w-8 text-blue-600" />
                 </div>
               </div>
-              <div className="bg-white border border-gray-300 p-6">
+              <div className="border border-gray-300 bg-white p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">Completed</p>
+                    <p className="mb-1 text-sm text-gray-600">Completed</p>
                     <p className="text-3xl font-bold text-green-600">
                       {reviewAssignments.filter((a) => a.status === 'review_submitted').length}
                     </p>
                   </div>
-                  <CheckCircle className="w-8 h-8 text-green-600" />
+                  <CheckCircle className="h-8 w-8 text-green-600" />
                 </div>
               </div>
             </div>
 
             {/* Review Assignments List */}
-            <div className="bg-white border border-gray-300 p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">My Review Assignments</h3>
+            <div className="border border-gray-300 bg-white p-6">
+              <h3 className="mb-4 text-xl font-semibold text-gray-900">My Review Assignments</h3>
               {reviewAssignments.length === 0 ? (
                 <p className="text-sm text-gray-600">No review assignments yet.</p>
               ) : (
@@ -362,21 +370,21 @@ export function DashboardNew() {
                   {reviewAssignments.map((assignment) => (
                     <div
                       key={assignment.id}
-                      className="border border-gray-300 p-4 hover:bg-gray-50 transition-colors"
+                      className="border border-gray-300 p-4 transition-colors hover:bg-gray-50"
                     >
-                      <div className="flex items-start justify-between mb-2">
+                      <div className="mb-2 flex items-start justify-between">
                         <div className="flex-1">
-                          <h4 className="text-lg font-medium text-gray-900 mb-1">
+                          <h4 className="mb-1 text-lg font-medium text-gray-900">
                             {assignment.submission_title || 'Untitled Manuscript'}
                           </h4>
                           <p className="text-sm text-gray-600">
                             Invited:{' '}
                             {assignment.invited_at
                               ? new Date(assignment.invited_at).toLocaleDateString('en-US', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric',
-                              })
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric',
+                                })
                               : 'N/A'}
                           </p>
                           {assignment.due_date && (
@@ -391,28 +399,29 @@ export function DashboardNew() {
                           )}
                         </div>
                         <span
-                          className={`px-3 py-1 text-xs border capitalize ${assignment.status === 'invited'
-                            ? 'bg-yellow-50 text-yellow-700 border-yellow-300'
-                            : assignment.status === 'accepted'
-                              ? 'bg-blue-50 text-blue-700 border-blue-300'
-                              : assignment.status === 'declined'
-                                ? 'bg-red-50 text-red-700 border-red-300'
-                                : assignment.status === 'review_submitted'
-                                  ? 'bg-green-50 text-green-700 border-green-300'
-                                  : 'bg-gray-100 text-gray-700 border-gray-300'
-                            }`}
+                          className={`border px-3 py-1 text-xs capitalize ${
+                            assignment.status === 'invited'
+                              ? 'border-yellow-300 bg-yellow-50 text-yellow-700'
+                              : assignment.status === 'accepted'
+                                ? 'border-blue-300 bg-blue-50 text-blue-700'
+                                : assignment.status === 'declined'
+                                  ? 'border-red-300 bg-red-50 text-red-700'
+                                  : assignment.status === 'review_submitted'
+                                    ? 'border-green-300 bg-green-50 text-green-700'
+                                    : 'border-gray-300 bg-gray-100 text-gray-700'
+                          }`}
                         >
                           {assignment.status.replace('_', ' ')}
                         </span>
                       </div>
                       {assignment.submission_abstract && (
-                        <p className="text-sm text-gray-700 mb-3 line-clamp-2">
+                        <p className="mb-3 line-clamp-2 text-sm text-gray-700">
                           {assignment.submission_abstract}
                         </p>
                       )}
                       <Link
                         to={`/review/assignments/${assignment.id}`}
-                        className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 font-medium"
+                        className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-700"
                       >
                         View Assignment Details →
                       </Link>
@@ -428,87 +437,95 @@ export function DashboardNew() {
         {activeRole === 'editor' && (
           <div>
             <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Editor Dashboard</h2>
+              <h2 className="mb-2 text-2xl font-bold text-gray-900">Editor Dashboard</h2>
               <p className="text-sm text-gray-600">Manage submissions and editorial workflow</p>
             </div>
 
             {/* Editorial Statistics */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-              <div className="bg-white border border-gray-300 p-6">
+            <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
+              <div className="border border-gray-300 bg-white p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">New Submissions</p>
+                    <p className="mb-1 text-sm text-gray-600">New Submissions</p>
                     <p className="text-3xl font-bold text-blue-600">{submittedCount}</p>
                   </div>
-                  <FileText className="w-8 h-8 text-blue-600" />
+                  <FileText className="h-8 w-8 text-blue-600" />
                 </div>
               </div>
-              <div className="bg-white border border-gray-300 p-6">
+              <div className="border border-gray-300 bg-white p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">Under Review</p>
+                    <p className="mb-1 text-sm text-gray-600">Under Review</p>
                     <p className="text-3xl font-bold text-yellow-600">{underReviewCount}</p>
                   </div>
-                  <Clock className="w-8 h-8 text-yellow-600" />
+                  <Clock className="h-8 w-8 text-yellow-600" />
                 </div>
               </div>
-              <div className="bg-white border border-gray-300 p-6">
+              <div className="border border-gray-300 bg-white p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">Accepted</p>
+                    <p className="mb-1 text-sm text-gray-600">Accepted</p>
                     <p className="text-3xl font-bold text-green-600">{acceptedCount}</p>
                   </div>
-                  <CheckCircle className="w-8 h-8 text-green-600" />
+                  <CheckCircle className="h-8 w-8 text-green-600" />
                 </div>
               </div>
-              <div className="bg-white border border-gray-300 p-6">
+              <div className="border border-gray-300 bg-white p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">Rejected</p>
+                    <p className="mb-1 text-sm text-gray-600">Rejected</p>
                     <p className="text-3xl font-bold text-red-600">{rejectedCount}</p>
                   </div>
-                  <AlertCircle className="w-8 h-8 text-red-600" />
+                  <AlertCircle className="h-8 w-8 text-red-600" />
                 </div>
               </div>
             </div>
 
             {/* Submissions List */}
-            <div className="bg-white border border-gray-300 p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">All Submissions</h3>
+            <div className="border border-gray-300 bg-white p-6">
+              <h3 className="mb-4 text-xl font-semibold text-gray-900">All Submissions</h3>
               {allSubmissions.length === 0 ? (
                 <p className="text-sm text-gray-600">No submissions yet.</p>
               ) : (
                 <div className="space-y-4">
                   {allSubmissions.slice(0, 10).map((submission) => (
-                    <div key={submission.id} className="border border-gray-300 p-4 hover:bg-gray-50 transition-colors">
-                      <div className="flex items-start justify-between mb-2">
+                    <div
+                      key={submission.id}
+                      className="border border-gray-300 p-4 transition-colors hover:bg-gray-50"
+                    >
+                      <div className="mb-2 flex items-start justify-between">
                         <div className="flex-1">
-                          <h4 className="text-lg font-medium text-gray-900 mb-1">
+                          <h4 className="mb-1 text-lg font-medium text-gray-900">
                             {submission.title || 'Untitled Submission'}
                           </h4>
                           <p className="text-sm text-gray-600">
                             Author: {submission.profiles?.full_name || 'Unknown'}
                           </p>
                           <p className="text-sm text-gray-600">
-                            Submitted: {submission.created_at ? new Date(submission.created_at).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric'
-                            }) : 'N/A'}
+                            Submitted:{' '}
+                            {submission.created_at
+                              ? new Date(submission.created_at).toLocaleDateString('en-US', {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric',
+                                })
+                              : 'N/A'}
                           </p>
                         </div>
-                        <span className={`px-3 py-1 text-xs border ${getStatusColor(submission.status)}`}>
+                        <span
+                          className={`border px-3 py-1 text-xs ${getStatusColor(submission.status)}`}
+                        >
                           {getStatusLabel(submission.status)}
                         </span>
                       </div>
                       {submission.abstract && (
-                        <p className="text-sm text-gray-700 mb-3 line-clamp-2">
+                        <p className="mb-3 line-clamp-2 text-sm text-gray-700">
                           {submission.abstract}
                         </p>
                       )}
                       <Link
                         to={`/editor/submissions/${submission.id}`}
-                        className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 font-medium"
+                        className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-700"
                       >
                         <Eye size={16} className="mr-1" />
                         View Submission Details
@@ -534,75 +551,75 @@ export function DashboardNew() {
         {activeRole === 'admin' && (
           <div>
             <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Admin Dashboard</h2>
+              <h2 className="mb-2 text-2xl font-bold text-gray-900">Admin Dashboard</h2>
               <p className="text-sm text-gray-600">System administration and user management</p>
             </div>
 
             {/* Admin Statistics */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-              <div className="bg-white border border-gray-300 p-6">
+            <div className="mb-8 grid grid-cols-1 gap-4 md:grid-cols-4">
+              <div className="border border-gray-300 bg-white p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">Total Submissions</p>
+                    <p className="mb-1 text-sm text-gray-600">Total Submissions</p>
                     <p className="text-3xl font-bold text-gray-900">{allSubmissions.length}</p>
                   </div>
-                  <FileText className="w-8 h-8 text-gray-600" />
+                  <FileText className="h-8 w-8 text-gray-600" />
                 </div>
               </div>
-              <div className="bg-white border border-gray-300 p-6">
+              <div className="border border-gray-300 bg-white p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">Active Reviews</p>
+                    <p className="mb-1 text-sm text-gray-600">Active Reviews</p>
                     <p className="text-3xl font-bold text-blue-600">{underReviewCount}</p>
                   </div>
-                  <Users className="w-8 h-8 text-blue-600" />
+                  <Users className="h-8 w-8 text-blue-600" />
                 </div>
               </div>
-              <div className="bg-white border border-gray-300 p-6">
+              <div className="border border-gray-300 bg-white p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">Published</p>
+                    <p className="mb-1 text-sm text-gray-600">Published</p>
                     <p className="text-3xl font-bold text-green-600">
-                      {allSubmissions.filter(s => s.status === 'published').length}
+                      {allSubmissions.filter((s) => s.status === 'published').length}
                     </p>
                   </div>
-                  <CheckCircle className="w-8 h-8 text-green-600" />
+                  <CheckCircle className="h-8 w-8 text-green-600" />
                 </div>
               </div>
-              <div className="bg-white border border-gray-300 p-6">
+              <div className="border border-gray-300 bg-white p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-600 mb-1">System Status</p>
+                    <p className="mb-1 text-sm text-gray-600">System Status</p>
                     <p className="text-lg font-bold text-green-600">Healthy</p>
                   </div>
-                  <Settings className="w-8 h-8 text-green-600" />
+                  <Settings className="h-8 w-8 text-green-600" />
                 </div>
               </div>
             </div>
 
             {/* Admin Quick Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              <div className="bg-white border border-gray-300 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Editorial Management</h3>
-                <p className="text-sm text-gray-600 mb-4">
+            <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2">
+              <div className="border border-gray-300 bg-white p-6">
+                <h3 className="mb-4 text-lg font-semibold text-gray-900">Editorial Management</h3>
+                <p className="mb-4 text-sm text-gray-600">
                   Manage all submissions, assign editors, and oversee the editorial workflow.
                 </p>
                 <Link
                   to="/editor"
-                  className="inline-flex items-center px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 text-sm font-medium"
+                  className="inline-flex items-center bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
                 >
                   <FileText size={16} className="mr-2" />
                   Editorial Dashboard
                 </Link>
               </div>
 
-              <div className="bg-white border border-gray-300 p-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">User Management</h3>
-                <p className="text-sm text-gray-600 mb-4">
+              <div className="border border-gray-300 bg-white p-6">
+                <h3 className="mb-4 text-lg font-semibold text-gray-900">User Management</h3>
+                <p className="mb-4 text-sm text-gray-600">
                   Manage user roles, permissions, and review role requests.
                 </p>
                 <button
-                  className="inline-flex items-center px-4 py-2 bg-gray-300 text-gray-500 text-sm font-medium cursor-not-allowed"
+                  className="inline-flex cursor-not-allowed items-center bg-gray-300 px-4 py-2 text-sm font-medium text-gray-500"
                   disabled
                 >
                   <Users size={16} className="mr-2" />
@@ -612,25 +629,29 @@ export function DashboardNew() {
             </div>
 
             {/* Recent Submissions */}
-            <div className="bg-white border border-gray-300 p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">Recent Submissions</h3>
+            <div className="border border-gray-300 bg-white p-6">
+              <h3 className="mb-4 text-xl font-semibold text-gray-900">Recent Submissions</h3>
               {allSubmissions.length === 0 ? (
                 <p className="text-sm text-gray-600">No submissions yet.</p>
               ) : (
                 <div className="space-y-4">
                   {allSubmissions.slice(0, 5).map((submission) => (
                     <div key={submission.id} className="border border-gray-300 p-4">
-                      <div className="flex items-start justify-between mb-2">
+                      <div className="mb-2 flex items-start justify-between">
                         <div className="flex-1">
-                          <h4 className="text-base font-medium text-gray-900 mb-1">
+                          <h4 className="mb-1 text-base font-medium text-gray-900">
                             {submission.title || 'Untitled Submission'}
                           </h4>
                           <p className="text-sm text-gray-600">
-                            Author: {submission.profiles?.full_name || 'Unknown'} •
-                            Submitted: {submission.created_at ? new Date(submission.created_at).toLocaleDateString() : 'N/A'}
+                            Author: {submission.profiles?.full_name || 'Unknown'} • Submitted:{' '}
+                            {submission.created_at
+                              ? new Date(submission.created_at).toLocaleDateString()
+                              : 'N/A'}
                           </p>
                         </div>
-                        <span className={`px-3 py-1 text-xs border ${getStatusColor(submission.status)}`}>
+                        <span
+                          className={`border px-3 py-1 text-xs ${getStatusColor(submission.status)}`}
+                        >
                           {getStatusLabel(submission.status)}
                         </span>
                       </div>
@@ -646,55 +667,62 @@ export function DashboardNew() {
         {activeRole && !['reviewer', 'editor', 'admin'].includes(activeRole) && (
           <div>
             <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Author Dashboard</h2>
+              <h2 className="mb-2 text-2xl font-bold text-gray-900">Author Dashboard</h2>
               <p className="text-sm text-gray-600">Manage your manuscript submissions</p>
             </div>
 
             {/* New Submission Button */}
             <div className="mb-8">
-              <Link
-                to="/submit"
-                className="inline-flex items-center px-6 py-3 bg-blue-400 "
-              >
+              <Link to="/submit" className="inline-flex items-center bg-blue-400 px-6 py-3">
                 <Plus size={20} className="mr-2" />
                 New Submission
               </Link>
             </div>
 
             {/* Submissions List */}
-            <div className="bg-white border border-gray-300 p-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-4">My Submissions</h3>
+            <div className="border border-gray-300 bg-white p-6">
+              <h3 className="mb-4 text-xl font-semibold text-gray-900">My Submissions</h3>
               {submissions.length === 0 ? (
-                <p className="text-sm text-gray-600">No submissions yet. Start by creating a new submission.</p>
+                <p className="text-sm text-gray-600">
+                  No submissions yet. Start by creating a new submission.
+                </p>
               ) : (
                 <div className="space-y-4">
                   {submissions.map((submission) => (
-                    <div key={submission.id} className="border border-gray-300 p-4 hover:bg-gray-50 transition-colors">
-                      <div className="flex items-start justify-between mb-2">
+                    <div
+                      key={submission.id}
+                      className="border border-gray-300 p-4 transition-colors hover:bg-gray-50"
+                    >
+                      <div className="mb-2 flex items-start justify-between">
                         <div className="flex-1">
-                          <h4 className="text-lg font-medium text-gray-900 mb-1">
+                          <h4 className="mb-1 text-lg font-medium text-gray-900">
                             {submission.title || 'Untitled Submission'}
                           </h4>
                           <p className="text-sm text-gray-600">
-                            Submitted: {submission.created_at ? new Date(submission.created_at).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric'
-                            }) : 'N/A'}
+                            Submitted:{' '}
+                            {submission.created_at
+                              ? new Date(submission.created_at).toLocaleDateString('en-US', {
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric',
+                                })
+                              : 'N/A'}
                           </p>
                         </div>
-                        <span className={`px-3 py-1 text-xs border ${getStatusColor(submission.status)}`}>
+                        <span
+                          className={`border px-3 py-1 text-xs ${getStatusColor(submission.status)}`}
+                        >
                           {getStatusLabel(submission.status)}
                         </span>
                       </div>
                       {submission.abstract && (
-                        <p className="text-sm text-gray-700 mb-3 line-clamp-2">
+                        <p className="mb-3 line-clamp-2 text-sm text-gray-700">
                           {submission.abstract}
                         </p>
                       )}
                       <Link
                         to={`/submission/${submission.id}`}
-                        className="inline-flex items-center text-sm text-blue-600 hover:text-blue-700 font-medium"
+                        className="inline-flex items-center text-sm font-medium text-blue-600 hover:text-blue-700"
                       >
                         <FileText size={16} className="mr-1" />
                         View Details
@@ -708,9 +736,9 @@ export function DashboardNew() {
         )}
 
         {/* Profile Section */}
-        <div className="bg-white border border-gray-300 p-6 mt-8">
-          <h3 className="text-xl font-semibold text-gray-900 mb-4">Profile Information</h3>
-          <div className="grid md:grid-cols-2 gap-4 text-sm">
+        <div className="mt-8 border border-gray-300 bg-white p-6">
+          <h3 className="mb-4 text-xl font-semibold text-gray-900">Profile Information</h3>
+          <div className="grid gap-4 text-sm md:grid-cols-2">
             <div>
               <span className="text-gray-600">Full Name:</span>
               <span className="ml-2 text-gray-900">{profile.full_name}</span>

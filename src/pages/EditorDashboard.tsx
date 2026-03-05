@@ -1,14 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
-import {
-  FileText,
-  Clock,
-  Users,
-  CheckCircle,
-  AlertCircle,
-  Eye,
-  Send,
-} from 'lucide-react';
+import { FileText, Clock, Users, CheckCircle, AlertCircle, Eye, Send } from 'lucide-react';
 import type { Submission, ReviewAssignment } from '../lib/api';
 import {
   getMyRole,
@@ -45,9 +37,7 @@ export function EditorDashboard() {
   const [inviting, setInviting] = useState(false);
 
   // Decision form
-  const [decision, setDecision] = useState<'accept' | 'reject' | 'revision_required'>(
-    'accept',
-  );
+  const [decision, setDecision] = useState<'accept' | 'reject' | 'revision_required'>('accept');
   const [decisionLetter, setDecisionLetter] = useState('');
   const [deciding, setDeciding] = useState(false);
   const [movingToDecision, setMovingToDecision] = useState(false);
@@ -104,8 +94,8 @@ export function EditorDashboard() {
           const all = await getAllSubmissions();
           list = all.filter((s) =>
             ['decision_pending', 'revision_required', 'accepted', 'rejected', 'published'].includes(
-              s.status,
-            ),
+              s.status
+            )
           );
           break;
         }
@@ -172,7 +162,7 @@ export function EditorDashboard() {
       setError(
         err?.detail ||
           err.message ||
-          'Failed to move submission to review. Make sure at least one reviewer is invited.',
+          'Failed to move submission to review. Make sure at least one reviewer is invited.'
       );
     } finally {
       setLoading(false);
@@ -250,7 +240,7 @@ export function EditorDashboard() {
       await makeEditorialDecision(
         selectedSubmission.id.toString(),
         decision,
-        decisionLetter.trim(),
+        decisionLetter.trim()
       );
 
       const refreshed = await getSubmissionByIdForEditor(selectedSubmission.id.toString());
@@ -292,7 +282,7 @@ export function EditorDashboard() {
       >
         <div className="text-center">
           <div
-            className="w-16 h-16 border-4 border-t-transparent rounded-full animate-spin mx-auto mb-4"
+            className="mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-4 border-t-transparent"
             style={{ borderColor: '#2563EB', borderTopColor: 'transparent' }}
           />
           <p style={{ color: '#64748B' }}>Loading editor dashboard...</p>
@@ -308,7 +298,7 @@ export function EditorDashboard() {
         className="flex items-center justify-center px-4"
       >
         <div
-          className="bg-white text-center max-w-md w-full"
+          className="w-full max-w-md bg-white text-center"
           style={{
             borderRadius: '16px',
             padding: '40px',
@@ -316,8 +306,8 @@ export function EditorDashboard() {
             borderTop: '4px solid #EF4444',
           }}
         >
-          <AlertCircle className="w-16 h-16 mx-auto mb-4" style={{ color: '#EF4444' }} />
-          <h1 className="text-2xl font-bold mb-3" style={{ color: '#0B1C4D' }}>
+          <AlertCircle className="mx-auto mb-4 h-16 w-16" style={{ color: '#EF4444' }} />
+          <h1 className="mb-3 text-2xl font-bold" style={{ color: '#0B1C4D' }}>
             Access Denied
           </h1>
           <p className="mb-6" style={{ color: '#64748B' }}>
@@ -325,7 +315,7 @@ export function EditorDashboard() {
           </p>
           <button
             onClick={() => navigate('/dashboard')}
-            className="px-6 py-3 font-medium rounded-lg transition-all"
+            className="rounded-lg px-6 py-3 font-medium transition-all"
             style={{
               background: 'linear-gradient(135deg, #0B1C4D 0%, #2563EB 100%)',
               color: '#FFFFFF',
@@ -342,11 +332,9 @@ export function EditorDashboard() {
   return (
     <div style={{ backgroundColor: '#F8FAFC', minHeight: '100vh' }}>
       {/* Page Header */}
-      <div
-        style={{ backgroundColor: '#0B1C4D', paddingTop: '60px', paddingBottom: '60px' }}
-      >
-        <div className="max-w-[1120px] mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-4xl font-bold mb-3" style={{ color: '#FFFFFF' }}>
+      <div style={{ backgroundColor: '#0B1C4D', paddingTop: '60px', paddingBottom: '60px' }}>
+        <div className="mx-auto max-w-[1120px] px-4 sm:px-6 lg:px-8">
+          <h1 className="mb-3 text-4xl font-bold" style={{ color: '#FFFFFF' }}>
             Editor Dashboard
           </h1>
           <p className="text-base" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
@@ -356,11 +344,11 @@ export function EditorDashboard() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-[1120px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto max-w-[1120px] px-4 py-8 sm:px-6 lg:px-8">
         {/* Messages */}
         {success && (
-          <div className="mb-6 p-4 bg-green-50 border border-green-300 text-green-800 flex items-center gap-2">
-            <CheckCircle className="w-5 h-5" />
+          <div className="mb-6 flex items-center gap-2 border border-green-300 bg-green-50 p-4 text-green-800">
+            <CheckCircle className="h-5 w-5" />
             <span>{success}</span>
             <button
               onClick={() => setSuccess(null)}
@@ -372,8 +360,8 @@ export function EditorDashboard() {
         )}
 
         {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-300 text-red-800 flex items-center gap-2">
-            <AlertCircle className="w-5 h-5" />
+          <div className="mb-6 flex items-center gap-2 border border-red-300 bg-red-50 p-4 text-red-800">
+            <AlertCircle className="h-5 w-5" />
             <span>{error}</span>
             <button
               onClick={() => setError(null)}
@@ -385,39 +373,39 @@ export function EditorDashboard() {
         )}
 
         {/* Tabs */}
-        <div className="bg-white border border-gray-300 mb-6">
+        <div className="mb-6 border border-gray-300 bg-white">
           <div className="flex border-b border-gray-300">
             <EditorTab
               active={activeTab === 'new'}
               onClick={() => setActiveTab('new')}
-              icon={<FileText className="w-4 h-4 inline mr-2" />}
+              icon={<FileText className="mr-2 inline h-4 w-4" />}
               label={`New Submissions (${submissions.length})`}
             />
             <EditorTab
               active={activeTab === 'screening'}
               onClick={() => setActiveTab('screening')}
-              icon={<Eye className="w-4 h-4 inline mr-2" />}
+              icon={<Eye className="mr-2 inline h-4 w-4" />}
               label="Screening"
             />
             <EditorTab
               active={activeTab === 'review'}
               onClick={() => setActiveTab('review')}
-              icon={<Users className="w-4 h-4 inline mr-2" />}
+              icon={<Users className="mr-2 inline h-4 w-4" />}
               label="Under Review"
             />
             <EditorTab
               active={activeTab === 'decisions'}
               onClick={() => setActiveTab('decisions')}
-              icon={<CheckCircle className="w-4 h-4 inline mr-2" />}
+              icon={<CheckCircle className="mr-2 inline h-4 w-4" />}
               label="Decisions"
             />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           {/* Submissions List */}
-          <div className="bg-white border border-gray-300">
-            <div className="p-4 border-b border-gray-300">
+          <div className="border border-gray-300 bg-white">
+            <div className="border-b border-gray-300 p-4">
               <h2 className="font-semibold text-gray-900">
                 {activeTab === 'new' && 'New Submissions'}
                 {activeTab === 'screening' && 'Screening'}
@@ -429,7 +417,7 @@ export function EditorDashboard() {
             <div className="divide-y divide-gray-200">
               {submissions.length === 0 ? (
                 <div className="p-8 text-center text-gray-500">
-                  <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                  <FileText className="mx-auto mb-3 h-12 w-12 text-gray-300" />
                   <p>No submissions in this category</p>
                 </div>
               ) : (
@@ -438,26 +426,24 @@ export function EditorDashboard() {
                     type="button"
                     key={s.id}
                     onClick={() => loadSubmissionDetails(s.id)}
-                    className={`w-full text-left p-4 cursor-pointer hover:bg-gray-50 transition-colors ${
+                    className={`w-full cursor-pointer p-4 text-left transition-colors hover:bg-gray-50 ${
                       selectedSubmission?.id === s.id ? 'bg-blue-50' : ''
                     }`}
                   >
-                    <h3 className="font-medium text-gray-900 mb-1 line-clamp-2">
+                    <h3 className="mb-1 line-clamp-2 font-medium text-gray-900">
                       {s.title || 'Untitled Submission'}
                     </h3>
-                    <p className="text-sm text-gray-600 mb-2">
-                      Author ID: {s.author ?? 'Unknown'}
-                    </p>
+                    <p className="mb-2 text-sm text-gray-600">Author ID: {s.author ?? 'Unknown'}</p>
                     <div className="flex items-center gap-4 text-xs text-gray-500">
                       <span className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
+                        <Clock className="h-3 w-3" />
                         {new Date(s.created_at).toLocaleDateString('en-US', {
                           year: 'numeric',
                           month: 'short',
                           day: 'numeric',
                         })}
                       </span>
-                      <span className="px-2 py-0.5 bg-gray-100 text-gray-700 rounded">
+                      <span className="rounded bg-gray-100 px-2 py-0.5 text-gray-700">
                         {s.topic_area?.name || 'No topic'}
                       </span>
                     </div>
@@ -468,20 +454,20 @@ export function EditorDashboard() {
           </div>
 
           {/* Submission Details & Actions */}
-          <div className="bg-white border border-gray-300">
+          <div className="border border-gray-300 bg-white">
             {!selectedSubmission ? (
               <div className="p-8 text-center text-gray-500">
-                <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                <FileText className="mx-auto mb-3 h-12 w-12 text-gray-300" />
                 <p>Select a submission to view details</p>
               </div>
             ) : (
-              <div className="p-4 space-y-4 max-h-[600px] overflow-y-auto">
+              <div className="max-h-[600px] space-y-4 overflow-y-auto p-4">
                 {/* Title + meta */}
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                  <h3 className="mb-1 text-lg font-semibold text-gray-900">
                     {selectedSubmission.title || 'Untitled Submission'}
                   </h3>
-                  <p className="text-xs text-gray-500 mb-1">
+                  <p className="mb-1 text-xs text-gray-500">
                     ID:{' '}
                     <span className="font-mono">
                       {selectedSubmission.id.toString().substring(0, 8).toUpperCase()}
@@ -494,8 +480,8 @@ export function EditorDashboard() {
 
                 {/* Abstract */}
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-700 mb-1">Abstract</h4>
-                  <p className="text-sm text-gray-600 leading-relaxed">
+                  <h4 className="mb-1 text-sm font-semibold text-gray-700">Abstract</h4>
+                  <p className="text-sm leading-relaxed text-gray-600">
                     {selectedSubmission.abstract || 'No abstract provided.'}
                   </p>
                 </div>
@@ -503,13 +489,10 @@ export function EditorDashboard() {
                 {/* Keywords */}
                 {selectedSubmission.keywords && selectedSubmission.keywords.length > 0 && (
                   <div>
-                    <h4 className="text-sm font-semibold text-gray-700 mb-1">Keywords</h4>
+                    <h4 className="mb-1 text-sm font-semibold text-gray-700">Keywords</h4>
                     <div className="flex flex-wrap gap-2">
                       {selectedSubmission.keywords.map((keyword, idx) => (
-                        <span
-                          key={idx}
-                          className="px-2 py-1 bg-gray-100 text-xs text-gray-700"
-                        >
+                        <span key={idx} className="bg-gray-100 px-2 py-1 text-xs text-gray-700">
                           {keyword}
                         </span>
                       ))}
@@ -519,7 +502,7 @@ export function EditorDashboard() {
 
                 {/* Files */}
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-700 mb-2">Files</h4>
+                  <h4 className="mb-2 text-sm font-semibold text-gray-700">Files</h4>
                   {(!selectedSubmission.manuscript_pdf ||
                     selectedSubmission.manuscript_pdf.trim().length === 0) &&
                   (!selectedSubmission.supplementary_files ||
@@ -533,13 +516,11 @@ export function EditorDashboard() {
                             href={selectedSubmission.manuscript_pdf}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="flex items-center justify-between p-2 bg-blue-50 border border-blue-200 hover:bg-blue-100 transition-colors text-sm"
+                            className="flex items-center justify-between border border-blue-200 bg-blue-50 p-2 text-sm transition-colors hover:bg-blue-100"
                           >
                             <div className="flex items-center gap-2">
-                              <FileText className="w-4 h-4 text-blue-600" />
-                              <span className="font-medium text-blue-900">
-                                Manuscript PDF
-                              </span>
+                              <FileText className="h-4 w-4 text-blue-600" />
+                              <span className="font-medium text-blue-900">Manuscript PDF</span>
                             </div>
                             <span className="text-xs font-semibold text-blue-700 uppercase">
                               View
@@ -553,10 +534,10 @@ export function EditorDashboard() {
                           href={file.file}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center justify-between p-2 bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-colors text-sm"
+                          className="flex items-center justify-between border border-gray-200 bg-gray-50 p-2 text-sm transition-colors hover:bg-gray-100"
                         >
                           <div className="flex items-center gap-2">
-                            <FileText className="w-4 h-4 text-gray-500" />
+                            <FileText className="h-4 w-4 text-gray-500" />
                             <span className="font-medium text-gray-900">{file.name}</span>
                           </div>
                           <span className="text-xs font-semibold text-gray-700 uppercase">
@@ -570,9 +551,7 @@ export function EditorDashboard() {
 
                 {/* Review assignments (from REST payload) */}
                 <div>
-                  <h4 className="text-sm font-semibold text-gray-700 mb-2">
-                    Review Assignments
-                  </h4>
+                  <h4 className="mb-2 text-sm font-semibold text-gray-700">Review Assignments</h4>
                   {(!selectedSubmission.review_assignments ||
                     selectedSubmission.review_assignments.length === 0) && (
                     <p className="text-sm text-gray-500">No reviewers assigned yet.</p>
@@ -583,7 +562,7 @@ export function EditorDashboard() {
                         {selectedSubmission.review_assignments.map((assignment) => (
                           <div
                             key={assignment.id}
-                            className="p-2 bg-gray-50 border border-gray-200 text-xs flex items-center justify-between"
+                            className="flex items-center justify-between border border-gray-200 bg-gray-50 p-2 text-xs"
                           >
                             <div>
                               <p className="font-medium text-gray-800">
@@ -594,8 +573,7 @@ export function EditorDashboard() {
                               </p>
                               {assignment.due_date && (
                                 <p className="text-gray-500">
-                                  Due:{' '}
-                                  {new Date(assignment.due_date).toLocaleDateString('en-US')}
+                                  Due: {new Date(assignment.due_date).toLocaleDateString('en-US')}
                                 </p>
                               )}
                             </div>
@@ -603,7 +581,7 @@ export function EditorDashboard() {
                               <button
                                 type="button"
                                 onClick={() => handleRemindReviewer(assignment)}
-                                className="text-blue-600 hover:text-blue-700 text-[11px] font-medium"
+                                className="text-[11px] font-medium text-blue-600 hover:text-blue-700"
                               >
                                 Send Reminder
                               </button>
@@ -616,7 +594,7 @@ export function EditorDashboard() {
 
                 {/* Reviewer invite (simple email form) */}
                 {['screening', 'under_review'].includes(selectedSubmission.status) && (
-                  <div className="pt-3 border-t border-gray-200 space-y-2">
+                  <div className="space-y-2 border-t border-gray-200 pt-3">
                     <h4 className="text-sm font-semibold text-gray-700">
                       Invite Reviewer (by email)
                     </h4>
@@ -625,22 +603,22 @@ export function EditorDashboard() {
                         type="email"
                         value={inviteEmail}
                         onChange={(e) => setInviteEmail(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                         placeholder="reviewer@example.com"
                       />
                       <input
                         type="date"
                         value={inviteDueDate}
                         onChange={(e) => setInviteDueDate(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                       />
                       <button
                         type="button"
                         onClick={handleInviteReviewer}
                         disabled={inviting || !inviteEmail}
-                        className="w-full px-4 py-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="flex w-full items-center justify-center gap-2 bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
                       >
-                        <Send className="w-4 h-4" />
+                        <Send className="h-4 w-4" />
                         {inviting ? 'Inviting...' : 'Invite Reviewer'}
                       </button>
                     </div>
@@ -648,14 +626,14 @@ export function EditorDashboard() {
                 )}
 
                 {/* Workflow actions */}
-                <div className="pt-4 border-t border-gray-200 space-y-3">
+                <div className="space-y-3 border-t border-gray-200 pt-4">
                   {selectedSubmission.status === 'submitted' && (
                     <button
                       type="button"
                       onClick={handleStartScreening}
-                      className="w-full px-4 py-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 flex items-center justify-center gap-2"
+                      className="flex w-full items-center justify-center gap-2 bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
                     >
-                      <Eye className="w-4 h-4" />
+                      <Eye className="h-4 w-4" />
                       Move to Screening
                     </button>
                   )}
@@ -666,9 +644,9 @@ export function EditorDashboard() {
                       <button
                         type="button"
                         onClick={handleSendToReview}
-                        className="w-full px-4 py-2 bg-green-600 text-white text-sm font-medium hover:bg-green-700 flex items-center justify-center gap-2"
+                        className="flex w-full items-center justify-center gap-2 bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
                       >
-                        <Send className="w-4 h-4" />
+                        <Send className="h-4 w-4" />
                         Send to Review
                       </button>
                     )}
@@ -678,7 +656,7 @@ export function EditorDashboard() {
                       type="button"
                       onClick={handleMoveToDecision}
                       disabled={movingToDecision}
-                      className="w-full px-4 py-2 bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      className="flex w-full items-center justify-center gap-2 bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-gray-400"
                     >
                       {movingToDecision ? 'Moving to Decision...' : 'Move to Decision'}
                     </button>
@@ -686,9 +664,7 @@ export function EditorDashboard() {
 
                   {selectedSubmission.status === 'decision_pending' && (
                     <div className="space-y-2">
-                      <p className="text-sm font-semibold text-gray-700">
-                        Editorial Decision
-                      </p>
+                      <p className="text-sm font-semibold text-gray-700">Editorial Decision</p>
                       <div className="flex gap-3 text-sm text-gray-700">
                         <label className="flex items-center gap-1">
                           <input
@@ -722,14 +698,14 @@ export function EditorDashboard() {
                         rows={4}
                         value={decisionLetter}
                         onChange={(e) => setDecisionLetter(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 text-sm focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                        className="w-full border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                         placeholder="Decision letter to the author..."
                       />
                       <button
                         type="button"
                         onClick={handleMakeDecision}
                         disabled={deciding}
-                        className="w-full px-4 py-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                        className="w-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
                       >
                         {deciding ? 'Saving Decision...' : 'Save Decision'}
                       </button>
@@ -741,7 +717,7 @@ export function EditorDashboard() {
                       type="button"
                       onClick={handlePublish}
                       disabled={publishing}
-                      className="w-full px-4 py-2 bg-purple-600 text-white text-sm font-medium hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                      className="w-full bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:cursor-not-allowed disabled:bg-gray-400"
                     >
                       {publishing ? 'Publishing...' : 'Publish Submission'}
                     </button>
@@ -766,7 +742,7 @@ type EditorTabProps = {
 const EditorTab: React.FC<EditorTabProps> = ({ active, onClick, icon, label }) => (
   <button
     onClick={onClick}
-    className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+    className={`border-b-2 px-6 py-3 text-sm font-medium transition-colors ${
       active
         ? 'border-blue-600 text-blue-600'
         : 'border-transparent text-gray-600 hover:text-gray-900'
@@ -808,4 +784,3 @@ const getStatusChipClasses = (status: Submission['status']): string => {
       return 'inline-flex px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700 border border-gray-300';
   }
 };
-

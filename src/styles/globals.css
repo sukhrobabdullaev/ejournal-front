@@ -1,23 +1,29 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
 /* Ditech Asia Color System */
 :root {
-  --color-primary-dark: #0B1C4D;
-  --color-accent-blue: #2563EB;
-  --color-background: #F8FAFC;
-  --color-text-primary: #0F172A;
+  --color-primary-dark: #0b1c4d;
+  --color-accent-blue: #2563eb;
+  --color-background: #f8fafc;
+  --color-text-primary: #0f172a;
   --color-text-secondary: #475569;
-  --color-border: #E2E8F0;
+  --color-border: #e2e8f0;
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   line-height: 1.6;
   color: var(--color-text-primary);
   background-color: var(--color-background);
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-weight: 700;
   line-height: 1.2;
   color: var(--color-primary-dark);

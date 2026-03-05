@@ -7,99 +7,91 @@ import { APIStatusIndicator } from './components/APIStatusIndicator';
 import { EnvNotification } from './components/EnvNotification';
 import { Toaster } from './components/ui/sonner';
 
-const Home = React.lazy(() =>
-  import('./pages/Home').then((m) => ({ default: m.Home })),
-);
+const Home = React.lazy(() => import('./pages/Home').then((m) => ({ default: m.Home })));
 const Articles = React.lazy(() =>
-  import('./pages/Articles').then((m) => ({ default: m.Articles })),
+  import('./pages/Articles').then((m) => ({ default: m.Articles }))
 );
 const ArticleDetail = React.lazy(() =>
-  import('./pages/ArticleDetail').then((m) => ({ default: m.ArticleDetail })),
+  import('./pages/ArticleDetail').then((m) => ({ default: m.ArticleDetail }))
 );
 const SubmitPaper = React.lazy(() =>
-  import('./pages/SubmitPaper').then((m) => ({ default: m.SubmitPaper })),
+  import('./pages/SubmitPaper').then((m) => ({ default: m.SubmitPaper }))
 );
 const AuthorGuidelines = React.lazy(() =>
-  import('./pages/AuthorGuidelines').then((m) => ({ default: m.AuthorGuidelines })),
+  import('./pages/AuthorGuidelines').then((m) => ({ default: m.AuthorGuidelines }))
 );
 const AimsScope = React.lazy(() =>
-  import('./pages/AimsScope').then((m) => ({ default: m.AimsScope })),
+  import('./pages/AimsScope').then((m) => ({ default: m.AimsScope }))
 );
 const EditorialBoard = React.lazy(() =>
-  import('./pages/EditorialBoard').then((m) => ({ default: m.EditorialBoard })),
+  import('./pages/EditorialBoard').then((m) => ({ default: m.EditorialBoard }))
 );
 const Policies = React.lazy(() =>
-  import('./pages/Policies').then((m) => ({ default: m.Policies })),
+  import('./pages/Policies').then((m) => ({ default: m.Policies }))
 );
-const About = React.lazy(() =>
-  import('./pages/About').then((m) => ({ default: m.About })),
-);
-const Contact = React.lazy(() =>
-  import('./pages/Contact').then((m) => ({ default: m.Contact })),
-);
+const About = React.lazy(() => import('./pages/About').then((m) => ({ default: m.About })));
+const Contact = React.lazy(() => import('./pages/Contact').then((m) => ({ default: m.Contact })));
 const DatabaseSetup = React.lazy(() =>
-  import('./pages/DatabaseSetup').then((m) => ({ default: m.DatabaseSetup })),
+  import('./pages/DatabaseSetup').then((m) => ({ default: m.DatabaseSetup }))
 );
 const StorageSetup = React.lazy(() =>
-  import('./pages/StorageSetup').then((m) => ({ default: m.StorageSetup })),
+  import('./pages/StorageSetup').then((m) => ({ default: m.StorageSetup }))
 );
 const MigrationFix = React.lazy(() =>
-  import('./pages/MigrationFix').then((m) => ({ default: m.MigrationFix })),
+  import('./pages/MigrationFix').then((m) => ({ default: m.MigrationFix }))
 );
 const Phase2Migration = React.lazy(() =>
-  import('./pages/Phase2Migration').then((m) => ({ default: m.Phase2Migration })),
+  import('./pages/Phase2Migration').then((m) => ({ default: m.Phase2Migration }))
 );
 const RolesMigration = React.lazy(() =>
-  import('./pages/RolesMigration').then((m) => ({ default: m.RolesMigration })),
+  import('./pages/RolesMigration').then((m) => ({ default: m.RolesMigration }))
 );
-const Login = React.lazy(() =>
-  import('./pages/Login').then((m) => ({ default: m.Login })),
-);
+const Login = React.lazy(() => import('./pages/Login').then((m) => ({ default: m.Login })));
 const Register = React.lazy(() =>
-  import('./pages/Register').then((m) => ({ default: m.Register })),
+  import('./pages/Register').then((m) => ({ default: m.Register }))
 );
 const DashboardNew = React.lazy(() =>
-  import('./pages/DashboardNew').then((m) => ({ default: m.DashboardNew })),
+  import('./pages/DashboardNew').then((m) => ({ default: m.DashboardNew }))
 );
 const SubmissionDetail = React.lazy(() =>
-  import('./pages/SubmissionDetail').then((m) => ({ default: m.SubmissionDetail })),
+  import('./pages/SubmissionDetail').then((m) => ({ default: m.SubmissionDetail }))
 );
 const EditorDashboard = React.lazy(() =>
-  import('./pages/EditorDashboard').then((m) => ({ default: m.EditorDashboard })),
+  import('./pages/EditorDashboard').then((m) => ({ default: m.EditorDashboard }))
 );
 const EditorSubmissionDetail = React.lazy(() =>
   import('./pages/EditorSubmissionDetail').then((m) => ({
     default: m.EditorSubmissionDetail,
-  })),
+  }))
 );
 const ReviewInvite = React.lazy(() =>
-  import('./pages/ReviewInvite').then((m) => ({ default: m.ReviewInvite })),
+  import('./pages/ReviewInvite').then((m) => ({ default: m.ReviewInvite }))
 );
 const ReviewInviteNew = React.lazy(() =>
-  import('./pages/ReviewInviteNew').then((m) => ({ default: m.ReviewInviteNew })),
+  import('./pages/ReviewInviteNew').then((m) => ({ default: m.ReviewInviteNew }))
 );
 const ReviewDashboard = React.lazy(() =>
-  import('./pages/ReviewDashboard').then((m) => ({ default: m.ReviewDashboard })),
+  import('./pages/ReviewDashboard').then((m) => ({ default: m.ReviewDashboard }))
 );
 const ReviewAssignmentDetail = React.lazy(() =>
   import('./pages/ReviewAssignmentDetail').then((m) => ({
     default: m.ReviewAssignmentDetail,
-  })),
+  }))
 );
 
 export default function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="flex flex-col min-h-screen bg-white">
+        <div className="flex min-h-screen flex-col bg-white">
           <Header />
           <main className="grow">
             <ReactSuspense
               fallback={
-                <div className="min-h-[50vh] flex items-center justify-center">
+                <div className="flex min-h-[50vh] items-center justify-center">
                   <div className="text-center">
-                    <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                    <p className="text-gray-600 text-sm">Loading page...</p>
+                    <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+                    <p className="text-sm text-gray-600">Loading page...</p>
                   </div>
                 </div>
               }

@@ -1,20 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
-import { 
-  FileText, 
-  Clock, 
-  CheckCircle, 
-  AlertCircle,
-  Download,
-  X,
-  Send
-} from 'lucide-react';
+import { FileText, Clock, CheckCircle, AlertCircle, Download, X, Send } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import { 
-  getMyAssignments, 
-  getSubmissionFiles, 
-  getExistingReview 
-} from '../lib/queries';
+import { getMyAssignments, getSubmissionFiles, getExistingReview } from '../lib/queries';
 
 interface ReviewAssignment {
   id: string;
@@ -41,7 +29,7 @@ export function ReviewDashboard() {
   const [selectedAssignment, setSelectedAssignment] = useState<ReviewAssignment | null>(null);
   const [files, setFiles] = useState<any[]>([]);
   const [existingReview, setExistingReview] = useState<any | null>(null);
-  
+
   // Review form state
   const [recommendation, setRecommendation] = useState('');
   const [commentsToAuthor, setCommentsToAuthor] = useState('');
@@ -54,7 +42,9 @@ export function ReviewDashboard() {
       setLoading(true);
 
       // Check if user is authenticated
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       if (!session) {
         navigate('/login');
         return;
@@ -62,7 +52,7 @@ export function ReviewDashboard() {
 
       // Load assignments
       const assignmentsData = await getMyAssignments();
-      
+
       if (assignmentsData.length === 0) {
         setError('You do not have any review assignments.');
         setLoading(false);
@@ -79,11 +69,11 @@ export function ReviewDashboard() {
   const openReviewModal = async (assignment: ReviewAssignment) => {
     setSelectedAssignment(assignment);
     setError(null);
-    
+
     // Load submission files
     const filesData = await getSubmissionFiles(assignment.submission_id);
     setFiles(filesData);
-    
+
     // Load existing review
     const reviewData = await getExistingReview(assignment.id);
     if (reviewData) {
@@ -111,12 +101,12 @@ export function ReviewDashboard() {
 
   const handleSubmitReview = async () => {
     if (!selectedAssignment) return;
-    
+
     if (!recommendation) {
       setError('Please select a recommendation.');
       return;
     }
-    
+
     if (!commentsToAuthor.trim()) {
       setError('Comments to author are required.');
       return;
@@ -135,22 +125,20 @@ export function ReviewDashboard() {
             recommendation,
             comments_to_author: commentsToAuthor,
             comments_to_editor: commentsToEditor,
-            submitted_at: new Date().toISOString()
+            submitted_at: new Date().toISOString(),
           })
           .eq('id', existingReview.id);
 
         if (updateError) throw updateError;
       } else {
         // Insert new review
-        const { error: insertError } = await supabase
-          .from('reviews')
-          .insert({
-            assignment_id: selectedAssignment.id,
-            recommendation,
-            comments_to_author: commentsToAuthor,
-            comments_to_editor: commentsToEditor,
-            submitted_at: new Date().toISOString()
-          });
+        const { error: insertError } = await supabase.from('reviews').insert({
+          assignment_id: selectedAssignment.id,
+          recommendation,
+          comments_to_author: commentsToAuthor,
+          comments_to_editor: commentsToEditor,
+          submitted_at: new Date().toISOString(),
+        });
 
         if (insertError) throw insertError;
       }
@@ -160,7 +148,7 @@ export function ReviewDashboard() {
         .from('review_assignments')
         .update({
           status: 'completed',
-          review_submitted_at: new Date().toISOString()
+          review_submitted_at: new Date().toISOString(),
         })
         .eq('id', selectedAssignment.id);
 
@@ -169,7 +157,7 @@ export function ReviewDashboard() {
       // Reload assignments
       const updatedAssignments = await getMyAssignments();
       setAssignments(updatedAssignments);
-      
+
       closeReviewModal();
       alert('Review submitted successfully!');
     } catch (err: any) {
@@ -199,15 +187,31 @@ export function ReviewDashboard() {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'invited':
-        return <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium">Invited</span>;
+        return (
+          <span className="bg-yellow-100 px-2 py-1 text-xs font-medium text-yellow-800">
+            Invited
+          </span>
+        );
       case 'accepted':
-        return <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium">In Progress</span>;
+        return (
+          <span className="bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
+            In Progress
+          </span>
+        );
       case 'completed':
-        return <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium">Completed</span>;
+        return (
+          <span className="bg-green-100 px-2 py-1 text-xs font-medium text-green-800">
+            Completed
+          </span>
+        );
       case 'declined':
-        return <span className="px-2 py-1 bg-gray-100 text-gray-800 text-xs font-medium">Declined</span>;
+        return (
+          <span className="bg-gray-100 px-2 py-1 text-xs font-medium text-gray-800">Declined</span>
+        );
       default:
-        return <span className="px-2 py-1 bg-gray-100 text-gray-800 text-xs font-medium">{status}</span>;
+        return (
+          <span className="bg-gray-100 px-2 py-1 text-xs font-medium text-gray-800">{status}</span>
+        );
     }
   };
 
@@ -218,10 +222,13 @@ export function ReviewDashboard() {
 
   if (loading) {
     return (
-      <div style={{ backgroundColor: '#F8FAFC', minHeight: '100vh' }} className="flex items-center justify-center">
+      <div
+        style={{ backgroundColor: '#F8FAFC', minHeight: '100vh' }}
+        className="flex items-center justify-center"
+      >
         <div className="text-center">
-          <div 
-            className="w-16 h-16 border-4 border-t-transparent rounded-full animate-spin mx-auto mb-4"
+          <div
+            className="mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-4 border-t-transparent"
             style={{ borderColor: '#2563EB', borderTopColor: 'transparent' }}
           ></div>
           <p style={{ color: '#64748B' }}>Loading your review assignments...</p>
@@ -232,26 +239,33 @@ export function ReviewDashboard() {
 
   if (error && assignments.length === 0) {
     return (
-      <div style={{ backgroundColor: '#F8FAFC', minHeight: '100vh' }} className="flex items-center justify-center px-4">
-        <div 
-          className="bg-white text-center max-w-md w-full"
+      <div
+        style={{ backgroundColor: '#F8FAFC', minHeight: '100vh' }}
+        className="flex items-center justify-center px-4"
+      >
+        <div
+          className="w-full max-w-md bg-white text-center"
           style={{
             borderRadius: '16px',
             padding: '40px',
             boxShadow: '0 10px 30px rgba(11, 28, 77, 0.15)',
-            borderTop: '4px solid #F59E0B'
+            borderTop: '4px solid #F59E0B',
           }}
         >
-          <AlertCircle className="w-16 h-16 mx-auto mb-4" style={{ color: '#F59E0B' }} />
-          <h1 className="text-2xl font-bold mb-3" style={{ color: '#0B1C4D' }}>No Review Assignments</h1>
-          <p className="mb-6" style={{ color: '#64748B' }}>{error}</p>
+          <AlertCircle className="mx-auto mb-4 h-16 w-16" style={{ color: '#F59E0B' }} />
+          <h1 className="mb-3 text-2xl font-bold" style={{ color: '#0B1C4D' }}>
+            No Review Assignments
+          </h1>
+          <p className="mb-6" style={{ color: '#64748B' }}>
+            {error}
+          </p>
           <button
             onClick={() => navigate('/dashboard')}
-            className="px-6 py-3 font-medium rounded-lg transition-all"
+            className="rounded-lg px-6 py-3 font-medium transition-all"
             style={{
               background: 'linear-gradient(135deg, #0B1C4D 0%, #2563EB 100%)',
               color: '#FFFFFF',
-              boxShadow: '0 4px 12px rgba(11, 28, 77, 0.2)'
+              boxShadow: '0 4px 12px rgba(11, 28, 77, 0.2)',
             }}
           >
             Back to Dashboard
@@ -265,8 +279,10 @@ export function ReviewDashboard() {
     <div style={{ backgroundColor: '#F8FAFC', minHeight: '100vh' }}>
       {/* Page Header */}
       <div style={{ backgroundColor: '#0B1C4D', paddingTop: '60px', paddingBottom: '60px' }}>
-        <div className="max-w-[1120px] mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-4xl font-bold mb-3" style={{ color: '#FFFFFF' }}>Reviewer Dashboard</h1>
+        <div className="mx-auto max-w-[1120px] px-4 sm:px-6 lg:px-8">
+          <h1 className="mb-3 text-4xl font-bold" style={{ color: '#FFFFFF' }}>
+            Reviewer Dashboard
+          </h1>
           <p className="text-base" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
             Review manuscripts and provide feedback
           </p>
@@ -274,33 +290,31 @@ export function ReviewDashboard() {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-[1120px] mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <div className="mx-auto max-w-[1120px] px-4 py-12 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="bg-white border border-gray-300 mb-6">
-          <div className="bg-blue-600 text-white p-6">
-            <h1 className="text-2xl font-bold mb-2">Reviewer Dashboard</h1>
-            <p className="text-blue-100">
-              Manage your peer review assignments
-            </p>
+        <div className="mb-6 border border-gray-300 bg-white">
+          <div className="bg-blue-600 p-6 text-white">
+            <h1 className="mb-2 text-2xl font-bold">Reviewer Dashboard</h1>
+            <p className="text-blue-100">Manage your peer review assignments</p>
           </div>
 
           <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="bg-blue-50 border border-blue-200 p-4">
+            <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+              <div className="border border-blue-200 bg-blue-50 p-4">
                 <div className="text-2xl font-bold text-blue-900">
-                  {assignments.filter(a => a.status === 'accepted').length}
+                  {assignments.filter((a) => a.status === 'accepted').length}
                 </div>
                 <div className="text-sm text-blue-700">Active Reviews</div>
               </div>
-              <div className="bg-green-50 border border-green-200 p-4">
+              <div className="border border-green-200 bg-green-50 p-4">
                 <div className="text-2xl font-bold text-green-900">
-                  {assignments.filter(a => a.status === 'completed').length}
+                  {assignments.filter((a) => a.status === 'completed').length}
                 </div>
                 <div className="text-sm text-green-700">Completed</div>
               </div>
-              <div className="bg-yellow-50 border border-yellow-200 p-4">
+              <div className="border border-yellow-200 bg-yellow-50 p-4">
                 <div className="text-2xl font-bold text-yellow-900">
-                  {assignments.filter(a => a.status === 'invited').length}
+                  {assignments.filter((a) => a.status === 'invited').length}
                 </div>
                 <div className="text-sm text-yellow-700">Pending Response</div>
               </div>
@@ -309,7 +323,7 @@ export function ReviewDashboard() {
         </div>
 
         {/* Assignments List */}
-        <div className="bg-white border border-gray-300">
+        <div className="border border-gray-300 bg-white">
           <div className="border-b border-gray-300 bg-gray-50 p-4">
             <h2 className="text-lg font-semibold text-gray-900">Your Review Assignments</h2>
           </div>
@@ -319,39 +333,43 @@ export function ReviewDashboard() {
               <div key={assignment.id} className="p-6 hover:bg-gray-50">
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <FileText className="w-5 h-5 text-gray-400 flex-shrink-0" />
-                      <h3 className="font-medium text-gray-900">
-                        {assignment.submissions.title}
-                      </h3>
+                    <div className="mb-2 flex items-center gap-3">
+                      <FileText className="h-5 w-5 flex-shrink-0 text-gray-400" />
+                      <h3 className="font-medium text-gray-900">{assignment.submissions.title}</h3>
                     </div>
 
-                    <p className="text-sm text-gray-600 mb-3 line-clamp-2 ml-8">
+                    <p className="mb-3 ml-8 line-clamp-2 text-sm text-gray-600">
                       {assignment.submissions.abstract}
                     </p>
 
-                    <div className="flex flex-wrap gap-4 ml-8 text-sm">
+                    <div className="ml-8 flex flex-wrap gap-4 text-sm">
                       <div className="flex items-center gap-1">
                         <span className="text-gray-500">Status:</span>
                         {getStatusBadge(assignment.status)}
                       </div>
-                      
+
                       {assignment.review_due_at && (
                         <div className="flex items-center gap-1">
-                          <Clock className="w-4 h-4 text-gray-400" />
+                          <Clock className="h-4 w-4 text-gray-400" />
                           <span className="text-gray-500">Due:</span>
-                          <span className={isOverdue(assignment.review_due_at) ? 'text-red-600 font-medium' : 'text-gray-900'}>
+                          <span
+                            className={
+                              isOverdue(assignment.review_due_at)
+                                ? 'font-medium text-red-600'
+                                : 'text-gray-900'
+                            }
+                          >
                             {new Date(assignment.review_due_at).toLocaleDateString()}
                           </span>
                           {isOverdue(assignment.review_due_at) && (
-                            <span className="text-red-600 text-xs">(Overdue)</span>
+                            <span className="text-xs text-red-600">(Overdue)</span>
                           )}
                         </div>
                       )}
 
                       {assignment.submissions.topic_area && (
                         <div className="flex items-center gap-1">
-                          <span className="px-2 py-0.5 bg-gray-100 text-gray-700 text-xs">
+                          <span className="bg-gray-100 px-2 py-0.5 text-xs text-gray-700">
                             {assignment.submissions.topic_area}
                           </span>
                         </div>
@@ -363,23 +381,23 @@ export function ReviewDashboard() {
                     {assignment.status === 'completed' ? (
                       <button
                         onClick={() => openReviewModal(assignment)}
-                        className="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 text-sm flex items-center gap-2"
+                        className="flex items-center gap-2 border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                       >
-                        <CheckCircle className="w-4 h-4" />
+                        <CheckCircle className="h-4 w-4" />
                         View Review
                       </button>
                     ) : assignment.status === 'accepted' ? (
                       <button
                         onClick={() => openReviewModal(assignment)}
-                        className="px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 text-sm flex items-center gap-2"
+                        className="flex items-center gap-2 bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
                       >
-                        <FileText className="w-4 h-4" />
+                        <FileText className="h-4 w-4" />
                         Write Review
                       </button>
                     ) : (
                       <button
                         onClick={() => openReviewModal(assignment)}
-                        className="px-4 py-2 border border-blue-600 text-blue-600 hover:bg-blue-50 text-sm"
+                        className="border border-blue-600 px-4 py-2 text-sm text-blue-600 hover:bg-blue-50"
                       >
                         View Details
                       </button>
@@ -394,39 +412,42 @@ export function ReviewDashboard() {
 
       {/* Review Modal */}
       {selectedAssignment && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-          <div className="bg-white border border-gray-300 max-w-4xl w-full my-8">
+        <div className="bg-opacity-50 fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black p-4">
+          <div className="my-8 w-full max-w-4xl border border-gray-300 bg-white">
             {/* Modal Header */}
-            <div className="bg-gray-50 border-b border-gray-300 p-4 flex items-center justify-between">
+            <div className="flex items-center justify-between border-b border-gray-300 bg-gray-50 p-4">
               <h2 className="text-lg font-semibold text-gray-900">
                 {existingReview ? 'Review Submitted' : 'Write Review'}
               </h2>
-              <button
-                onClick={closeReviewModal}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-5 h-5" />
+              <button onClick={closeReviewModal} className="text-gray-400 hover:text-gray-600">
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="p-6 max-h-[calc(100vh-200px)] overflow-y-auto">
+            <div className="max-h-[calc(100vh-200px)] overflow-y-auto p-6">
               {/* Manuscript Info */}
-              <div className="mb-6 pb-6 border-b border-gray-200">
-                <h3 className="font-semibold text-gray-900 mb-2">
+              <div className="mb-6 border-b border-gray-200 pb-6">
+                <h3 className="mb-2 font-semibold text-gray-900">
                   {selectedAssignment.submissions.title}
                 </h3>
-                <p className="text-sm text-gray-600 mb-3">
+                <p className="mb-3 text-sm text-gray-600">
                   {selectedAssignment.submissions.abstract}
                 </p>
                 {selectedAssignment.review_due_at && (
                   <div className="flex items-center gap-2 text-sm">
-                    <Clock className="w-4 h-4 text-gray-400" />
+                    <Clock className="h-4 w-4 text-gray-400" />
                     <span className="text-gray-600">Review Due:</span>
-                    <span className={isOverdue(selectedAssignment.review_due_at) ? 'text-red-600 font-medium' : 'text-gray-900'}>
+                    <span
+                      className={
+                        isOverdue(selectedAssignment.review_due_at)
+                          ? 'font-medium text-red-600'
+                          : 'text-gray-900'
+                      }
+                    >
                       {new Date(selectedAssignment.review_due_at).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
-                        day: 'numeric'
+                        day: 'numeric',
                       })}
                     </span>
                   </div>
@@ -435,15 +456,20 @@ export function ReviewDashboard() {
 
               {/* Files */}
               {files.length > 0 && (
-                <div className="mb-6 pb-6 border-b border-gray-200">
-                  <h4 className="font-semibold text-gray-900 mb-3">Submission Files</h4>
+                <div className="mb-6 border-b border-gray-200 pb-6">
+                  <h4 className="mb-3 font-semibold text-gray-900">Submission Files</h4>
                   <div className="space-y-2">
                     {files.map((file) => (
-                      <div key={file.id} className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200">
+                      <div
+                        key={file.id}
+                        className="flex items-center justify-between border border-gray-200 bg-gray-50 p-3"
+                      >
                         <div className="flex items-center gap-3">
-                          <FileText className="w-5 h-5 text-gray-400" />
+                          <FileText className="h-5 w-5 text-gray-400" />
                           <div>
-                            <div className="text-sm font-medium text-gray-900">{file.file_type}</div>
+                            <div className="text-sm font-medium text-gray-900">
+                              {file.file_type}
+                            </div>
                             <div className="text-xs text-gray-500">{file.file_name}</div>
                           </div>
                         </div>
@@ -451,7 +477,7 @@ export function ReviewDashboard() {
                           onClick={() => downloadFile(file)}
                           className="flex items-center gap-2 px-3 py-1 text-sm text-blue-600 hover:bg-blue-50"
                         >
-                          <Download className="w-4 h-4" />
+                          <Download className="h-4 w-4" />
                           Download
                         </button>
                       </div>
@@ -464,13 +490,13 @@ export function ReviewDashboard() {
               {!existingReview ? (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="mb-2 block text-sm font-semibold text-gray-700">
                       Recommendation <span className="text-red-500">*</span>
                     </label>
                     <select
                       value={recommendation}
                       onChange={(e) => setRecommendation(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     >
                       <option value="">Select recommendation...</option>
                       <option value="accept">Accept</option>
@@ -481,7 +507,7 @@ export function ReviewDashboard() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="mb-2 block text-sm font-semibold text-gray-700">
                       Comments to Author <span className="text-red-500">*</span>
                     </label>
                     <textarea
@@ -489,15 +515,15 @@ export function ReviewDashboard() {
                       onChange={(e) => setCommentsToAuthor(e.target.value)}
                       rows={8}
                       placeholder="Provide constructive feedback for the author..."
-                      className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                      className="w-full resize-none border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="mt-1 text-xs text-gray-500">
                       These comments will be shared with the author.
                     </p>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="mb-2 block text-sm font-semibold text-gray-700">
                       Confidential Comments to Editor
                     </label>
                     <textarea
@@ -505,16 +531,16 @@ export function ReviewDashboard() {
                       onChange={(e) => setCommentsToEditor(e.target.value)}
                       rows={6}
                       placeholder="Optional confidential comments for the editor only..."
-                      className="w-full px-3 py-2 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                      className="w-full resize-none border border-gray-300 px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="mt-1 text-xs text-gray-500">
                       These comments are confidential and will not be shared with the author.
                     </p>
                   </div>
 
                   {error && (
-                    <div className="bg-red-50 border border-red-200 p-3 flex items-start gap-2">
-                      <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
+                    <div className="flex items-start gap-2 border border-red-200 bg-red-50 p-3">
+                      <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-500" />
                       <p className="text-sm text-red-800">{error}</p>
                     </div>
                   )}
@@ -522,46 +548,47 @@ export function ReviewDashboard() {
               ) : (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="mb-2 block text-sm font-semibold text-gray-700">
                       Recommendation
                     </label>
-                    <div className="px-3 py-2 bg-gray-50 border border-gray-200 capitalize">
+                    <div className="border border-gray-200 bg-gray-50 px-3 py-2 capitalize">
                       {existingReview.recommendation.replace('_', ' ')}
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                    <label className="mb-2 block text-sm font-semibold text-gray-700">
                       Comments to Author
                     </label>
-                    <div className="px-3 py-2 bg-gray-50 border border-gray-200 whitespace-pre-wrap text-sm">
+                    <div className="border border-gray-200 bg-gray-50 px-3 py-2 text-sm whitespace-pre-wrap">
                       {existingReview.comments_to_author}
                     </div>
                   </div>
 
                   {existingReview.comments_to_editor && (
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
+                      <label className="mb-2 block text-sm font-semibold text-gray-700">
                         Confidential Comments to Editor
                       </label>
-                      <div className="px-3 py-2 bg-gray-50 border border-gray-200 whitespace-pre-wrap text-sm">
+                      <div className="border border-gray-200 bg-gray-50 px-3 py-2 text-sm whitespace-pre-wrap">
                         {existingReview.comments_to_editor}
                       </div>
                     </div>
                   )}
 
-                  <div className="bg-green-50 border border-green-200 p-3 flex items-start gap-2">
-                    <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0 mt-0.5" />
+                  <div className="flex items-start gap-2 border border-green-200 bg-green-50 p-3">
+                    <CheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600" />
                     <div className="text-sm text-green-800">
                       <p className="font-medium">Review submitted successfully</p>
                       {existingReview.submitted_at && (
-                        <p className="text-xs mt-1">
-                          Submitted on {new Date(existingReview.submitted_at).toLocaleDateString('en-US', {
+                        <p className="mt-1 text-xs">
+                          Submitted on{' '}
+                          {new Date(existingReview.submitted_at).toLocaleDateString('en-US', {
                             year: 'numeric',
                             month: 'long',
                             day: 'numeric',
                             hour: '2-digit',
-                            minute: '2-digit'
+                            minute: '2-digit',
                           })}
                         </p>
                       )}
@@ -573,20 +600,20 @@ export function ReviewDashboard() {
 
             {/* Modal Footer */}
             {!existingReview && (
-              <div className="border-t border-gray-300 p-4 bg-gray-50 flex justify-end gap-3">
+              <div className="flex justify-end gap-3 border-t border-gray-300 bg-gray-50 p-4">
                 <button
                   onClick={closeReviewModal}
                   disabled={submitting}
-                  className="px-6 py-2 border border-gray-300 text-gray-700 hover:bg-gray-100 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  className="border border-gray-300 px-6 py-2 text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:bg-gray-100"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleSubmitReview}
                   disabled={submitting}
-                  className="px-6 py-2 bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="flex items-center gap-2 bg-blue-600 px-6 py-2 text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
                 >
-                  <Send className="w-4 h-4" />
+                  <Send className="h-4 w-4" />
                   {submitting ? 'Submitting...' : 'Submit Review'}
                 </button>
               </div>

@@ -13,15 +13,15 @@ export function Header() {
 
   useEffect(() => {
     let mounted = true;
-    
+
     const fetchUserData = async () => {
       try {
         const authenticated = await isAuthenticated();
-        
+
         if (!mounted) return;
-        
+
         setIsUserAuthenticated(authenticated);
-        
+
         if (!authenticated) {
           setUserRoles([]);
           setHasReviewAssignments(false);
@@ -30,9 +30,9 @@ export function Header() {
 
         const roles = await getMyRoles();
         const assignments = await getMyAssignments();
-        
+
         if (!mounted) return;
-        
+
         setUserRoles(roles || []);
         setHasReviewAssignments(assignments.length > 0);
       } catch (error) {
@@ -44,7 +44,7 @@ export function Header() {
         }
       }
     };
-    
+
     fetchUserData();
 
     return () => {
@@ -66,26 +66,24 @@ export function Header() {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <header className="bg-white border-b" style={{ borderColor: '#E2E8F0' }}>
-      <div className="max-w-7xl mx-auto px-6">
-        <div className="flex items-center justify-between gap-6 h-20">
+    <header className="border-b bg-white" style={{ borderColor: '#E2E8F0' }}>
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="flex h-20 items-center justify-between gap-6">
           {/* Logo */}
-          <Link to="/" className="flex items-center min-w-[140px] shrink-0">
+          <Link to="/" className="flex min-w-[140px] shrink-0 items-center">
             <span className="text-xl font-bold whitespace-nowrap" style={{ color: '#0B1C4D' }}>
               Ditech Asia
             </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-5 flex-1 justify-center">
+          <nav className="hidden flex-1 items-center justify-center gap-5 lg:flex">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
                 className={`text-sm transition-colors ${
-                  isActive(link.path)
-                    ? 'font-medium border-b-2 pb-0.5'
-                    : 'hover:opacity-80'
+                  isActive(link.path) ? 'border-b-2 pb-0.5 font-medium' : 'hover:opacity-80'
                 }`}
                 style={{
                   color: isActive(link.path) ? '#2563EB' : '#475569',
@@ -98,13 +96,13 @@ export function Header() {
           </nav>
 
           {/* CTA Buttons */}
-          <div className="hidden lg:flex items-center gap-3 shrink-0">
+          <div className="hidden shrink-0 items-center gap-3 lg:flex">
             {isUserAuthenticated ? (
               <>
                 {(userRoles.includes('editor') || userRoles.includes('admin')) && (
                   <Link
                     to="/editor"
-                    className="px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap hover:opacity-80"
+                    className="px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors hover:opacity-80"
                     style={{ color: '#475569' }}
                   >
                     Editor
@@ -113,7 +111,7 @@ export function Header() {
                 {hasReviewAssignments && (
                   <Link
                     to="/review/dashboard"
-                    className="px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap hover:opacity-80"
+                    className="px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors hover:opacity-80"
                     style={{ color: '#475569' }}
                   >
                     Reviewer
@@ -121,7 +119,7 @@ export function Header() {
                 )}
                 <Link
                   to="/dashboard"
-                  className="px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap hover:opacity-80"
+                  className="px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors hover:opacity-80"
                   style={{ color: '#475569' }}
                 >
                   Dashboard
@@ -131,7 +129,7 @@ export function Header() {
                     await logout();
                     window.location.href = '/';
                   }}
-                  className="px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap hover:opacity-80"
+                  className="px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors hover:opacity-80"
                   style={{ color: '#475569' }}
                 >
                   Logout
@@ -139,15 +137,15 @@ export function Header() {
                 <Link
                   to="/submit"
                   className="px-[18px] py-3 text-sm font-semibold whitespace-nowrap transition-all"
-                  style={{ 
+                  style={{
                     backgroundColor: '#0B1C4D',
                     color: '#FFFFFF',
-                    borderRadius: '10px'
+                    borderRadius: '10px',
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#08163D'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#0B1C4D'}
-                  onMouseDown={(e) => e.currentTarget.style.backgroundColor = '#061131'}
-                  onMouseUp={(e) => e.currentTarget.style.backgroundColor = '#08163D'}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#08163D')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#0B1C4D')}
+                  onMouseDown={(e) => (e.currentTarget.style.backgroundColor = '#061131')}
+                  onMouseUp={(e) => (e.currentTarget.style.backgroundColor = '#08163D')}
                 >
                   Submit Manuscript
                 </Link>
@@ -156,14 +154,14 @@ export function Header() {
               <>
                 <Link
                   to="/login"
-                  className="px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap hover:opacity-80"
+                  className="px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors hover:opacity-80"
                   style={{ color: '#475569' }}
                 >
                   Login
                 </Link>
                 <Link
                   to="/register"
-                  className="px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap hover:opacity-80"
+                  className="px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors hover:opacity-80"
                   style={{ color: '#475569' }}
                 >
                   Register
@@ -171,15 +169,15 @@ export function Header() {
                 <Link
                   to="/login?next=/submit"
                   className="px-[18px] py-3 text-sm font-semibold whitespace-nowrap transition-all"
-                  style={{ 
+                  style={{
                     backgroundColor: '#0B1C4D',
                     color: '#FFFFFF',
-                    borderRadius: '10px'
+                    borderRadius: '10px',
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#08163D'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#0B1C4D'}
-                  onMouseDown={(e) => e.currentTarget.style.backgroundColor = '#061131'}
-                  onMouseUp={(e) => e.currentTarget.style.backgroundColor = '#08163D'}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#08163D')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#0B1C4D')}
+                  onMouseDown={(e) => (e.currentTarget.style.backgroundColor = '#061131')}
+                  onMouseUp={(e) => (e.currentTarget.style.backgroundColor = '#08163D')}
                 >
                   Submit Manuscript
                 </Link>
@@ -190,7 +188,7 @@ export function Header() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="lg:hidden p-2 text-gray-700 hover:bg-gray-50 rounded"
+            className="rounded p-2 text-gray-700 hover:bg-gray-50 lg:hidden"
           >
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -199,30 +197,30 @@ export function Header() {
 
       {/* Mobile Menu */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-gray-200 bg-white">
-          <nav className="px-6 py-4 space-y-1">
+        <div className="border-t border-gray-200 bg-white lg:hidden">
+          <nav className="space-y-1 px-6 py-4">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`block px-3 py-2 text-sm rounded ${
+                className={`block rounded px-3 py-2 text-sm ${
                   isActive(link.path)
-                    ? 'text-[#1d4ed8] font-medium bg-blue-50'
-                    : 'text-gray-700 hover:text-[#1d4ed8] hover:bg-gray-50'
+                    ? 'bg-blue-50 font-medium text-[#1d4ed8]'
+                    : 'text-gray-700 hover:bg-gray-50 hover:text-[#1d4ed8]'
                 }`}
               >
                 {link.name}
               </Link>
             ))}
-            <div className="pt-3 space-y-2">
+            <div className="space-y-2 pt-3">
               {isUserAuthenticated ? (
                 <>
                   {(userRoles.includes('editor') || userRoles.includes('admin')) && (
                     <Link
                       to="/editor"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="block w-full px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium text-center rounded hover:bg-gray-50"
+                      className="block w-full rounded border border-gray-300 px-4 py-2 text-center text-sm font-medium text-gray-700 hover:bg-gray-50"
                     >
                       Editor Dashboard
                     </Link>
@@ -231,7 +229,7 @@ export function Header() {
                     <Link
                       to="/review/dashboard"
                       onClick={() => setMobileMenuOpen(false)}
-                      className="block w-full px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium text-center rounded hover:bg-gray-50"
+                      className="block w-full rounded border border-gray-300 px-4 py-2 text-center text-sm font-medium text-gray-700 hover:bg-gray-50"
                     >
                       Reviewer Dashboard
                     </Link>
@@ -239,7 +237,7 @@ export function Header() {
                   <Link
                     to="/dashboard"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="block w-full px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium text-center rounded hover:bg-gray-50"
+                    className="block w-full rounded border border-gray-300 px-4 py-2 text-center text-sm font-medium text-gray-700 hover:bg-gray-50"
                   >
                     Dashboard
                   </Link>
@@ -249,7 +247,7 @@ export function Header() {
                       setMobileMenuOpen(false);
                       window.location.href = '/';
                     }}
-                    className="block w-full px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium text-center rounded hover:bg-gray-50"
+                    className="block w-full rounded border border-gray-300 px-4 py-2 text-center text-sm font-medium text-gray-700 hover:bg-gray-50"
                   >
                     Logout
                   </button>
@@ -259,31 +257,31 @@ export function Header() {
                   <Link
                     to="/login"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="block w-full px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium text-center rounded hover:bg-gray-50"
+                    className="block w-full rounded border border-gray-300 px-4 py-2 text-center text-sm font-medium text-gray-700 hover:bg-gray-50"
                   >
                     Login
                   </Link>
                   <Link
                     to="/register"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="block w-full px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium text-center rounded hover:bg-gray-50"
+                    className="block w-full rounded border border-gray-300 px-4 py-2 text-center text-sm font-medium text-gray-700 hover:bg-gray-50"
                   >
                     Register
                   </Link>
                 </>
               )}
               <Link
-                to={isUserAuthenticated ? "/submit" : "/login?next=/submit"}
+                to={isUserAuthenticated ? '/submit' : '/login?next=/submit'}
                 onClick={() => setMobileMenuOpen(false)}
-                className="block w-full text-sm font-semibold text-center transition-all"
+                className="block w-full text-center text-sm font-semibold transition-all"
                 style={{
                   padding: '10px 16px',
                   backgroundColor: '#0B1C4D',
                   color: '#FFFFFF',
-                  borderRadius: '10px'
+                  borderRadius: '10px',
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#08163D'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#0B1C4D'}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#08163D')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#0B1C4D')}
               >
                 Submit Manuscript
               </Link>

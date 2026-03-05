@@ -177,20 +177,14 @@ export class APIClient {
     return this.request<T>(endpoint, { method: 'GET' });
   }
 
-  async post<T>(
-    endpoint: string,
-    body?: any
-  ): Promise<{ data: T | null; error: any }> {
+  async post<T>(endpoint: string, body?: any): Promise<{ data: T | null; error: any }> {
     return this.request<T>(endpoint, {
       method: 'POST',
       body: body instanceof FormData ? body : JSON.stringify(body),
     });
   }
 
-  async patch<T>(
-    endpoint: string,
-    body: any
-  ): Promise<{ data: T | null; error: any }> {
+  async patch<T>(endpoint: string, body: any): Promise<{ data: T | null; error: any }> {
     return this.request<T>(endpoint, {
       method: 'PATCH',
       body: JSON.stringify(body),
@@ -221,18 +215,9 @@ export type SubmissionStatus =
   | 'published'
   | 'withdrawn';
 
-export type AssignmentStatus =
-  | 'invited'
-  | 'accepted'
-  | 'declined'
-  | 'review_submitted'
-  | 'expired';
+export type AssignmentStatus = 'invited' | 'accepted' | 'declined' | 'review_submitted' | 'expired';
 
-export type Recommendation =
-  | 'accept'
-  | 'minor_revision'
-  | 'major_revision'
-  | 'reject';
+export type Recommendation = 'accept' | 'minor_revision' | 'major_revision' | 'reject';
 
 export type EditorialDecision = 'accept' | 'reject' | 'revision_required';
 

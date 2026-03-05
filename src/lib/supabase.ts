@@ -67,7 +67,14 @@ export interface Submission {
   keywords?: string[];
   topic?: string;
   topic_area?: string;
-  status: 'draft' | 'submitted' | 'under_review' | 'revision_required' | 'accepted' | 'rejected' | 'published';
+  status:
+    | 'draft'
+    | 'submitted'
+    | 'under_review'
+    | 'revision_required'
+    | 'accepted'
+    | 'rejected'
+    | 'published';
   step?: number;
   submitted_at?: string;
   created_at: string;

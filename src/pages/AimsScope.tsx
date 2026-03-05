@@ -96,8 +96,8 @@ export function AimsScope() {
     <div style={{ backgroundColor: '#F8FAFC' }}>
       {/* Hero Header */}
       <div style={{ backgroundColor: '#0B1C4D', paddingTop: '80px', paddingBottom: '60px' }}>
-        <div className="max-w-[1120px] mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-5xl font-bold mb-4" style={{ color: '#FFFFFF' }}>
+        <div className="mx-auto max-w-[1120px] px-4 sm:px-6 lg:px-8">
+          <h1 className="mb-4 text-5xl font-bold" style={{ color: '#FFFFFF' }}>
             Aims & Scope
           </h1>
           <p className="text-xl" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
@@ -106,46 +106,53 @@ export function AimsScope() {
         </div>
       </div>
 
-      <div className="max-w-[1120px] mx-auto px-4 sm:px-6 lg:px-8" style={{ paddingTop: '80px', paddingBottom: '80px' }}>
+      <div
+        className="mx-auto max-w-[1120px] px-4 sm:px-6 lg:px-8"
+        style={{ paddingTop: '80px', paddingBottom: '80px' }}
+      >
         {/* Mission Statement */}
-        <section 
-          className="bg-white transition-all hover:shadow-xl mb-8"
+        <section
+          className="mb-8 bg-white transition-all hover:shadow-xl"
           style={{
             borderRadius: '16px',
             padding: '32px',
             boxShadow: '0 10px 30px rgba(11, 28, 77, 0.08)',
-            borderLeft: '4px solid #2563EB'
+            borderLeft: '4px solid #2563EB',
           }}
         >
-          <h2 className="text-3xl font-bold mb-6" style={{ color: '#0B1C4D' }}>Our Mission</h2>
-          <p className="text-base mb-4" style={{ color: '#475569', lineHeight: '1.7' }}>
-            Ditech Asia Journal is dedicated to advancing the 
-            frontiers of computing research and practice. We provide a premier platform for 
-            researchers, practitioners, and educators to share innovative ideas, methodologies, 
-            and findings that shape the future of technology.
+          <h2 className="mb-6 text-3xl font-bold" style={{ color: '#0B1C4D' }}>
+            Our Mission
+          </h2>
+          <p className="mb-4 text-base" style={{ color: '#475569', lineHeight: '1.7' }}>
+            Ditech Asia Journal is dedicated to advancing the frontiers of computing research and
+            practice. We provide a premier platform for researchers, practitioners, and educators to
+            share innovative ideas, methodologies, and findings that shape the future of technology.
           </p>
           <p className="text-base" style={{ color: '#475569', lineHeight: '1.7' }}>
-            Our journal embraces a modern, transparent, and efficient publishing model that 
-            accelerates knowledge dissemination while maintaining the highest standards of 
-            scientific rigor and peer review. Through open access publishing, we ensure 
-            research reaches a global audience without barriers.
+            Our journal embraces a modern, transparent, and efficient publishing model that
+            accelerates knowledge dissemination while maintaining the highest standards of
+            scientific rigor and peer review. Through open access publishing, we ensure research
+            reaches a global audience without barriers.
           </p>
         </section>
 
         {/* Core Research Areas */}
         <section className="mb-8">
-          <div 
-            className="bg-white transition-all hover:shadow-xl mb-8"
+          <div
+            className="mb-8 bg-white transition-all hover:shadow-xl"
             style={{
               borderRadius: '16px',
               padding: '32px',
               boxShadow: '0 10px 30px rgba(11, 28, 77, 0.08)',
-              borderLeft: '4px solid #2563EB'
+              borderLeft: '4px solid #2563EB',
             }}
           >
-            <h2 className="text-3xl font-bold mb-6" style={{ color: '#0B1C4D' }}>Core Research Areas</h2>
-            <p className="text-base mb-8" style={{ color: '#475569', lineHeight: '1.7' }}>
-              Ditech Asia Journal publishes research across the following areas of computing and technology:
+            <h2 className="mb-6 text-3xl font-bold" style={{ color: '#0B1C4D' }}>
+              Core Research Areas
+            </h2>
+            <p className="mb-8 text-base" style={{ color: '#475569', lineHeight: '1.7' }}>
+              Ditech Asia Journal publishes research across the following areas of computing and
+              technology:
             </p>
 
             <div className="space-y-6">
@@ -156,18 +163,22 @@ export function AimsScope() {
                   style={{
                     border: '1px solid #E2E8F0',
                     borderRadius: '12px',
-                    padding: '24px'
+                    padding: '24px',
                   }}
                 >
-                  <h3 className="text-xl font-semibold mb-4" style={{ color: '#0B1C4D' }}>{area.title}</h3>
-                  <div className="grid md:grid-cols-2 gap-x-6 gap-y-3">
+                  <h3 className="mb-4 text-xl font-semibold" style={{ color: '#0B1C4D' }}>
+                    {area.title}
+                  </h3>
+                  <div className="grid gap-x-6 gap-y-3 md:grid-cols-2">
                     {area.topics.map((topic, topicIndex) => (
                       <div key={topicIndex} className="flex items-start">
-                        <span 
-                          className="rounded-full mt-1.5 mr-3 flex-shrink-0" 
+                        <span
+                          className="mt-1.5 mr-3 flex-shrink-0 rounded-full"
                           style={{ width: '6px', height: '6px', backgroundColor: '#2563EB' }}
                         ></span>
-                        <span className="text-sm" style={{ color: '#475569', lineHeight: '1.7' }}>{topic}</span>
+                        <span className="text-sm" style={{ color: '#475569', lineHeight: '1.7' }}>
+                          {topic}
+                        </span>
                       </div>
                     ))}
                   </div>
@@ -178,18 +189,20 @@ export function AimsScope() {
         </section>
 
         {/* What We Publish */}
-        <section 
-          className="bg-white transition-all hover:shadow-xl mb-8"
+        <section
+          className="mb-8 bg-white transition-all hover:shadow-xl"
           style={{
             borderRadius: '16px',
             padding: '32px',
             boxShadow: '0 10px 30px rgba(11, 28, 77, 0.08)',
-            borderLeft: '4px solid #2563EB'
+            borderLeft: '4px solid #2563EB',
           }}
         >
-          <h2 className="text-3xl font-bold mb-6" style={{ color: '#0B1C4D' }}>What We Publish</h2>
-          <p className="text-base mb-6" style={{ color: '#475569', lineHeight: '1.7' }}>
-            Ditech Asia Journal welcomes submissions that meet our quality standards and contribute 
+          <h2 className="mb-6 text-3xl font-bold" style={{ color: '#0B1C4D' }}>
+            What We Publish
+          </h2>
+          <p className="mb-6 text-base" style={{ color: '#475569', lineHeight: '1.7' }}>
+            Ditech Asia Journal welcomes submissions that meet our quality standards and contribute
             meaningfully to the field:
           </p>
           <ul className="space-y-3">
@@ -202,25 +215,31 @@ export function AimsScope() {
               'Theoretical contributions with practical implications',
             ].map((item, index) => (
               <li key={index} className="flex items-start">
-                <span className="mr-3 mt-0.5" style={{ color: '#10B981' }}>✓</span>
-                <span className="text-base" style={{ color: '#475569', lineHeight: '1.7' }}>{item}</span>
+                <span className="mt-0.5 mr-3" style={{ color: '#10B981' }}>
+                  ✓
+                </span>
+                <span className="text-base" style={{ color: '#475569', lineHeight: '1.7' }}>
+                  {item}
+                </span>
               </li>
             ))}
           </ul>
         </section>
 
         {/* What We Don't Publish */}
-        <section 
-          className="bg-white transition-all hover:shadow-xl mb-8"
+        <section
+          className="mb-8 bg-white transition-all hover:shadow-xl"
           style={{
             borderRadius: '16px',
             padding: '32px',
             boxShadow: '0 10px 30px rgba(11, 28, 77, 0.08)',
-            borderLeft: '4px solid #2563EB'
+            borderLeft: '4px solid #2563EB',
           }}
         >
-          <h2 className="text-3xl font-bold mb-6" style={{ color: '#0B1C4D' }}>What We Don't Publish</h2>
-          <p className="text-base mb-6" style={{ color: '#475569', lineHeight: '1.7' }}>
+          <h2 className="mb-6 text-3xl font-bold" style={{ color: '#0B1C4D' }}>
+            What We Don't Publish
+          </h2>
+          <p className="mb-6 text-base" style={{ color: '#475569', lineHeight: '1.7' }}>
             To maintain quality and focus, we do not accept the following:
           </p>
           <ul className="space-y-3">
@@ -233,67 +252,70 @@ export function AimsScope() {
               'Content previously published elsewhere',
             ].map((item, index) => (
               <li key={index} className="flex items-start">
-                <span className="mr-3 mt-0.5" style={{ color: '#DC2626' }}>✗</span>
-                <span className="text-base" style={{ color: '#475569', lineHeight: '1.7' }}>{item}</span>
+                <span className="mt-0.5 mr-3" style={{ color: '#DC2626' }}>
+                  ✗
+                </span>
+                <span className="text-base" style={{ color: '#475569', lineHeight: '1.7' }}>
+                  {item}
+                </span>
               </li>
             ))}
           </ul>
         </section>
 
         {/* Quality Standards */}
-        <section 
+        <section
           className="bg-white transition-all hover:shadow-xl"
           style={{
             borderRadius: '16px',
             padding: '32px',
             boxShadow: '0 10px 30px rgba(11, 28, 77, 0.08)',
-            borderLeft: '4px solid #2563EB'
+            borderLeft: '4px solid #2563EB',
           }}
         >
-          <h2 className="text-3xl font-bold mb-8" style={{ color: '#0B1C4D' }}>Quality Standards</h2>
-          
+          <h2 className="mb-8 text-3xl font-bold" style={{ color: '#0B1C4D' }}>
+            Quality Standards
+          </h2>
+
           <div className="space-y-6">
-            <div 
-              className="pl-6"
-              style={{ borderLeft: '4px solid #2563EB' }}
-            >
-              <h3 className="font-semibold text-lg mb-3" style={{ color: '#0B1C4D' }}>Novelty & Significance</h3>
+            <div className="pl-6" style={{ borderLeft: '4px solid #2563EB' }}>
+              <h3 className="mb-3 text-lg font-semibold" style={{ color: '#0B1C4D' }}>
+                Novelty & Significance
+              </h3>
               <p className="text-base" style={{ color: '#475569', lineHeight: '1.7' }}>
-                Research must present original findings that advance knowledge in the field. 
+                Research must present original findings that advance knowledge in the field.
                 Incremental improvements must demonstrate clear significance and impact.
               </p>
             </div>
 
-            <div 
-              className="pl-6"
-              style={{ borderLeft: '4px solid #2563EB' }}
-            >
-              <h3 className="font-semibold text-lg mb-3" style={{ color: '#0B1C4D' }}>Rigor & Methodology</h3>
+            <div className="pl-6" style={{ borderLeft: '4px solid #2563EB' }}>
+              <h3 className="mb-3 text-lg font-semibold" style={{ color: '#0B1C4D' }}>
+                Rigor & Methodology
+              </h3>
               <p className="text-base" style={{ color: '#475569', lineHeight: '1.7' }}>
-                Studies must employ appropriate methodologies with clear descriptions that enable 
+                Studies must employ appropriate methodologies with clear descriptions that enable
                 reproducibility. Empirical work requires sufficient experimental validation.
               </p>
             </div>
 
-            <div 
-              className="pl-6"
-              style={{ borderLeft: '4px solid #2563EB' }}
-            >
-              <h3 className="font-semibold text-lg mb-3" style={{ color: '#0B1C4D' }}>Clarity & Presentation</h3>
+            <div className="pl-6" style={{ borderLeft: '4px solid #2563EB' }}>
+              <h3 className="mb-3 text-lg font-semibold" style={{ color: '#0B1C4D' }}>
+                Clarity & Presentation
+              </h3>
               <p className="text-base" style={{ color: '#475569', lineHeight: '1.7' }}>
-                Manuscripts should be well-written, clearly structured, and accessible to the 
+                Manuscripts should be well-written, clearly structured, and accessible to the
                 intended audience. Proper contextualization within existing literature is essential.
               </p>
             </div>
 
-            <div 
-              className="pl-6"
-              style={{ borderLeft: '4px solid #2563EB' }}
-            >
-              <h3 className="font-semibold text-lg mb-3" style={{ color: '#0B1C4D' }}>Ethical Standards</h3>
+            <div className="pl-6" style={{ borderLeft: '4px solid #2563EB' }}>
+              <h3 className="mb-3 text-lg font-semibold" style={{ color: '#0B1C4D' }}>
+                Ethical Standards
+              </h3>
               <p className="text-base" style={{ color: '#475569', lineHeight: '1.7' }}>
-                All research must comply with ethical guidelines including research integrity, 
-                proper attribution, data transparency, and human/animal subject protections where applicable.
+                All research must comply with ethical guidelines including research integrity,
+                proper attribution, data transparency, and human/animal subject protections where
+                applicable.
               </p>
             </div>
           </div>

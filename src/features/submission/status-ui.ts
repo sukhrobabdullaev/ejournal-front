@@ -33,4 +33,3 @@ export const getStatusChipClasses = (status: SubmissionStatus): string => {
       return 'inline-flex px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700 border border-gray-300';
   }
 };
-

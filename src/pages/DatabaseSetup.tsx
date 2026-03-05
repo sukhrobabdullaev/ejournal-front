@@ -241,7 +241,8 @@ CREATE POLICY "Users can insert files for own submissions" ON submission_files F
   const copyToClipboard = () => {
     // Try modern Clipboard API first
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(sqlScript)
+      navigator.clipboard
+        .writeText(sqlScript)
         .then(() => {
           setCopied(true);
           setTimeout(() => setCopied(false), 2000);
@@ -266,7 +267,7 @@ CREATE POLICY "Users can insert files for own submissions" ON submission_files F
     document.body.appendChild(textArea);
     textArea.focus();
     textArea.select();
-    
+
     try {
       document.execCommand('copy');
       setCopied(true);
@@ -275,7 +276,7 @@ CREATE POLICY "Users can insert files for own submissions" ON submission_files F
       console.error('Failed to copy text: ', err);
       alert('Failed to copy. Please select and copy the text manually.');
     }
-    
+
     document.body.removeChild(textArea);
   };
 
@@ -289,22 +290,22 @@ CREATE POLICY "Users can insert files for own submissions" ON submission_files F
         {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${publicAnonKey}`,
-            'Content-Type': 'application/json'
-          }
+            Authorization: `Bearer ${publicAnonKey}`,
+            'Content-Type': 'application/json',
+          },
         }
       );
 
       const result = await response.json();
       setSeedResult(result);
-      
+
       if (result.success) {
         setStep(3);
       }
     } catch (error: any) {
       setSeedResult({
         success: false,
-        error: error.message
+        error: error.message,
       });
     } finally {
       setSeeding(false);
@@ -313,41 +314,47 @@ CREATE POLICY "Users can insert files for own submissions" ON submission_files F
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Database Setup</h1>
-          <p className="text-lg text-gray-600 mb-8">
+      <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-lg">
+          <h1 className="mb-2 text-3xl font-bold text-gray-900">Database Setup</h1>
+          <p className="mb-8 text-lg text-gray-600">
             Set up your Supabase database tables for NEXA-JCT
           </p>
 
           {/* Progress Steps */}
-          <div className="flex items-center justify-between mb-12">
+          <div className="mb-12 flex items-center justify-between">
             <div className="flex items-center">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                step >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
-              }`}>
+              <div
+                className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                  step >= 1 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
+                }`}
+              >
                 {step > 1 ? <CheckCircle size={20} /> : '1'}
               </div>
               <span className="ml-3 text-sm font-medium text-gray-900">Create Tables</span>
             </div>
-            <div className="flex-1 h-1 mx-4 bg-gray-200">
+            <div className="mx-4 h-1 flex-1 bg-gray-200">
               <div className={`h-full ${step >= 2 ? 'bg-blue-600' : 'bg-gray-200'}`} />
             </div>
             <div className="flex items-center">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                step >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
-              }`}>
+              <div
+                className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                  step >= 2 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
+                }`}
+              >
                 {step > 2 ? <CheckCircle size={20} /> : '2'}
               </div>
               <span className="ml-3 text-sm font-medium text-gray-900">Seed Data</span>
             </div>
-            <div className="flex-1 h-1 mx-4 bg-gray-200">
+            <div className="mx-4 h-1 flex-1 bg-gray-200">
               <div className={`h-full ${step >= 3 ? 'bg-blue-600' : 'bg-gray-200'}`} />
             </div>
             <div className="flex items-center">
-              <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                step >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
-              }`}>
+              <div
+                className={`flex h-10 w-10 items-center justify-center rounded-full ${
+                  step >= 3 ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'
+                }`}
+              >
                 {step > 3 ? <CheckCircle size={20} /> : '3'}
               </div>
               <span className="ml-3 text-sm font-medium text-gray-900">Complete</span>
@@ -357,32 +364,48 @@ CREATE POLICY "Users can insert files for own submissions" ON submission_files F
           {/* Step 1: Create Tables */}
           {step === 1 && (
             <div>
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Step 1: Create Database Tables</h2>
-              <p className="text-gray-600 mb-4">
+              <h2 className="mb-4 text-xl font-bold text-gray-900">
+                Step 1: Create Database Tables
+              </h2>
+              <p className="mb-4 text-gray-600">
                 Copy the SQL script below and run it in your Supabase SQL Editor:
               </p>
-              
-              <ol className="list-decimal list-inside space-y-2 mb-6 text-gray-700">
-                <li>Go to <a href={`https://supabase.com/dashboard/project/${projectId}/sql/new`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Supabase SQL Editor</a></li>
+
+              <ol className="mb-6 list-inside list-decimal space-y-2 text-gray-700">
+                <li>
+                  Go to{' '}
+                  <a
+                    href={`https://supabase.com/dashboard/project/${projectId}/sql/new`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline"
+                  >
+                    Supabase SQL Editor
+                  </a>
+                </li>
                 <li>Click "New Query"</li>
                 <li>Paste the SQL script below</li>
                 <li>Click "Run" to execute the script</li>
               </ol>
 
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-4">
+              <div className="mb-4 rounded-lg border border-yellow-200 bg-yellow-50 p-4">
                 <p className="text-sm text-yellow-900">
-                  <strong>⚠️ Important:</strong> After running this script, you must also configure storage policies. 
-                  Visit <a href="/setup-storage" className="underline font-semibold">/setup-storage</a> after completing this step.
+                  <strong>⚠️ Important:</strong> After running this script, you must also configure
+                  storage policies. Visit{' '}
+                  <a href="/setup-storage" className="font-semibold underline">
+                    /setup-storage
+                  </a>{' '}
+                  after completing this step.
                 </p>
               </div>
 
               <div className="relative">
-                <pre className="bg-gray-900 text-gray-100 p-6 rounded-lg overflow-x-auto text-sm max-h-96 overflow-y-auto">
+                <pre className="max-h-96 overflow-x-auto overflow-y-auto rounded-lg bg-gray-900 p-6 text-sm text-gray-100">
                   <code>{sqlScript}</code>
                 </pre>
                 <button
                   onClick={copyToClipboard}
-                  className="absolute top-4 right-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                  className="absolute top-4 right-4 flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
                 >
                   {copied ? <Check size={16} /> : <Copy size={16} />}
                   {copied ? 'Copied!' : 'Copy SQL'}
@@ -392,7 +415,7 @@ CREATE POLICY "Users can insert files for own submissions" ON submission_files F
               <div className="mt-6 flex justify-end">
                 <button
                   onClick={() => setStep(2)}
-                  className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                  className="rounded-lg bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700"
                 >
                   I've Created the Tables →
                 </button>
@@ -403,16 +426,17 @@ CREATE POLICY "Users can insert files for own submissions" ON submission_files F
           {/* Step 2: Seed Data */}
           {step === 2 && (
             <div>
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Step 2: Seed Sample Data</h2>
-              <p className="text-gray-600 mb-6">
-                Click the button below to populate your database with sample journal data and articles for testing.
+              <h2 className="mb-4 text-xl font-bold text-gray-900">Step 2: Seed Sample Data</h2>
+              <p className="mb-6 text-gray-600">
+                Click the button below to populate your database with sample journal data and
+                articles for testing.
               </p>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+              <div className="mb-6 rounded-lg border border-blue-200 bg-blue-50 p-4">
                 <p className="text-sm text-blue-900">
                   <strong>What will be added:</strong>
                 </p>
-                <ul className="list-disc list-inside text-sm text-blue-800 mt-2 space-y-1">
+                <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-blue-800">
                   <li>1 Journal (NEXA-JCT)</li>
                   <li>3 Sample Articles with full metadata</li>
                   <li>Multiple Authors with affiliations</li>
@@ -420,23 +444,27 @@ CREATE POLICY "Users can insert files for own submissions" ON submission_files F
               </div>
 
               {seedResult && (
-                <div className={`p-4 rounded-lg mb-6 ${
-                  seedResult.success 
-                    ? 'bg-green-50 border border-green-200' 
-                    : 'bg-red-50 border border-red-200'
-                }`}>
+                <div
+                  className={`mb-6 rounded-lg p-4 ${
+                    seedResult.success
+                      ? 'border border-green-200 bg-green-50'
+                      : 'border border-red-200 bg-red-50'
+                  }`}
+                >
                   <div className="flex items-start">
                     {seedResult.success ? (
-                      <CheckCircle className="text-green-600 mr-3 flex-shrink-0 mt-0.5" size={20} />
+                      <CheckCircle className="mt-0.5 mr-3 flex-shrink-0 text-green-600" size={20} />
                     ) : (
-                      <AlertCircle className="text-red-600 mr-3 flex-shrink-0 mt-0.5" size={20} />
+                      <AlertCircle className="mt-0.5 mr-3 flex-shrink-0 text-red-600" size={20} />
                     )}
                     <div>
-                      <p className={`font-medium ${seedResult.success ? 'text-green-900' : 'text-red-900'}`}>
+                      <p
+                        className={`font-medium ${seedResult.success ? 'text-green-900' : 'text-red-900'}`}
+                      >
                         {seedResult.message || seedResult.error}
                       </p>
                       {seedResult.details && (
-                        <pre className="text-xs mt-2 text-gray-700 overflow-x-auto">
+                        <pre className="mt-2 overflow-x-auto text-xs text-gray-700">
                           {JSON.stringify(seedResult.details, null, 2)}
                         </pre>
                       )}
@@ -448,14 +476,14 @@ CREATE POLICY "Users can insert files for own submissions" ON submission_files F
               <div className="flex gap-4">
                 <button
                   onClick={() => setStep(1)}
-                  className="px-6 py-3 bg-gray-200 text-gray-700 font-medium rounded-lg hover:bg-gray-300 transition-colors"
+                  className="rounded-lg bg-gray-200 px-6 py-3 font-medium text-gray-700 transition-colors hover:bg-gray-300"
                 >
                   ← Back
                 </button>
                 <button
                   onClick={seedDatabase}
                   disabled={seeding}
-                  className="flex-1 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 rounded-lg bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {seeding ? 'Seeding Database...' : 'Seed Database'}
                 </button>
@@ -466,23 +494,22 @@ CREATE POLICY "Users can insert files for own submissions" ON submission_files F
           {/* Step 3: Complete */}
           {step === 3 && (
             <div className="text-center">
-              <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-green-100">
                 <CheckCircle className="text-green-600" size={40} />
               </div>
-              
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Database Setup Complete!</h2>
-              <p className="text-gray-600 mb-6">
-                Your database tables are now ready.
-              </p>
 
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 mb-6">
-                <h3 className="font-semibold text-yellow-900 mb-2">⚠️ One More Step Required</h3>
-                <p className="text-sm text-yellow-800 mb-4">
-                  Before you can upload files, you need to configure storage policies through the Supabase Dashboard UI.
+              <h2 className="mb-4 text-2xl font-bold text-gray-900">Database Setup Complete!</h2>
+              <p className="mb-6 text-gray-600">Your database tables are now ready.</p>
+
+              <div className="mb-6 rounded-lg border border-yellow-200 bg-yellow-50 p-6">
+                <h3 className="mb-2 font-semibold text-yellow-900">⚠️ One More Step Required</h3>
+                <p className="mb-4 text-sm text-yellow-800">
+                  Before you can upload files, you need to configure storage policies through the
+                  Supabase Dashboard UI.
                 </p>
                 <a
                   href="/setup-storage"
-                  className="inline-block px-6 py-3 bg-yellow-600 text-white font-medium rounded-lg hover:bg-yellow-700 transition-colors"
+                  className="inline-block rounded-lg bg-yellow-600 px-6 py-3 font-medium text-white transition-colors hover:bg-yellow-700"
                 >
                   Configure Storage Now →
                 </a>
@@ -490,7 +517,7 @@ CREATE POLICY "Users can insert files for own submissions" ON submission_files F
 
               <a
                 href="/"
-                className="inline-block px-8 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                className="inline-block rounded-lg bg-blue-600 px-8 py-3 font-medium text-white transition-colors hover:bg-blue-700"
               >
                 Go to Home Page
               </a>
@@ -499,18 +526,21 @@ CREATE POLICY "Users can insert files for own submissions" ON submission_files F
         </div>
 
         {/* Help Section */}
-        <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-          <h3 className="font-semibold text-yellow-900 mb-2 flex items-center">
+        <div className="mt-8 rounded-lg border border-yellow-200 bg-yellow-50 p-6">
+          <h3 className="mb-2 flex items-center font-semibold text-yellow-900">
             <AlertCircle className="mr-2" size={20} />
             Need Help?
           </h3>
-          <p className="text-sm text-yellow-800">
-            If you encounter any errors, make sure:
-          </p>
-          <ul className="list-disc list-inside text-sm text-yellow-800 mt-2 space-y-1">
+          <p className="text-sm text-yellow-800">If you encounter any errors, make sure:</p>
+          <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-yellow-800">
             <li>You have access to the Supabase project dashboard</li>
             <li>The SQL script ran successfully without errors</li>
-            <li>You've also configured storage policies at <a href="/setup-storage" className="underline">/setup-storage</a></li>
+            <li>
+              You've also configured storage policies at{' '}
+              <a href="/setup-storage" className="underline">
+                /setup-storage
+              </a>
+            </li>
           </ul>
         </div>
       </div>

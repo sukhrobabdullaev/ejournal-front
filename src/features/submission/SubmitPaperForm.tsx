@@ -50,13 +50,16 @@ const validateManuscript = (f: ManuscriptForm): string | null => {
   return null;
 };
 
-export function SubmitPaperForm({ submissionIdFromRoute, submissionIdFromQuery }: SubmitPaperFormProps) {
+export function SubmitPaperForm({
+  submissionIdFromRoute,
+  submissionIdFromQuery,
+}: SubmitPaperFormProps) {
   const navigate = useNavigate();
   const location = useLocation();
 
   const targetId = useMemo(
     () => parseNumericId(submissionIdFromRoute) || parseNumericId(submissionIdFromQuery),
-    [submissionIdFromRoute, submissionIdFromQuery],
+    [submissionIdFromRoute, submissionIdFromQuery]
   );
 
   const [loading, setLoading] = useState(true);
@@ -162,7 +165,8 @@ export function SubmitPaperForm({ submissionIdFromRoute, submissionIdFromQuery }
     setForm((prev) => ({ ...prev, keywords: prev.keywords.filter((k) => k !== keyword) }));
   };
 
-  const queuedSupplementaryLabel = (file: File) => `${file.name} (${Math.round(file.size / 1024)} KB)`;
+  const queuedSupplementaryLabel = (file: File) =>
+    `${file.name} (${Math.round(file.size / 1024)} KB)`;
 
   const saveDraft = async (): Promise<Submission | null> => {
     if (!allPoliciesAccepted(policies)) {
@@ -207,7 +211,7 @@ export function SubmitPaperForm({ submissionIdFromRoute, submissionIdFromQuery }
 
       const { data, error } = await updateSubmission(submission.id.toString(), payload);
       if (error) {
-        setError((error.detail || error.message) || 'Failed to update draft');
+        setError(error.detail || error.message || 'Failed to update draft');
         return null;
       }
 
@@ -237,7 +241,7 @@ export function SubmitPaperForm({ submissionIdFromRoute, submissionIdFromQuery }
       if (manuscriptFile) {
         const { error } = await uploadSubmissionFile(id, manuscriptFile, 'manuscript');
         if (error) {
-          setError((error.detail || error.message) || 'Failed to upload manuscript');
+          setError(error.detail || error.message || 'Failed to upload manuscript');
           return false;
         }
       }
@@ -245,7 +249,7 @@ export function SubmitPaperForm({ submissionIdFromRoute, submissionIdFromQuery }
       for (const file of supplementaryFiles) {
         const { error } = await uploadSubmissionFile(id, file, 'supplementary');
         if (error) {
-          setError((error.detail || error.message) || `Failed to upload ${file.name}`);
+          setError(error.detail || error.message || `Failed to upload ${file.name}`);
           return false;
         }
       }
@@ -272,8 +276,7 @@ export function SubmitPaperForm({ submissionIdFromRoute, submissionIdFromQuery }
     await uploadQueuedFiles(draft);
   };
 
-  const canSubmit =
-    submission?.status === 'draft' && Boolean(submission?.manuscript_pdf?.trim());
+  const canSubmit = submission?.status === 'draft' && Boolean(submission?.manuscript_pdf?.trim());
 
   const handleSubmit = async () => {
     if (!submission) return;
@@ -298,7 +301,7 @@ export function SubmitPaperForm({ submissionIdFromRoute, submissionIdFromQuery }
 
       const { data, error } = await submitSubmission(effective.id.toString());
       if (error) {
-        setError((error.detail || error.message) || 'Failed to submit manuscript');
+        setError(error.detail || error.message || 'Failed to submit manuscript');
         return;
       }
 
@@ -316,9 +319,9 @@ export function SubmitPaperForm({ submissionIdFromRoute, submissionIdFromQuery }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-white">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <div className="mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
           <p className="text-gray-600">Loading submission form...</p>
         </div>
       </div>
@@ -326,15 +329,17 @@ export function SubmitPaperForm({ submissionIdFromRoute, submissionIdFromQuery }
   }
 
   const statusLabel = submission ? getStatusLabel(submission.status) : 'Draft (not created yet)';
-  const statusClass = submission ? getStatusChipClasses(submission.status) : getStatusChipClasses('draft');
+  const statusClass = submission
+    ? getStatusChipClasses(submission.status)
+    : getStatusChipClasses('draft');
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="bg-white border-b border-gray-300">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="border-b border-gray-300 bg-white">
+        <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
           <button
             onClick={() => navigate('/dashboard')}
-            className="inline-flex items-center text-sm text-blue-600 hover:text-blue-800 mb-4"
+            className="mb-4 inline-flex items-center text-sm text-blue-600 hover:text-blue-800"
             type="button"
           >
             <ArrowLeft size={18} className="mr-1" />
@@ -344,14 +349,14 @@ export function SubmitPaperForm({ submissionIdFromRoute, submissionIdFromQuery }
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
               <h1 className="text-3xl font-bold text-gray-900">Submit Your Manuscript</h1>
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="mt-1 text-sm text-gray-600">
                 Fill everything on one page. We’ll create a draft, upload files, then submit.
               </p>
             </div>
             <div className="flex items-center gap-3">
               <span className={statusClass}>{statusLabel}</span>
               {submission && (
-                <span className="text-xs text-gray-500 font-mono">
+                <span className="font-mono text-xs text-gray-500">
                   ID: {submission.id.toString().toUpperCase()}
                 </span>
               )}
@@ -360,22 +365,22 @@ export function SubmitPaperForm({ submissionIdFromRoute, submissionIdFromQuery }
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+      <div className="mx-auto max-w-5xl space-y-6 px-4 py-8 sm:px-6 lg:px-8">
         {error && (
-          <div className="p-4 bg-red-50 border border-red-300 text-red-800 text-sm flex items-start">
-            <AlertCircle size={20} className="mr-3 shrink-0 mt-0.5" />
+          <div className="flex items-start border border-red-300 bg-red-50 p-4 text-sm text-red-800">
+            <AlertCircle size={20} className="mt-0.5 mr-3 shrink-0" />
             <span>{error}</span>
           </div>
         )}
 
         {success && (
-          <div className="p-4 bg-green-50 border border-green-300 text-green-800 text-sm">
+          <div className="border border-green-300 bg-green-50 p-4 text-sm text-green-800">
             {success}
           </div>
         )}
 
         {/* Policies */}
-        <section id="files-section" className="bg-white border border-gray-300 p-6 space-y-4">
+        <section id="files-section" className="space-y-4 border border-gray-300 bg-white p-6">
           <h2 className="text-lg font-semibold text-gray-900">Author Declarations & Policies</h2>
           <PolicyCheckbox
             checked={policies.originality}
@@ -408,30 +413,30 @@ export function SubmitPaperForm({ submissionIdFromRoute, submissionIdFromQuery }
         </section>
 
         {/* Metadata */}
-        <section className="bg-white border border-gray-300 p-6 space-y-4">
+        <section className="space-y-4 border border-gray-300 bg-white p-6">
           <h2 className="text-lg font-semibold text-gray-900">Manuscript Metadata</h2>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Paper Title *</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Paper Title *</label>
             <input
               value={form.title}
               onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Abstract *</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Abstract *</label>
             <textarea
               rows={6}
               value={form.abstract}
               onChange={(e) => setForm((f) => ({ ...f, abstract: e.target.value }))}
-              className="w-full px-3 py-2 border border-gray-300 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="mb-2 block text-sm font-medium text-gray-700">
               Keywords * (3–10)
             </label>
             <div className="flex gap-2">
@@ -444,27 +449,31 @@ export function SubmitPaperForm({ submissionIdFromRoute, submissionIdFromQuery }
                     addKeyword();
                   }
                 }}
-                className="flex-1 px-3 py-2 border border-gray-300 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                className="flex-1 border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                 placeholder="Add a keyword and press Enter"
               />
               <button
                 type="button"
                 onClick={addKeyword}
-                className="px-4 py-2 bg-blue-600 text-white text-sm font-medium hover:bg-blue-700"
+                className="bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
               >
                 Add
               </button>
             </div>
             {form.keywords.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-3">
+              <div className="mt-3 flex flex-wrap gap-2">
                 {form.keywords.map((k) => (
                   <span
                     key={k}
-                    className="inline-flex items-center gap-2 px-2 py-1 bg-gray-100 text-xs text-gray-800 border border-gray-200"
+                    className="inline-flex items-center gap-2 border border-gray-200 bg-gray-100 px-2 py-1 text-xs text-gray-800"
                   >
                     {k}
-                    <button type="button" onClick={() => removeKeyword(k)} className="text-gray-600 hover:text-gray-900">
-                      <X className="w-3 h-3" />
+                    <button
+                      type="button"
+                      onClick={() => removeKeyword(k)}
+                      className="text-gray-600 hover:text-gray-900"
+                    >
+                      <X className="h-3 w-3" />
                     </button>
                   </span>
                 ))}
@@ -473,7 +482,7 @@ export function SubmitPaperForm({ submissionIdFromRoute, submissionIdFromQuery }
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Topic Area *</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700">Topic Area *</label>
             <select
               value={form.topic_area_id ?? ''}
               onChange={(e) =>
@@ -482,7 +491,7 @@ export function SubmitPaperForm({ submissionIdFromRoute, submissionIdFromQuery }
                   topic_area_id: e.target.value ? Number(e.target.value) : null,
                 }))
               }
-              className="w-full px-3 py-2 border border-gray-300 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+              className="w-full border border-gray-300 px-3 py-2 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
             >
               <option value="">Select topic area</option>
               {topics.map((t) => (
@@ -495,12 +504,12 @@ export function SubmitPaperForm({ submissionIdFromRoute, submissionIdFromQuery }
         </section>
 
         {/* Files */}
-        <section className="bg-white border border-gray-300 p-6 space-y-4">
+        <section className="space-y-4 border border-gray-300 bg-white p-6">
           <h2 className="text-lg font-semibold text-gray-900">Files</h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="mb-2 block text-sm font-medium text-gray-700">
                 Manuscript PDF *
               </label>
               <input
@@ -509,7 +518,7 @@ export function SubmitPaperForm({ submissionIdFromRoute, submissionIdFromQuery }
                 onChange={(e) => setManuscriptFile(e.target.files?.[0] ?? null)}
               />
               {manuscriptFile && (
-                <p className="text-xs text-gray-600 mt-2">
+                <p className="mt-2 text-xs text-gray-600">
                   Selected: <span className="font-medium">{manuscriptFile.name}</span>
                 </p>
               )}
@@ -520,14 +529,14 @@ export function SubmitPaperForm({ submissionIdFromRoute, submissionIdFromQuery }
                   rel="noopener noreferrer"
                   className="mt-3 inline-flex items-center text-sm text-blue-600 hover:text-blue-700"
                 >
-                  <FileText className="w-4 h-4 mr-1" />
+                  <FileText className="mr-1 h-4 w-4" />
                   View uploaded manuscript
                 </a>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="mb-2 block text-sm font-medium text-gray-700">
                 Supplementary files (optional)
               </label>
               <input
@@ -544,7 +553,7 @@ export function SubmitPaperForm({ submissionIdFromRoute, submissionIdFromQuery }
                   {supplementaryFiles.map((f) => (
                     <div
                       key={`${f.name}-${f.size}-${f.lastModified}`}
-                      className="flex items-center justify-between px-3 py-2 bg-gray-50 border border-gray-200"
+                      className="flex items-center justify-between border border-gray-200 bg-gray-50 px-3 py-2"
                     >
                       <span className="text-xs text-gray-700">{queuedSupplementaryLabel(f)}</span>
                       <button
@@ -552,13 +561,18 @@ export function SubmitPaperForm({ submissionIdFromRoute, submissionIdFromQuery }
                         onClick={() =>
                           setSupplementaryFiles((prev) =>
                             prev.filter(
-                              (x) => !(x.name === f.name && x.size === f.size && x.lastModified === f.lastModified),
-                            ),
+                              (x) =>
+                                !(
+                                  x.name === f.name &&
+                                  x.size === f.size &&
+                                  x.lastModified === f.lastModified
+                                )
+                            )
                           )
                         }
                         className="text-gray-600 hover:text-gray-900"
                       >
-                        <X className="w-4 h-4" />
+                        <X className="h-4 w-4" />
                       </button>
                     </div>
                   ))}
@@ -567,7 +581,7 @@ export function SubmitPaperForm({ submissionIdFromRoute, submissionIdFromQuery }
 
               {submission?.supplementary_files?.length ? (
                 <div className="mt-4">
-                  <p className="text-sm font-medium text-gray-700 mb-2">Uploaded supplementary</p>
+                  <p className="mb-2 text-sm font-medium text-gray-700">Uploaded supplementary</p>
                   <div className="space-y-2">
                     {submission.supplementary_files.map((file) => (
                       <a
@@ -575,10 +589,10 @@ export function SubmitPaperForm({ submissionIdFromRoute, submissionIdFromQuery }
                         href={file.file}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center justify-between p-2 bg-gray-50 border border-gray-200 hover:bg-gray-100 transition-colors text-sm"
+                        className="flex items-center justify-between border border-gray-200 bg-gray-50 p-2 text-sm transition-colors hover:bg-gray-100"
                       >
                         <div className="flex items-center gap-2">
-                          <FileText className="w-4 h-4 text-gray-500" />
+                          <FileText className="h-4 w-4 text-gray-500" />
                           <span className="font-medium text-gray-900">{file.name}</span>
                         </div>
                         <span className="text-xs font-semibold text-gray-700 uppercase">Open</span>
@@ -592,15 +606,15 @@ export function SubmitPaperForm({ submissionIdFromRoute, submissionIdFromQuery }
         </section>
 
         {/* Actions */}
-        <section className="bg-white border border-gray-300 p-6">
-          <div className="flex flex-col sm:flex-row gap-3 sm:justify-end">
+        <section className="border border-gray-300 bg-white p-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
             <button
               type="button"
               onClick={handleSaveDraftAndUploads}
               disabled={saving || uploading || submitting}
-              className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="inline-flex items-center justify-center gap-2 bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
             >
-              <Save className="w-4 h-4" />
+              <Save className="h-4 w-4" />
               {saving || uploading ? 'Saving...' : 'Save Draft'}
             </button>
 
@@ -608,15 +622,16 @@ export function SubmitPaperForm({ submissionIdFromRoute, submissionIdFromQuery }
               type="button"
               onClick={handleSubmit}
               disabled={!canSubmit || saving || uploading || submitting}
-              className="inline-flex items-center justify-center gap-2 px-5 py-3 bg-green-600 text-white text-sm font-semibold hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed"
+              className="inline-flex items-center justify-center gap-2 bg-green-600 px-5 py-3 text-sm font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-400"
             >
-              <Send className="w-4 h-4" />
+              <Send className="h-4 w-4" />
               {submitting ? 'Submitting...' : 'Submit'}
             </button>
           </div>
           {!canSubmit && (
-            <p className="text-xs text-gray-500 mt-3">
-              Submit becomes available after the draft is created and the manuscript PDF is uploaded.
+            <p className="mt-3 text-xs text-gray-500">
+              Submit becomes available after the draft is created and the manuscript PDF is
+              uploaded.
             </p>
           )}
         </section>
@@ -633,16 +648,15 @@ type PolicyCheckboxProps = {
 };
 
 const PolicyCheckbox: React.FC<PolicyCheckboxProps> = ({ checked, onChange, title, children }) => (
-  <label className="flex items-start cursor-pointer gap-3">
+  <label className="flex cursor-pointer items-start gap-3">
     <input
       type="checkbox"
       checked={checked}
       onChange={(e) => onChange(e.target.checked)}
-      className="mt-1 w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500"
+      className="mt-1 h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500"
     />
     <span className="text-sm text-gray-700">
       <strong>{title}:</strong> {children}
     </span>
   </label>
 );
-

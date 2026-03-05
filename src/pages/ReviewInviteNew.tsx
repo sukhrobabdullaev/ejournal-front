@@ -52,7 +52,9 @@ export function ReviewInviteNew() {
       setError(null);
 
       // Check if user is logged in
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
       if (!user) {
         // Redirect to login with return URL
         navigate(`/login?returnTo=/review/invite/${token}`);
@@ -61,7 +63,7 @@ export function ReviewInviteNew() {
 
       const updateData: any = {
         status: accepted ? 'accepted' : 'declined',
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       };
 
       if (accepted) {
@@ -119,9 +121,9 @@ export function ReviewInviteNew() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-white">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
           <p className="text-gray-600">Loading invitation...</p>
         </div>
       </div>
@@ -130,14 +132,16 @@ export function ReviewInviteNew() {
 
   if (error || !assignment) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <XCircle size={48} className="mx-auto text-red-600 mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Invitation Not Found</h2>
-          <p className="text-gray-600 mb-6">{error || 'This invitation link is invalid or has expired.'}</p>
+      <div className="flex min-h-screen items-center justify-center bg-white">
+        <div className="max-w-md text-center">
+          <XCircle size={48} className="mx-auto mb-4 text-red-600" />
+          <h2 className="mb-2 text-2xl font-bold text-gray-900">Invitation Not Found</h2>
+          <p className="mb-6 text-gray-600">
+            {error || 'This invitation link is invalid or has expired.'}
+          </p>
           <button
             onClick={() => navigate('/dashboard')}
-            className="px-6 py-3 bg-blue-600 text-white font-medium hover:bg-blue-700"
+            className="bg-blue-600 px-6 py-3 font-medium text-white hover:bg-blue-700"
           >
             Go to Dashboard
           </button>
@@ -150,40 +154,45 @@ export function ReviewInviteNew() {
   if (assignment.status === 'accepted') {
     return (
       <div className="min-h-screen bg-white">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <div className="bg-green-50 border border-green-300 p-8 text-center mb-8">
-            <CheckCircle size={48} className="mx-auto text-green-600 mb-4" />
-            <h2 className="text-2xl font-bold text-green-900 mb-2">Invitation Accepted</h2>
+        <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="mb-8 border border-green-300 bg-green-50 p-8 text-center">
+            <CheckCircle size={48} className="mx-auto mb-4 text-green-600" />
+            <h2 className="mb-2 text-2xl font-bold text-green-900">Invitation Accepted</h2>
             <p className="text-green-800">
               You have accepted this review invitation on{' '}
-              {assignment.accepted_at ? new Date(assignment.accepted_at).toLocaleDateString() : 'an earlier date'}.
+              {assignment.accepted_at
+                ? new Date(assignment.accepted_at).toLocaleDateString()
+                : 'an earlier date'}
+              .
             </p>
           </div>
 
           {/* Submission Details */}
-          <div className="bg-white border border-gray-300 p-6 mb-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Manuscript Details</h3>
-            
+          <div className="mb-6 border border-gray-300 bg-white p-6">
+            <h3 className="mb-4 text-lg font-semibold text-gray-900">Manuscript Details</h3>
+
             <div className="mb-4">
               <span className="text-sm text-gray-600">Title:</span>
-              <p className="text-base font-medium text-gray-900 mt-1">{assignment.submissions?.title || 'Untitled'}</p>
+              <p className="mt-1 text-base font-medium text-gray-900">
+                {assignment.submissions?.title || 'Untitled'}
+              </p>
             </div>
 
             {assignment.submissions?.topic_area && (
               <div className="mb-4">
                 <span className="text-sm text-gray-600">Topic Area:</span>
-                <p className="text-sm text-gray-900 mt-1">{assignment.submissions.topic_area}</p>
+                <p className="mt-1 text-sm text-gray-900">{assignment.submissions.topic_area}</p>
               </div>
             )}
 
             {assignment.submissions?.keywords && assignment.submissions.keywords.length > 0 && (
               <div className="mb-4">
                 <span className="text-sm text-gray-600">Keywords:</span>
-                <div className="flex flex-wrap gap-2 mt-2">
+                <div className="mt-2 flex flex-wrap gap-2">
                   {assignment.submissions.keywords.map((keyword: string, index: number) => (
                     <span
                       key={index}
-                      className="px-3 py-1 bg-gray-100 text-gray-700 text-xs border border-gray-300"
+                      className="border border-gray-300 bg-gray-100 px-3 py-1 text-xs text-gray-700"
                     >
                       {keyword}
                     </span>
@@ -195,7 +204,7 @@ export function ReviewInviteNew() {
             {assignment.submissions?.abstract && (
               <div>
                 <span className="text-sm text-gray-600">Abstract:</span>
-                <p className="text-sm text-gray-700 mt-2 leading-relaxed whitespace-pre-wrap">
+                <p className="mt-2 text-sm leading-relaxed whitespace-pre-wrap text-gray-700">
                   {assignment.submissions.abstract}
                 </p>
               </div>
@@ -204,26 +213,30 @@ export function ReviewInviteNew() {
 
           {/* Files Section */}
           {files.length > 0 && (
-            <div className="bg-white border border-gray-300 p-6 mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Manuscript Files</h3>
+            <div className="mb-6 border border-gray-300 bg-white p-6">
+              <h3 className="mb-4 text-lg font-semibold text-gray-900">Manuscript Files</h3>
               <div className="space-y-2">
                 {files.map((file) => (
                   <div
                     key={file.id}
-                    className="flex items-center justify-between p-3 bg-gray-50 border border-gray-200"
+                    className="flex items-center justify-between border border-gray-200 bg-gray-50 p-3"
                   >
                     <div className="flex items-center">
-                      <FileText size={20} className="text-gray-600 mr-3" />
+                      <FileText size={20} className="mr-3 text-gray-600" />
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{file.original_filename}</p>
+                        <p className="text-sm font-medium text-gray-900">
+                          {file.original_filename}
+                        </p>
                         <p className="text-xs text-gray-500">
-                          {file.file_type === 'manuscript_pdf' ? 'Manuscript PDF' : 'Supplementary File'}
+                          {file.file_type === 'manuscript_pdf'
+                            ? 'Manuscript PDF'
+                            : 'Supplementary File'}
                         </p>
                       </div>
                     </div>
                     <button
                       onClick={() => handleDownload(file)}
-                      className="flex items-center text-blue-600 hover:text-blue-800 text-sm font-medium"
+                      className="flex items-center text-sm font-medium text-blue-600 hover:text-blue-800"
                     >
                       <Download size={16} className="mr-1" />
                       Download
@@ -237,7 +250,7 @@ export function ReviewInviteNew() {
           <div className="text-center">
             <button
               onClick={() => navigate('/dashboard')}
-              className="px-6 py-3 bg-blue-600 text-white font-medium hover:bg-blue-700"
+              className="bg-blue-600 px-6 py-3 font-medium text-white hover:bg-blue-700"
             >
               Go to Dashboard
             </button>
@@ -249,17 +262,20 @@ export function ReviewInviteNew() {
 
   if (assignment.status === 'declined') {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center max-w-md">
-          <XCircle size={48} className="mx-auto text-gray-600 mb-4" />
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Invitation Declined</h2>
-          <p className="text-gray-600 mb-6">
+      <div className="flex min-h-screen items-center justify-center bg-white">
+        <div className="max-w-md text-center">
+          <XCircle size={48} className="mx-auto mb-4 text-gray-600" />
+          <h2 className="mb-2 text-2xl font-bold text-gray-900">Invitation Declined</h2>
+          <p className="mb-6 text-gray-600">
             You declined this review invitation on{' '}
-            {assignment.declined_at ? new Date(assignment.declined_at).toLocaleDateString() : 'an earlier date'}.
+            {assignment.declined_at
+              ? new Date(assignment.declined_at).toLocaleDateString()
+              : 'an earlier date'}
+            .
           </p>
           <button
             onClick={() => navigate('/dashboard')}
-            className="px-6 py-3 bg-blue-600 text-white font-medium hover:bg-blue-700"
+            className="bg-blue-600 px-6 py-3 font-medium text-white hover:bg-blue-700"
           >
             Go to Dashboard
           </button>
@@ -271,38 +287,40 @@ export function ReviewInviteNew() {
   // Pending invitation - show accept/decline options
   return (
     <div className="min-h-screen bg-white">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="bg-white border border-gray-300 p-8 mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Review Invitation</h1>
+      <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="mb-8 border border-gray-300 bg-white p-8">
+          <h1 className="mb-2 text-3xl font-bold text-gray-900">Review Invitation</h1>
           <p className="text-base text-gray-600">
             You have been invited to review a manuscript for NEXA-JCT
           </p>
         </div>
 
         {/* Submission Details */}
-        <div className="bg-white border border-gray-300 p-6 mb-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Manuscript Details</h3>
-          
+        <div className="mb-6 border border-gray-300 bg-white p-6">
+          <h3 className="mb-4 text-lg font-semibold text-gray-900">Manuscript Details</h3>
+
           <div className="mb-4">
             <span className="text-sm text-gray-600">Title:</span>
-            <p className="text-base font-medium text-gray-900 mt-1">{assignment.submissions?.title || 'Untitled'}</p>
+            <p className="mt-1 text-base font-medium text-gray-900">
+              {assignment.submissions?.title || 'Untitled'}
+            </p>
           </div>
 
           {assignment.submissions?.topic_area && (
             <div className="mb-4">
               <span className="text-sm text-gray-600">Topic Area:</span>
-              <p className="text-sm text-gray-900 mt-1">{assignment.submissions.topic_area}</p>
+              <p className="mt-1 text-sm text-gray-900">{assignment.submissions.topic_area}</p>
             </div>
           )}
 
           {assignment.submissions?.keywords && assignment.submissions.keywords.length > 0 && (
             <div className="mb-4">
               <span className="text-sm text-gray-600">Keywords:</span>
-              <div className="flex flex-wrap gap-2 mt-2">
+              <div className="mt-2 flex flex-wrap gap-2">
                 {assignment.submissions.keywords.map((keyword: string, index: number) => (
                   <span
                     key={index}
-                    className="px-3 py-1 bg-gray-100 text-gray-700 text-xs border border-gray-300"
+                    className="border border-gray-300 bg-gray-100 px-3 py-1 text-xs text-gray-700"
                   >
                     {keyword}
                   </span>
@@ -314,7 +332,7 @@ export function ReviewInviteNew() {
           {assignment.submissions?.abstract && (
             <div>
               <span className="text-sm text-gray-600">Abstract:</span>
-              <p className="text-sm text-gray-700 mt-2 leading-relaxed whitespace-pre-wrap">
+              <p className="mt-2 text-sm leading-relaxed whitespace-pre-wrap text-gray-700">
                 {assignment.submissions.abstract}
               </p>
             </div>
@@ -322,26 +340,26 @@ export function ReviewInviteNew() {
         </div>
 
         {/* Decision Section */}
-        <div className="bg-blue-50 border border-blue-300 p-6 mb-6">
-          <h3 className="text-base font-semibold text-blue-900 mb-2">Review Timeline</h3>
+        <div className="mb-6 border border-blue-300 bg-blue-50 p-6">
+          <h3 className="mb-2 text-base font-semibold text-blue-900">Review Timeline</h3>
           <p className="text-sm text-blue-800">
-            Please accept or decline this invitation within 7 days. If you accept, you will have access to the full manuscript 
-            and will be expected to submit your review within 21 days.
+            Please accept or decline this invitation within 7 days. If you accept, you will have
+            access to the full manuscript and will be expected to submit your review within 21 days.
           </p>
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-300 p-4 mb-6">
+          <div className="mb-6 border border-red-300 bg-red-50 p-4">
             <p className="text-sm text-red-800">{error}</p>
           </div>
         )}
 
         {/* Action Buttons */}
-        <div className="flex gap-4 justify-center">
+        <div className="flex justify-center gap-4">
           <button
             onClick={() => handleResponse(false)}
             disabled={responding}
-            className="flex items-center px-8 py-3 border border-gray-300 text-gray-700 font-medium hover:bg-gray-50 disabled:opacity-50"
+            className="flex items-center border border-gray-300 px-8 py-3 font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
           >
             <XCircle size={18} className="mr-2" />
             {responding ? 'Processing...' : 'Decline'}
@@ -349,7 +367,7 @@ export function ReviewInviteNew() {
           <button
             onClick={() => handleResponse(true)}
             disabled={responding}
-            className="flex items-center px-8 py-3 bg-green-600 text-white font-medium hover:bg-green-700 disabled:opacity-50"
+            className="flex items-center bg-green-600 px-8 py-3 font-medium text-white hover:bg-green-700 disabled:opacity-50"
           >
             <CheckCircle size={18} className="mr-2" />
             {responding ? 'Processing...' : 'Accept Invitation'}

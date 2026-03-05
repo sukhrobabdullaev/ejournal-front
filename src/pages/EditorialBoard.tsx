@@ -11,7 +11,7 @@ const editorialBoard = [
     department: 'Computer Science',
     expertise: ['Artificial Intelligence', 'Machine Learning', 'Deep Learning'],
     email: 's.mitchell@nexa-jct.org',
-    linkedin: 'https://linkedin.com/in/sarahmitchell'
+    linkedin: 'https://linkedin.com/in/sarahmitchell',
   },
   {
     id: '2',
@@ -21,7 +21,7 @@ const editorialBoard = [
     department: 'Electrical Engineering & Computer Science',
     expertise: ['Distributed Systems', 'Cloud Computing', 'Microservices'],
     email: 'd.chen@nexa-jct.org',
-    linkedin: 'https://linkedin.com/in/davidchen'
+    linkedin: 'https://linkedin.com/in/davidchen',
   },
   {
     id: '3',
@@ -31,7 +31,7 @@ const editorialBoard = [
     department: 'Human-Computer Interaction Institute',
     expertise: ['UX Design', 'Accessibility', 'Human-AI Interaction'],
     email: 'e.johnson@nexa-jct.org',
-    linkedin: 'https://linkedin.com/in/emilyjohnson'
+    linkedin: 'https://linkedin.com/in/emilyjohnson',
   },
   {
     id: '4',
@@ -41,7 +41,7 @@ const editorialBoard = [
     department: 'Computer Science',
     expertise: ['Cybersecurity', 'Cryptography', 'Network Security'],
     email: 'm.torres@nexa-jct.org',
-    linkedin: 'https://linkedin.com/in/michaeltorres'
+    linkedin: 'https://linkedin.com/in/michaeltorres',
   },
   {
     id: '5',
@@ -51,17 +51,17 @@ const editorialBoard = [
     department: 'Department of Computer Science',
     expertise: ['Data Science', 'Big Data Analytics', 'Visualization'],
     email: 'a.patel@nexa-jct.org',
-    linkedin: 'https://linkedin.com/in/aishapatel'
+    linkedin: 'https://linkedin.com/in/aishapatel',
   },
   {
     id: '6',
-    name: 'Prof. James O\'Brien',
+    name: "Prof. James O'Brien",
     title: 'Associate Editor',
     institution: 'ETH Zurich',
     department: 'Information Technology',
     expertise: ['Blockchain', 'Distributed Ledger', 'Smart Contracts'],
     email: 'j.obrien@nexa-jct.org',
-    linkedin: 'https://linkedin.com/in/jamesobrien'
+    linkedin: 'https://linkedin.com/in/jamesobrien',
   },
   {
     id: '7',
@@ -71,7 +71,7 @@ const editorialBoard = [
     department: 'Computer Science',
     expertise: ['Computer Vision', 'Pattern Recognition', 'Image Processing'],
     email: 'l.wang@nexa-jct.org',
-    linkedin: 'https://linkedin.com/in/linwang'
+    linkedin: 'https://linkedin.com/in/linwang',
   },
   {
     id: '8',
@@ -81,8 +81,8 @@ const editorialBoard = [
     department: 'Informatics',
     expertise: ['Software Engineering', 'DevOps', 'Agile Methods'],
     email: 'm.garcia@nexa-jct.org',
-    linkedin: 'https://linkedin.com/in/mariagarcia'
-  }
+    linkedin: 'https://linkedin.com/in/mariagarcia',
+  },
 ];
 
 export function EditorialBoard() {
@@ -104,40 +104,38 @@ export function EditorialBoard() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Page Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Editorial Board</h1>
+      <div className="border-b border-gray-200 bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+          <h1 className="mb-2 text-4xl font-bold text-gray-900">Editorial Board</h1>
           <p className="text-lg text-gray-600">
             Meet the distinguished scholars leading NEXA-JCT's editorial excellence
           </p>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         {/* Editor-in-Chief */}
         {editorInChief && (
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Editor-in-Chief</h2>
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8">
-              <div className="flex flex-col md:flex-row gap-6">
+            <h2 className="mb-6 text-2xl font-bold text-gray-900">Editor-in-Chief</h2>
+            <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-lg">
+              <div className="flex flex-col gap-6 md:flex-row">
                 <img
                   src={getImageForMember(0)}
                   alt={editorInChief.name}
-                  className="w-48 h-48 rounded-xl object-cover"
+                  className="h-48 w-48 rounded-xl object-cover"
                 />
                 <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-1">
-                    {editorInChief.name}
-                  </h3>
-                  <p className="text-lg text-blue-600 mb-4">{editorInChief.institution}</p>
-                  
+                  <h3 className="mb-1 text-2xl font-bold text-gray-900">{editorInChief.name}</h3>
+                  <p className="mb-4 text-lg text-blue-600">{editorInChief.institution}</p>
+
                   <div className="mb-4">
-                    <p className="text-sm font-medium text-gray-600 mb-2">Areas of Expertise:</p>
+                    <p className="mb-2 text-sm font-medium text-gray-600">Areas of Expertise:</p>
                     <div className="flex flex-wrap gap-2">
                       {editorInChief.expertise.map((area) => (
                         <span
                           key={area}
-                          className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium"
+                          className="rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700"
                         >
                           {area}
                         </span>
@@ -148,14 +146,14 @@ export function EditorialBoard() {
                   <div className="flex items-center space-x-4">
                     <a
                       href={`mailto:${editorInChief.email}`}
-                      className="flex items-center text-gray-600 hover:text-blue-600 transition-colors"
+                      className="flex items-center text-gray-600 transition-colors hover:text-blue-600"
                     >
                       <Mail size={18} className="mr-2" />
                       <span className="text-sm">{editorInChief.email}</span>
                     </a>
                     <a
                       href={editorInChief.linkedin}
-                      className="flex items-center text-gray-600 hover:text-blue-600 transition-colors"
+                      className="flex items-center text-gray-600 transition-colors hover:text-blue-600"
                     >
                       <Linkedin size={18} className="mr-2" />
                       <span className="text-sm">LinkedIn</span>
@@ -170,27 +168,25 @@ export function EditorialBoard() {
         {/* Managing Editor */}
         {managingEditor && (
           <section className="mb-12">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Managing Editor</h2>
-            <div className="bg-white rounded-xl shadow-lg border border-gray-200 p-8">
-              <div className="flex flex-col md:flex-row gap-6">
+            <h2 className="mb-6 text-2xl font-bold text-gray-900">Managing Editor</h2>
+            <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-lg">
+              <div className="flex flex-col gap-6 md:flex-row">
                 <img
                   src={getImageForMember(1)}
                   alt={managingEditor.name}
-                  className="w-48 h-48 rounded-xl object-cover"
+                  className="h-48 w-48 rounded-xl object-cover"
                 />
                 <div className="flex-1">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-1">
-                    {managingEditor.name}
-                  </h3>
-                  <p className="text-lg text-blue-600 mb-4">{managingEditor.institution}</p>
-                  
+                  <h3 className="mb-1 text-2xl font-bold text-gray-900">{managingEditor.name}</h3>
+                  <p className="mb-4 text-lg text-blue-600">{managingEditor.institution}</p>
+
                   <div className="mb-4">
-                    <p className="text-sm font-medium text-gray-600 mb-2">Areas of Expertise:</p>
+                    <p className="mb-2 text-sm font-medium text-gray-600">Areas of Expertise:</p>
                     <div className="flex flex-wrap gap-2">
                       {managingEditor.expertise.map((area) => (
                         <span
                           key={area}
-                          className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium"
+                          className="rounded-full bg-blue-50 px-3 py-1 text-sm font-medium text-blue-700"
                         >
                           {area}
                         </span>
@@ -201,14 +197,14 @@ export function EditorialBoard() {
                   <div className="flex items-center space-x-4">
                     <a
                       href={`mailto:${managingEditor.email}`}
-                      className="flex items-center text-gray-600 hover:text-blue-600 transition-colors"
+                      className="flex items-center text-gray-600 transition-colors hover:text-blue-600"
                     >
                       <Mail size={18} className="mr-2" />
                       <span className="text-sm">{managingEditor.email}</span>
                     </a>
                     <a
                       href={managingEditor.linkedin}
-                      className="flex items-center text-gray-600 hover:text-blue-600 transition-colors"
+                      className="flex items-center text-gray-600 transition-colors hover:text-blue-600"
                     >
                       <Linkedin size={18} className="mr-2" />
                       <span className="text-sm">LinkedIn</span>
@@ -222,28 +218,28 @@ export function EditorialBoard() {
 
         {/* Associate Editors */}
         <section>
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">Associate Editors</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <h2 className="mb-6 text-2xl font-bold text-gray-900">Associate Editors</h2>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {associateEditors.map((editor, index) => (
               <div
                 key={editor.id}
-                className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
+                className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md"
               >
                 <img
                   src={getImageForMember(index + 2)}
                   alt={editor.name}
-                  className="w-full h-48 rounded-lg object-cover mb-4"
+                  className="mb-4 h-48 w-full rounded-lg object-cover"
                 />
-                <h3 className="text-lg font-bold text-gray-900 mb-1">{editor.name}</h3>
-                <p className="text-sm text-blue-600 mb-3">{editor.institution}</p>
-                
+                <h3 className="mb-1 text-lg font-bold text-gray-900">{editor.name}</h3>
+                <p className="mb-3 text-sm text-blue-600">{editor.institution}</p>
+
                 <div className="mb-4">
-                  <p className="text-xs font-medium text-gray-600 mb-2">Expertise:</p>
+                  <p className="mb-2 text-xs font-medium text-gray-600">Expertise:</p>
                   <div className="flex flex-wrap gap-1.5">
                     {editor.expertise.map((area) => (
                       <span
                         key={area}
-                        className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs"
+                        className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700"
                       >
                         {area}
                       </span>
@@ -253,7 +249,7 @@ export function EditorialBoard() {
 
                 <a
                   href={editor.linkedin}
-                  className="flex items-center text-gray-600 hover:text-blue-600 transition-colors text-sm"
+                  className="flex items-center text-sm text-gray-600 transition-colors hover:text-blue-600"
                 >
                   <Linkedin size={16} className="mr-2" />
                   View Profile
@@ -264,15 +260,15 @@ export function EditorialBoard() {
         </section>
 
         {/* Join Our Board */}
-        <section className="mt-12 bg-gradient-to-r from-blue-600 to-purple-600 rounded-xl p-8 text-center text-white">
-          <h2 className="text-2xl font-bold mb-4 text-[#ffffff]">Join Our Editorial Board</h2>
-          <p className="text-lg text-blue-100 mb-6 max-w-2xl mx-auto">
-            We're always looking for distinguished researchers to join our editorial team. 
-            If you're interested in shaping the future of computing research, we'd love to hear from you.
+        <section className="mt-12 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 p-8 text-center text-white">
+          <h2 className="mb-4 text-2xl font-bold text-[#ffffff]">Join Our Editorial Board</h2>
+          <p className="mx-auto mb-6 max-w-2xl text-lg text-blue-100">
+            We're always looking for distinguished researchers to join our editorial team. If you're
+            interested in shaping the future of computing research, we'd love to hear from you.
           </p>
           <a
             href="/contact"
-            className="inline-block px-6 py-3 bg-white text-blue-600 font-medium rounded-lg hover:bg-gray-100 transition-colors"
+            className="inline-block rounded-lg bg-white px-6 py-3 font-medium text-blue-600 transition-colors hover:bg-gray-100"
           >
             Express Interest
           </a>

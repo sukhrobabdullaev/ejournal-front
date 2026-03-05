@@ -8,7 +8,7 @@ export function Articles() {
   const [articles, setArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedYear, setSelectedYear] = useState('all');
   const [selectedTopic, setSelectedTopic] = useState('all');
@@ -46,7 +46,7 @@ export function Articles() {
   // Extract unique years and topics from articles
   const years = useMemo(() => {
     const yearSet = new Set<string>();
-    articles.forEach(article => {
+    articles.forEach((article) => {
       if (article.published_at) {
         yearSet.add(new Date(article.published_at).getFullYear().toString());
       }
@@ -56,8 +56,8 @@ export function Articles() {
 
   const topics = useMemo(() => {
     const topicSet = new Set<string>();
-    articles.forEach(article => {
-      article.topic_tags?.forEach(tag => topicSet.add(tag));
+    articles.forEach((article) => {
+      article.topic_tags?.forEach((tag) => topicSet.add(tag));
     });
     return Array.from(topicSet).sort();
   }, [articles]);
@@ -69,26 +69,26 @@ export function Articles() {
     // Search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter(article =>
-        article.title.toLowerCase().includes(query) ||
-        article.abstract.toLowerCase().includes(query) ||
-        article.keywords.some(k => k.toLowerCase().includes(query))
+      filtered = filtered.filter(
+        (article) =>
+          article.title.toLowerCase().includes(query) ||
+          article.abstract.toLowerCase().includes(query) ||
+          article.keywords.some((k) => k.toLowerCase().includes(query))
       );
     }
 
     // Year filter
     if (selectedYear !== 'all') {
-      filtered = filtered.filter(article =>
-        article.published_at &&
-        new Date(article.published_at).getFullYear().toString() === selectedYear
+      filtered = filtered.filter(
+        (article) =>
+          article.published_at &&
+          new Date(article.published_at).getFullYear().toString() === selectedYear
       );
     }
 
     // Topic filter
     if (selectedTopic !== 'all') {
-      filtered = filtered.filter(article =>
-        article.topic_tags?.includes(selectedTopic)
-      );
+      filtered = filtered.filter((article) => article.topic_tags?.includes(selectedTopic));
     }
 
     // Sort
@@ -118,9 +118,9 @@ export function Articles() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-4 border-blue-600 border-t-transparent"></div>
           <p className="text-gray-600">Loading articles...</p>
         </div>
       </div>
@@ -129,9 +129,9 @@ export function Articles() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Error Loading Articles</h2>
+          <h2 className="mb-2 text-2xl font-bold text-gray-900">Error Loading Articles</h2>
           <p className="text-gray-600">{error}</p>
         </div>
       </div>
@@ -142,8 +142,8 @@ export function Articles() {
     <div style={{ backgroundColor: '#F8FAFC' }}>
       {/* Hero Header */}
       <div style={{ backgroundColor: '#0B1C4D', paddingTop: '80px', paddingBottom: '60px' }}>
-        <div className="max-w-[1120px] mx-auto px-4 sm:px-6 lg:px-8">
-          <h1 className="text-5xl font-bold mb-4" style={{ color: '#FFFFFF' }}>
+        <div className="mx-auto max-w-[1120px] px-4 sm:px-6 lg:px-8">
+          <h1 className="mb-4 text-5xl font-bold" style={{ color: '#FFFFFF' }}>
             Articles
           </h1>
           <p className="text-xl" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
@@ -152,21 +152,28 @@ export function Articles() {
         </div>
       </div>
 
-      <div className="max-w-[1120px] mx-auto px-4 sm:px-6 lg:px-8" style={{ paddingTop: '80px', paddingBottom: '80px' }}>
+      <div
+        className="mx-auto max-w-[1120px] px-4 sm:px-6 lg:px-8"
+        style={{ paddingTop: '80px', paddingBottom: '80px' }}
+      >
         {/* Search and Filters */}
-        <div 
-          className="bg-white mb-8 transition-all hover:shadow-xl"
+        <div
+          className="mb-8 bg-white transition-all hover:shadow-xl"
           style={{
             borderRadius: '16px',
             padding: '24px',
             boxShadow: '0 10px 30px rgba(11, 28, 77, 0.08)',
-            borderLeft: '4px solid #2563EB'
+            borderLeft: '4px solid #2563EB',
           }}
         >
-          <div className="grid md:grid-cols-4 gap-4">
+          <div className="grid gap-4 md:grid-cols-4">
             {/* Search */}
-            <div className="md:col-span-2 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2" size={18} style={{ color: '#94A3B8' }} />
+            <div className="relative md:col-span-2">
+              <Search
+                className="absolute top-1/2 left-3 -translate-y-1/2 transform"
+                size={18}
+                style={{ color: '#94A3B8' }}
+              />
               <input
                 type="text"
                 placeholder="Search by title, author, keyword..."
@@ -175,7 +182,7 @@ export function Articles() {
                   setSearchQuery(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full pl-10 pr-4 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full rounded-lg border py-2.5 pr-4 pl-10 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
                 style={{ borderColor: '#CBD5E1' }}
               />
             </div>
@@ -188,7 +195,7 @@ export function Articles() {
                   setSelectedYear(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
+                className="w-full rounded-lg border bg-white px-3 py-2.5 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
                 style={{ borderColor: '#CBD5E1' }}
               >
                 <option value="all">All Years</option>
@@ -208,7 +215,7 @@ export function Articles() {
                   setSelectedTopic(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm bg-white"
+                className="w-full rounded-lg border bg-white px-3 py-2.5 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
                 style={{ borderColor: '#CBD5E1' }}
               >
                 <option value="all">All Topics</option>
@@ -222,13 +229,18 @@ export function Articles() {
           </div>
 
           {/* Sort */}
-          <div className="mt-5 flex items-center justify-between pt-5" style={{ borderTop: '1px solid #E2E8F0' }}>
+          <div
+            className="mt-5 flex items-center justify-between pt-5"
+            style={{ borderTop: '1px solid #E2E8F0' }}
+          >
             <div className="flex items-center space-x-2">
-              <span className="text-sm" style={{ color: '#64748B' }}>Sort by:</span>
+              <span className="text-sm" style={{ color: '#64748B' }}>
+                Sort by:
+              </span>
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="px-3 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                className="rounded-lg border bg-white px-3 py-2 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
                 style={{ borderColor: '#CBD5E1' }}
               >
                 <option value="newest">Newest First</option>
@@ -243,15 +255,15 @@ export function Articles() {
 
         {/* Article List */}
         {paginatedArticles.length === 0 ? (
-          <div 
-            className="text-center py-16 rounded-xl"
+          <div
+            className="rounded-xl py-16 text-center"
             style={{
               backgroundColor: '#F8FAFC',
-              border: '2px dashed #CBD5E1'
+              border: '2px dashed #CBD5E1',
             }}
           >
             <p style={{ color: '#64748B' }}>No published articles found.</p>
-            <p className="text-sm mt-2" style={{ color: '#94A3B8' }}>
+            <p className="mt-2 text-sm" style={{ color: '#94A3B8' }}>
               {searchQuery || selectedYear !== 'all' || selectedTopic !== 'all'
                 ? 'Try adjusting your filters.'
                 : 'Check back soon for new research publications.'}
@@ -266,7 +278,7 @@ export function Articles() {
                 style={{
                   borderRadius: '16px',
                   padding: '24px',
-                  boxShadow: '0 10px 30px rgba(11, 28, 77, 0.08)'
+                  boxShadow: '0 10px 30px rgba(11, 28, 77, 0.08)',
                 }}
               >
                 <div className="mb-3">
@@ -280,25 +292,28 @@ export function Articles() {
                 </div>
 
                 {article.authors && article.authors.length > 0 && (
-                  <p className="text-sm mb-3" style={{ color: '#475569' }}>
+                  <p className="mb-3 text-sm" style={{ color: '#475569' }}>
                     {article.authors.join(', ')}
                   </p>
                 )}
 
-                <p className="text-sm mb-4 line-clamp-2" style={{ color: '#64748B', lineHeight: '1.7' }}>
+                <p
+                  className="mb-4 line-clamp-2 text-sm"
+                  style={{ color: '#64748B', lineHeight: '1.7' }}
+                >
                   {article.abstract}
                 </p>
 
                 {article.keywords && article.keywords.length > 0 && (
-                  <div className="flex flex-wrap gap-2 mb-4">
+                  <div className="mb-4 flex flex-wrap gap-2">
                     {article.keywords.slice(0, 5).map((keyword, idx) => (
                       <span
                         key={idx}
-                        className="px-3 py-1 text-xs rounded-full"
-                        style={{ 
-                          color: '#475569', 
+                        className="rounded-full px-3 py-1 text-xs"
+                        style={{
+                          color: '#475569',
                           backgroundColor: '#F1F5F9',
-                          border: '1px solid #E2E8F0'
+                          border: '1px solid #E2E8F0',
                         }}
                       >
                         {keyword}
@@ -307,9 +322,19 @@ export function Articles() {
                   </div>
                 )}
 
-                <div className="flex items-center justify-between text-sm" style={{ color: '#64748B' }}>
+                <div
+                  className="flex items-center justify-between text-sm"
+                  style={{ color: '#64748B' }}
+                >
                   <span>
-                    Published: {article.published_at ? new Date(article.published_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A'}
+                    Published:{' '}
+                    {article.published_at
+                      ? new Date(article.published_at).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        })
+                      : 'N/A'}
                     {article.doi && <> | DOI: {article.doi}</>}
                   </span>
                   <div className="flex items-center gap-4">
@@ -342,11 +367,11 @@ export function Articles() {
             <button
               onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
               disabled={currentPage === 1}
-              className="px-3 py-1.5 border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm bg-white"
+              className="border border-gray-300 bg-white px-3 py-1.5 text-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <ChevronLeft size={16} />
             </button>
-            
+
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
               let pageNum;
               if (totalPages <= 5) {
@@ -366,18 +391,18 @@ export function Articles() {
                   className={`px-4 py-1.5 text-sm font-medium ${
                     currentPage === pageNum
                       ? 'bg-blue-600 text-white'
-                      : 'border border-gray-300 text-gray-700 hover:bg-gray-50 bg-white'
+                      : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
                   }`}
                 >
                   {pageNum}
                 </button>
               );
             })}
-            
+
             <button
               onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
               disabled={currentPage === totalPages}
-              className="px-3 py-1.5 border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed text-sm bg-white"
+              className="border border-gray-300 bg-white px-3 py-1.5 text-sm hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
             >
               <ChevronRight size={16} />
             </button>

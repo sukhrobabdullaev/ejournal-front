@@ -56,7 +56,8 @@ export function Register() {
     }
 
     // Check if why_to_be is required
-    const requiresMotivation = formData.roles.includes('reviewer') || formData.roles.includes('editor');
+    const requiresMotivation =
+      formData.roles.includes('reviewer') || formData.roles.includes('editor');
     if (requiresMotivation && !formData.why_to_be.trim()) {
       setError('Please provide motivation for reviewer/editor role');
       setLoading(false);
@@ -80,7 +81,9 @@ export function Register() {
         } else {
           // Handle field errors
           const fieldErrors = Object.entries(signupError)
-            .map(([field, errors]) => `${field}: ${Array.isArray(errors) ? errors.join(', ') : errors}`)
+            .map(
+              ([field, errors]) => `${field}: ${Array.isArray(errors) ? errors.join(', ') : errors}`
+            )
             .join('; ');
           setError(fieldErrors);
         }
@@ -100,7 +103,16 @@ export function Register() {
 
   if (success) {
     return (
-      <div style={{ backgroundColor: '#F8FAFC', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem' }}>
+      <div
+        style={{
+          backgroundColor: '#F8FAFC',
+          minHeight: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '2rem 1rem',
+        }}
+      >
         <div style={{ maxWidth: '480px', width: '100%' }}>
           <div
             className="bg-white text-center transition-all"
@@ -108,26 +120,41 @@ export function Register() {
               borderRadius: '16px',
               padding: '40px',
               boxShadow: '0 10px 30px rgba(11, 28, 77, 0.15)',
-              borderTop: '4px solid #10B981'
+              borderTop: '4px solid #10B981',
             }}
           >
             <div
-              className="rounded-full flex items-center justify-center mx-auto mb-6"
+              className="mx-auto mb-6 flex items-center justify-center rounded-full"
               style={{
                 width: '80px',
                 height: '80px',
-                backgroundColor: '#DCFCE7'
+                backgroundColor: '#DCFCE7',
               }}
             >
-              <svg className="w-10 h-10" style={{ color: '#10B981' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <svg
+                className="h-10 w-10"
+                style={{ color: '#10B981' }}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
             </div>
-            <h1 className="text-3xl font-bold mb-3" style={{ color: '#0B1C4D' }}>Registration Successful!</h1>
-            <p className="text-sm mb-6" style={{ color: '#64748B' }}>
+            <h1 className="mb-3 text-3xl font-bold" style={{ color: '#0B1C4D' }}>
+              Registration Successful!
+            </h1>
+            <p className="mb-6 text-sm" style={{ color: '#64748B' }}>
               Your account has been created. You can now sign in.
             </p>
-            <p className="text-xs" style={{ color: '#94A3B8' }}>Redirecting to login page...</p>
+            <p className="text-xs" style={{ color: '#94A3B8' }}>
+              Redirecting to login page...
+            </p>
           </div>
         </div>
       </div>
@@ -143,11 +170,11 @@ export function Register() {
             borderRadius: '16px',
             padding: '40px',
             boxShadow: '0 10px 30px rgba(11, 28, 77, 0.15)',
-            borderTop: '4px solid #2563EB'
+            borderTop: '4px solid #2563EB',
           }}
         >
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold mb-3" style={{ color: '#0B1C4D' }}>
+          <div className="mb-8 text-center">
+            <h1 className="mb-3 text-3xl font-bold" style={{ color: '#0B1C4D' }}>
               Create Account
             </h1>
             <p className="text-sm" style={{ color: '#64748B' }}>
@@ -163,7 +190,7 @@ export function Register() {
                 backgroundColor: '#FEF2F2',
                 border: '2px solid #FCA5A5',
                 borderRadius: '12px',
-                color: '#991B1B'
+                color: '#991B1B',
               }}
             >
               <p className="text-sm">{error}</p>
@@ -173,7 +200,11 @@ export function Register() {
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-semibold mb-2" style={{ color: '#0B1C4D' }}>
+              <label
+                htmlFor="email"
+                className="mb-2 block text-sm font-semibold"
+                style={{ color: '#0B1C4D' }}
+              >
                 Email Address *
               </label>
               <input
@@ -183,7 +214,7 @@ export function Register() {
                 required
                 value={formData.email}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full rounded-lg border px-4 py-3 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
                 style={{ borderColor: '#CBD5E1' }}
                 placeholder="your.email@example.com"
               />
@@ -191,7 +222,11 @@ export function Register() {
 
             {/* Full Name */}
             <div>
-              <label htmlFor="full_name" className="block text-sm font-semibold mb-2" style={{ color: '#0B1C4D' }}>
+              <label
+                htmlFor="full_name"
+                className="mb-2 block text-sm font-semibold"
+                style={{ color: '#0B1C4D' }}
+              >
                 Full Name *
               </label>
               <input
@@ -201,16 +236,20 @@ export function Register() {
                 required
                 value={formData.full_name}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full rounded-lg border px-4 py-3 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
                 style={{ borderColor: '#CBD5E1' }}
                 placeholder="Dr. John Doe"
               />
             </div>
 
             {/* Password */}
-            <div className="grid md:grid-cols-2 gap-4">
+            <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <label htmlFor="password" className="block text-sm font-semibold mb-2" style={{ color: '#0B1C4D' }}>
+                <label
+                  htmlFor="password"
+                  className="mb-2 block text-sm font-semibold"
+                  style={{ color: '#0B1C4D' }}
+                >
                   Password *
                 </label>
                 <div className="relative">
@@ -221,7 +260,7 @@ export function Register() {
                     required
                     value={formData.password}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 pr-12 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    className="w-full rounded-lg border px-4 py-3 pr-12 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
                     style={{ borderColor: '#CBD5E1' }}
                     placeholder="••••••••"
                   />
@@ -231,12 +270,16 @@ export function Register() {
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                     className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-gray-700 focus:outline-none"
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
               </div>
               <div>
-                <label htmlFor="confirmPassword" className="block text-sm font-semibold mb-2" style={{ color: '#0B1C4D' }}>
+                <label
+                  htmlFor="confirmPassword"
+                  className="mb-2 block text-sm font-semibold"
+                  style={{ color: '#0B1C4D' }}
+                >
                   Confirm Password *
                 </label>
                 <div className="relative">
@@ -247,20 +290,22 @@ export function Register() {
                     required
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 pr-12 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                    className="w-full rounded-lg border px-4 py-3 pr-12 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
                     style={{ borderColor: '#CBD5E1' }}
                     placeholder="••••••••"
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword((v) => !v)}
-                    aria-label={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
+                    aria-label={
+                      showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'
+                    }
                     className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-gray-700 focus:outline-none"
                   >
                     {showConfirmPassword ? (
-                      <EyeOff className="w-4 h-4" />
+                      <EyeOff className="h-4 w-4" />
                     ) : (
-                      <Eye className="w-4 h-4" />
+                      <Eye className="h-4 w-4" />
                     )}
                   </button>
                 </div>
@@ -269,7 +314,11 @@ export function Register() {
 
             {/* Affiliation */}
             <div>
-              <label htmlFor="affiliation" className="block text-sm font-semibold mb-2" style={{ color: '#0B1C4D' }}>
+              <label
+                htmlFor="affiliation"
+                className="mb-2 block text-sm font-semibold"
+                style={{ color: '#0B1C4D' }}
+              >
                 Affiliation *
               </label>
               <input
@@ -279,7 +328,7 @@ export function Register() {
                 required
                 value={formData.affiliation}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full rounded-lg border px-4 py-3 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
                 style={{ borderColor: '#CBD5E1' }}
                 placeholder="University or Institution"
               />
@@ -287,7 +336,11 @@ export function Register() {
 
             {/* Country */}
             <div>
-              <label htmlFor="country" className="block text-sm font-semibold mb-2" style={{ color: '#0B1C4D' }}>
+              <label
+                htmlFor="country"
+                className="mb-2 block text-sm font-semibold"
+                style={{ color: '#0B1C4D' }}
+              >
                 Country *
               </label>
               <input
@@ -297,7 +350,7 @@ export function Register() {
                 required
                 value={formData.country}
                 onChange={handleChange}
-                className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full rounded-lg border px-4 py-3 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
                 style={{ borderColor: '#CBD5E1' }}
                 placeholder="United States"
               />
@@ -305,47 +358,79 @@ export function Register() {
 
             {/* Roles */}
             <div>
-              <label className="block text-sm font-semibold mb-3" style={{ color: '#0B1C4D' }}>
+              <label className="mb-3 block text-sm font-semibold" style={{ color: '#0B1C4D' }}>
                 Select Roles *
               </label>
               <div className="space-y-3">
-                <label className="flex items-start p-3 border rounded-lg cursor-pointer transition-all hover:bg-gray-50" style={{ borderColor: formData.roles.includes('author') ? '#2563EB' : '#E2E8F0', backgroundColor: formData.roles.includes('author') ? '#EFF6FF' : 'transparent' }}>
+                <label
+                  className="flex cursor-pointer items-start rounded-lg border p-3 transition-all hover:bg-gray-50"
+                  style={{
+                    borderColor: formData.roles.includes('author') ? '#2563EB' : '#E2E8F0',
+                    backgroundColor: formData.roles.includes('author') ? '#EFF6FF' : 'transparent',
+                  }}
+                >
                   <input
                     type="checkbox"
                     checked={formData.roles.includes('author')}
                     onChange={() => handleRoleChange('author')}
-                    className="mr-3 mt-0.5"
+                    className="mt-0.5 mr-3"
                     style={{ accentColor: '#2563EB' }}
                   />
                   <div>
-                    <span className="text-sm font-medium block" style={{ color: '#0B1C4D' }}>Author</span>
-                    <span className="text-xs" style={{ color: '#64748B' }}>Submit manuscripts for review</span>
+                    <span className="block text-sm font-medium" style={{ color: '#0B1C4D' }}>
+                      Author
+                    </span>
+                    <span className="text-xs" style={{ color: '#64748B' }}>
+                      Submit manuscripts for review
+                    </span>
                   </div>
                 </label>
-                <label className="flex items-start p-3 border rounded-lg cursor-pointer transition-all hover:bg-gray-50" style={{ borderColor: formData.roles.includes('reviewer') ? '#2563EB' : '#E2E8F0', backgroundColor: formData.roles.includes('reviewer') ? '#EFF6FF' : 'transparent' }}>
+                <label
+                  className="flex cursor-pointer items-start rounded-lg border p-3 transition-all hover:bg-gray-50"
+                  style={{
+                    borderColor: formData.roles.includes('reviewer') ? '#2563EB' : '#E2E8F0',
+                    backgroundColor: formData.roles.includes('reviewer')
+                      ? '#EFF6FF'
+                      : 'transparent',
+                  }}
+                >
                   <input
                     type="checkbox"
                     checked={formData.roles.includes('reviewer')}
                     onChange={() => handleRoleChange('reviewer')}
-                    className="mr-3 mt-0.5"
+                    className="mt-0.5 mr-3"
                     style={{ accentColor: '#2563EB' }}
                   />
                   <div>
-                    <span className="text-sm font-medium block" style={{ color: '#0B1C4D' }}>Reviewer</span>
-                    <span className="text-xs" style={{ color: '#64748B' }}>Review manuscripts (requires approval)</span>
+                    <span className="block text-sm font-medium" style={{ color: '#0B1C4D' }}>
+                      Reviewer
+                    </span>
+                    <span className="text-xs" style={{ color: '#64748B' }}>
+                      Review manuscripts (requires approval)
+                    </span>
                   </div>
                 </label>
-                <label className="flex items-start p-3 border rounded-lg cursor-pointer transition-all hover:bg-gray-50" style={{ borderColor: formData.roles.includes('editor') ? '#2563EB' : '#E2E8F0', backgroundColor: formData.roles.includes('editor') ? '#EFF6FF' : 'transparent' }}>
+                <label
+                  className="flex cursor-pointer items-start rounded-lg border p-3 transition-all hover:bg-gray-50"
+                  style={{
+                    borderColor: formData.roles.includes('editor') ? '#2563EB' : '#E2E8F0',
+                    backgroundColor: formData.roles.includes('editor') ? '#EFF6FF' : 'transparent',
+                  }}
+                >
                   <input
                     type="checkbox"
                     checked={formData.roles.includes('editor')}
                     onChange={() => handleRoleChange('editor')}
-                    className="mr-3 mt-0.5"
+                    className="mt-0.5 mr-3"
                     style={{ accentColor: '#2563EB' }}
                   />
                   <div>
-                    <span className="text-sm font-medium block" style={{ color: '#0B1C4D' }}>Editor</span>
-                    <span className="text-xs" style={{ color: '#64748B' }}>Manage submissions (requires approval)</span>
+                    <span className="block text-sm font-medium" style={{ color: '#0B1C4D' }}>
+                      Editor
+                    </span>
+                    <span className="text-xs" style={{ color: '#64748B' }}>
+                      Manage submissions (requires approval)
+                    </span>
                   </div>
                 </label>
               </div>
@@ -354,8 +439,13 @@ export function Register() {
             {/* Why to be (required for reviewer/editor) */}
             {(formData.roles.includes('reviewer') || formData.roles.includes('editor')) && (
               <div>
-                <label htmlFor="why_to_be" className="block text-sm font-semibold mb-2" style={{ color: '#0B1C4D' }}>
-                  Why do you want to be a {formData.roles.includes('reviewer') ? 'Reviewer' : 'Editor'}? *
+                <label
+                  htmlFor="why_to_be"
+                  className="mb-2 block text-sm font-semibold"
+                  style={{ color: '#0B1C4D' }}
+                >
+                  Why do you want to be a{' '}
+                  {formData.roles.includes('reviewer') ? 'Reviewer' : 'Editor'}? *
                 </label>
                 <textarea
                   id="why_to_be"
@@ -364,7 +454,7 @@ export function Register() {
                   value={formData.why_to_be}
                   onChange={handleChange}
                   rows={4}
-                  className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  className="w-full rounded-lg border px-4 py-3 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
                   style={{ borderColor: '#CBD5E1' }}
                   placeholder="Please explain your expertise and motivation..."
                 />
@@ -374,13 +464,15 @@ export function Register() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full text-base font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full text-base font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-50"
               style={{
                 padding: '14px 20px',
-                background: loading ? '#94A3B8' : 'linear-gradient(135deg, #0B1C4D 0%, #2563EB 100%)',
+                background: loading
+                  ? '#94A3B8'
+                  : 'linear-gradient(135deg, #0B1C4D 0%, #2563EB 100%)',
                 color: '#FFFFFF',
                 borderRadius: '12px',
-                boxShadow: '0 4px 12px rgba(11, 28, 77, 0.2)'
+                boxShadow: '0 4px 12px rgba(11, 28, 77, 0.2)',
               }}
             >
               {loading ? 'Creating Account...' : 'Create Account'}
@@ -389,7 +481,11 @@ export function Register() {
 
           <div className="mt-6 text-center text-sm">
             <span style={{ color: '#64748B' }}>Already have an account? </span>
-            <Link to="/login" className="font-semibold hover:underline" style={{ color: '#2563EB' }}>
+            <Link
+              to="/login"
+              className="font-semibold hover:underline"
+              style={{ color: '#2563EB' }}
+            >
               Sign in here
             </Link>
           </div>

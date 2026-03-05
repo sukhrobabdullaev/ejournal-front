@@ -67,7 +67,8 @@ AND EXISTS (
 
   const copyToClipboard = () => {
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(migrationScript)
+      navigator.clipboard
+        .writeText(migrationScript)
         .then(() => {
           setCopied(true);
           setTimeout(() => setCopied(false), 2000);
@@ -89,7 +90,7 @@ AND EXISTS (
     document.body.appendChild(textArea);
     textArea.focus();
     textArea.select();
-    
+
     try {
       document.execCommand('copy');
       setCopied(true);
@@ -97,45 +98,50 @@ AND EXISTS (
     } catch (err) {
       alert('Failed to copy. Please select and copy the text manually.');
     }
-    
+
     document.body.removeChild(textArea);
   };
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
-          <div className="flex items-start mb-6">
-            <CheckCircle className="text-blue-600 mr-4 flex-shrink-0 mt-1" size={32} />
+      <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 lg:px-8">
+        <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-lg">
+          <div className="mb-6 flex items-start">
+            <CheckCircle className="mt-1 mr-4 flex-shrink-0 text-blue-600" size={32} />
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">Roles System Migration</h1>
+              <h1 className="mb-2 text-3xl font-bold text-gray-900">Roles System Migration</h1>
               <p className="text-lg text-gray-600">
                 Add multi-role support with active role switching
               </p>
             </div>
           </div>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-8">
-            <h3 className="font-semibold text-blue-900 mb-2">What's New:</h3>
-            <ul className="list-disc list-inside text-sm text-blue-800 space-y-1">
-              <li>Add <code className="bg-blue-100 px-1">active_role</code> column to profiles table</li>
+          <div className="mb-8 rounded-lg border border-blue-200 bg-blue-50 p-6">
+            <h3 className="mb-2 font-semibold text-blue-900">What's New:</h3>
+            <ul className="list-inside list-disc space-y-1 text-sm text-blue-800">
+              <li>
+                Add <code className="bg-blue-100 px-1">active_role</code> column to profiles table
+              </li>
               <li>Support for users with multiple roles (author + reviewer, etc.)</li>
-              <li>Normalize column name from <code className="bg-blue-100 px-1">user_role</code> to <code className="bg-blue-100 px-1">role</code></li>
+              <li>
+                Normalize column name from <code className="bg-blue-100 px-1">user_role</code> to{' '}
+                <code className="bg-blue-100 px-1">role</code>
+              </li>
               <li>Auto-set default active role for existing users</li>
             </ul>
           </div>
 
           <div className="mb-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Run Migration Script</h2>
-            
-            <ol className="list-decimal list-inside space-y-3 mb-6 text-gray-700">
+            <h2 className="mb-4 text-xl font-bold text-gray-900">Run Migration Script</h2>
+
+            <ol className="mb-6 list-inside list-decimal space-y-3 text-gray-700">
               <li>
                 Go to{' '}
-                <a 
-                  href={`https://supabase.com/dashboard/project/${projectId}/sql/new`} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
-                  className="text-blue-600 hover:underline font-semibold"
+                <a
+                  href={`https://supabase.com/dashboard/project/${projectId}/sql/new`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-semibold text-blue-600 hover:underline"
                 >
                   Supabase SQL Editor
                 </a>
@@ -147,12 +153,12 @@ AND EXISTS (
             </ol>
 
             <div className="relative mb-6">
-              <pre className="bg-gray-900 text-gray-100 p-6 rounded-lg overflow-x-auto text-sm max-h-96 overflow-y-auto">
+              <pre className="max-h-96 overflow-x-auto overflow-y-auto rounded-lg bg-gray-900 p-6 text-sm text-gray-100">
                 <code>{migrationScript}</code>
               </pre>
               <button
                 onClick={copyToClipboard}
-                className="absolute top-4 right-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                className="absolute top-4 right-4 flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-white transition-colors hover:bg-blue-700"
               >
                 {copied ? <Check size={16} /> : <Copy size={16} />}
                 {copied ? 'Copied!' : 'Copy Script'}
@@ -163,24 +169,25 @@ AND EXISTS (
               <div className="flex justify-end">
                 <button
                   onClick={() => setExecuted(true)}
-                  className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                  className="rounded-lg bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700"
                 >
                   I've Executed the Migration →
                 </button>
               </div>
             ) : (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-6">
-                <div className="flex items-center mb-4">
-                  <CheckCircle className="text-green-600 mr-3" size={24} />
+              <div className="rounded-lg border border-green-200 bg-green-50 p-6">
+                <div className="mb-4 flex items-center">
+                  <CheckCircle className="mr-3 text-green-600" size={24} />
                   <h3 className="font-semibold text-green-900">Migration Complete!</h3>
                 </div>
-                <p className="text-sm text-green-800 mb-4">
-                  Active role support is now enabled. Users with multiple roles can switch between them.
+                <p className="mb-4 text-sm text-green-800">
+                  Active role support is now enabled. Users with multiple roles can switch between
+                  them.
                 </p>
                 <div className="flex gap-3">
                   <a
                     href="/dashboard"
-                    className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                    className="rounded-lg bg-blue-600 px-6 py-3 font-medium text-white transition-colors hover:bg-blue-700"
                   >
                     Go to Dashboard
                   </a>
@@ -189,18 +196,19 @@ AND EXISTS (
             )}
           </div>
 
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6">
-            <h3 className="font-semibold text-yellow-900 mb-2">Testing Multi-Role Users</h3>
-            <p className="text-sm text-yellow-800 mb-3">
+          <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-6">
+            <h3 className="mb-2 font-semibold text-yellow-900">Testing Multi-Role Users</h3>
+            <p className="mb-3 text-sm text-yellow-800">
               To test the role switcher, add multiple roles to a user:
             </p>
-            <pre className="bg-yellow-900 text-yellow-100 p-4 rounded text-xs overflow-x-auto">
-{`-- Add multiple roles to a user
+            <pre className="overflow-x-auto rounded bg-yellow-900 p-4 text-xs text-yellow-100">
+              {`-- Add multiple roles to a user
 INSERT INTO user_roles (user_id, role)
 VALUES 
   ('USER_UUID_HERE', 'author'),
   ('USER_UUID_HERE', 'reviewer')
-ON CONFLICT (user_id, role) DO NOTHING;`}</pre>
+ON CONFLICT (user_id, role) DO NOTHING;`}
+            </pre>
           </div>
         </div>
       </div>

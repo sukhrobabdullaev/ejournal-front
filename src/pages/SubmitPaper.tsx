@@ -8,9 +8,6 @@ export function SubmitPaper() {
   const idFromQuery = searchParams.get('id');
 
   return (
-    <SubmitPaperForm
-      submissionIdFromRoute={submissionId}
-      submissionIdFromQuery={idFromQuery}
-    />
+    <SubmitPaperForm submissionIdFromRoute={submissionId} submissionIdFromQuery={idFromQuery} />
   );
 }

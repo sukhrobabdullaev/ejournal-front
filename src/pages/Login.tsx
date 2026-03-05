@@ -67,7 +67,16 @@ export function Login() {
   };
 
   return (
-    <div style={{ backgroundColor: '#F8FAFC', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem 1rem' }}>
+    <div
+      style={{
+        backgroundColor: '#F8FAFC',
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '2rem 1rem',
+      }}
+    >
       <div style={{ maxWidth: '480px', width: '100%' }}>
         <div
           className="bg-white transition-all"
@@ -75,11 +84,11 @@ export function Login() {
             borderRadius: '16px',
             padding: '40px',
             boxShadow: '0 10px 30px rgba(11, 28, 77, 0.15)',
-            borderTop: '4px solid #2563EB'
+            borderTop: '4px solid #2563EB',
           }}
         >
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold mb-3" style={{ color: '#0B1C4D' }}>
+          <div className="mb-8 text-center">
+            <h1 className="mb-3 text-3xl font-bold" style={{ color: '#0B1C4D' }}>
               Sign In
             </h1>
             <p className="text-sm" style={{ color: '#64748B' }}>
@@ -94,28 +103,47 @@ export function Login() {
                 padding: '16px',
                 backgroundColor: '#FEF2F2',
                 border: '2px solid #FCA5A5',
-                borderRadius: '12px'
+                borderRadius: '12px',
               }}
             >
-              <p className="font-medium mb-2 text-sm" style={{ color: '#991B1B' }}>{error}</p>
+              <p className="mb-2 text-sm font-medium" style={{ color: '#991B1B' }}>
+                {error}
+              </p>
               {error.includes('Network error') && (
                 <div className="mt-3 pt-3" style={{ borderTop: '1px solid #FCA5A5' }}>
-                  <p className="font-medium mb-2 text-sm" style={{ color: '#991B1B' }}>💡 Troubleshooting:</p>
-                  <ol className="list-decimal ml-4 space-y-1 text-xs" style={{ color: '#7F1D1D' }}>
+                  <p className="mb-2 text-sm font-medium" style={{ color: '#991B1B' }}>
+                    💡 Troubleshooting:
+                  </p>
+                  <ol className="ml-4 list-decimal space-y-1 text-xs" style={{ color: '#7F1D1D' }}>
                     <li>Check if the backend API is running</li>
-                    <li>Verify API URL in .env file: <code className="px-1 py-0.5" style={{ backgroundColor: '#FEE2E2' }}>VITE_API_BASE_URL</code></li>
-                    <li>Enable mock mode for testing: Set <code className="px-1 py-0.5" style={{ backgroundColor: '#FEE2E2' }}>VITE_USE_MOCK=true</code> in .env</li>
+                    <li>
+                      Verify API URL in .env file:{' '}
+                      <code className="px-1 py-0.5" style={{ backgroundColor: '#FEE2E2' }}>
+                        VITE_API_BASE_URL
+                      </code>
+                    </li>
+                    <li>
+                      Enable mock mode for testing: Set{' '}
+                      <code className="px-1 py-0.5" style={{ backgroundColor: '#FEE2E2' }}>
+                        VITE_USE_MOCK=true
+                      </code>{' '}
+                      in .env
+                    </li>
                     <li>Check browser console for detailed errors</li>
                   </ol>
                   <div
-                    className="mt-3 p-2 rounded"
+                    className="mt-3 rounded p-2"
                     style={{
                       backgroundColor: '#FEF3C7',
-                      border: '1px solid #FDE047'
+                      border: '1px solid #FDE047',
                     }}
                   >
                     <p className="text-xs" style={{ color: '#78350F' }}>
-                      <strong>Quick Fix:</strong> Set <code className="px-1" style={{ backgroundColor: '#FEF9C3' }}>VITE_USE_MOCK=true</code> in your .env file to use mock data for testing.
+                      <strong>Quick Fix:</strong> Set{' '}
+                      <code className="px-1" style={{ backgroundColor: '#FEF9C3' }}>
+                        VITE_USE_MOCK=true
+                      </code>{' '}
+                      in your .env file to use mock data for testing.
                     </p>
                   </div>
                 </div>
@@ -125,7 +153,11 @@ export function Login() {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="email" className="block text-sm font-semibold mb-2" style={{ color: '#0B1C4D' }}>
+              <label
+                htmlFor="email"
+                className="mb-2 block text-sm font-semibold"
+                style={{ color: '#0B1C4D' }}
+              >
                 Email Address
               </label>
               <input
@@ -134,14 +166,18 @@ export function Login() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                className="w-full rounded-lg border px-4 py-3 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
                 style={{ borderColor: '#CBD5E1' }}
                 placeholder="your.email@example.com"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-semibold mb-2" style={{ color: '#0B1C4D' }}>
+              <label
+                htmlFor="password"
+                className="mb-2 block text-sm font-semibold"
+                style={{ color: '#0B1C4D' }}
+              >
                 Password
               </label>
               <div className="relative">
@@ -151,7 +187,7 @@ export function Login() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 pr-12 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                  className="w-full rounded-lg border px-4 py-3 pr-12 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
                   style={{ borderColor: '#CBD5E1' }}
                   placeholder="••••••••"
                 />
@@ -161,7 +197,7 @@ export function Login() {
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                   className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-gray-700 focus:outline-none"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
               </div>
             </div>
@@ -169,13 +205,15 @@ export function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full text-base font-semibold transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full text-base font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-50"
               style={{
                 padding: '14px 20px',
-                background: loading ? '#94A3B8' : 'linear-gradient(135deg, #0B1C4D 0%, #2563EB 100%)',
+                background: loading
+                  ? '#94A3B8'
+                  : 'linear-gradient(135deg, #0B1C4D 0%, #2563EB 100%)',
                 color: '#FFFFFF',
                 borderRadius: '12px',
-                boxShadow: '0 4px 12px rgba(11, 28, 77, 0.2)'
+                boxShadow: '0 4px 12px rgba(11, 28, 77, 0.2)',
               }}
             >
               {loading ? 'Signing in...' : 'Sign In'}
@@ -184,7 +222,11 @@ export function Login() {
 
           <div className="mt-6 text-center text-sm">
             <span style={{ color: '#64748B' }}>Don't have an account? </span>
-            <Link to="/register" className="font-semibold hover:underline" style={{ color: '#2563EB' }}>
+            <Link
+              to="/register"
+              className="font-semibold hover:underline"
+              style={{ color: '#2563EB' }}
+            >
               Register here
             </Link>
           </div>

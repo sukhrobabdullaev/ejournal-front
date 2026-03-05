@@ -3,7 +3,7 @@ import { AlertCircle, CheckCircle } from 'lucide-react';
 
 export function APIStatusIndicator() {
   const isMockMode = import.meta.env.VITE_USE_MOCK === 'true';
-  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://api.uzfintex.uz/api';
+  const apiBaseUrl = import.meta.env.VITE_API_BASE_URL;
 
   if (import.meta.env.PROD) {
     // Don't show in production
@@ -11,12 +11,12 @@ export function APIStatusIndicator() {
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
+    <div className="fixed right-4 bottom-4 z-50">
       <div
-        className={`flex items-center gap-2 px-4 py-2 rounded-lg shadow-lg text-sm font-medium ${
+        className={`flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium shadow-lg ${
           isMockMode
-            ? 'bg-yellow-100 border border-yellow-300 text-yellow-900'
-            : 'bg-green-100 border border-green-300 text-green-900'
+            ? 'border border-yellow-300 bg-yellow-100 text-yellow-900'
+            : 'border border-green-300 bg-green-100 text-green-900'
         }`}
       >
         {isMockMode ? (
@@ -31,7 +31,7 @@ export function APIStatusIndicator() {
           </>
         )}
       </div>
-      <div className="mt-1 text-xs text-gray-600 text-right">
+      <div className="mt-1 text-right text-xs text-gray-600">
         {isMockMode ? 'Using mock data' : apiBaseUrl}
       </div>
     </div>
