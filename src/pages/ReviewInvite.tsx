@@ -9,8 +9,8 @@ import {
   FileText,
   ChevronRight,
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { getMyProfile } from '../lib/queries';
+import { TokenManager } from '../lib/api';
+import { getMyProfile, getAssignmentByToken, acceptByToken, declineByToken } from '../lib/queries-api';
 
 export function ReviewInvite() {
   const navigate = useNavigate();
@@ -30,13 +30,7 @@ export function ReviewInvite() {
       setLoading(true);
       setError(null);
 
-      // Check if user is logged in
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      if (!session) {
-        // Save current URL to return after login
+      if (!TokenManager.getAccessToken()) {
         const currentUrl = `/review-invite?token=${token}&action=${action || ''}`;
         sessionStorage.setItem('returnUrl', currentUrl);
         navigate('/login');
@@ -60,34 +54,10 @@ export function ReviewInvite() {
         return;
       }
 
-      // Load invitation from review_assignments
-      const { data: assignmentData, error: assignmentError } = await supabase
-        .from('review_assignments')
-        .select(
-          `
-          id,
-          submission_id,
-          invited_email,
-          status,
-          response_due_at,
-          review_due_at,
-          invited_at,
-          invite_expires_at,
-          submissions (
-            id,
-            title,
-            abstract,
-            topic,
-            topic_area
-          )
-        `
-        )
-        .eq('invite_token', token)
-        .limit(1)
-        .single();
+      // Load invitation via REST API
+      const assignmentData = await getAssignmentByToken(token);
 
-      if (assignmentError || !assignmentData) {
-        console.error('Error loading invitation:', assignmentError);
+      if (!assignmentData) {
         setError('Invalid or expired invitation link.');
         setLoading(false);
         return;
@@ -106,22 +76,14 @@ export function ReviewInvite() {
         return;
       }
 
-      // Validate expiration
-      if (assignmentData.invite_expires_at) {
-        const expiresAt = new Date(assignmentData.invite_expires_at);
-        const now = new Date();
-        if (expiresAt < now) {
-          setError('This invitation has expired.');
-          setLoading(false);
-          return;
-        }
-      }
-
       // Validate email match
-      if (assignmentData.invited_email.toLowerCase() !== profile.email.toLowerCase()) {
+      if (
+        assignmentData.reviewer_email &&
+        profile.email.toLowerCase() !== assignmentData.reviewer_email.toLowerCase()
+      ) {
         setError(
-          `This invitation is for a different email address (${assignmentData.invited_email}). ` +
-            `You are currently logged in as ${profile.email}.`
+          `This invitation is for a different email address (${assignmentData.reviewer_email}). ` +
+          `You are currently logged in as ${profile.email}.`
         );
         setLoading(false);
         return;
@@ -132,34 +94,24 @@ export function ReviewInvite() {
 
       // If action is already specified in URL, process it automatically
       if (action === 'accept' || action === 'decline') {
-        await processAction(action, assignmentData.id, session.user.id);
+        await processAction(action);
       }
     };
 
     checkAuthAndLoadInvitation();
   }, [token, action, navigate]);
 
-  const processAction = async (actionType: string, assignmentId: string, userId: string) => {
+  const processAction = async (actionType: string) => {
     setProcessing(true);
     setError(null);
 
     try {
-      const updateData: any = {};
-
       if (actionType === 'accept') {
-        updateData.status = 'accepted';
-        updateData.reviewer_user_id = userId;
+        const { error: respError } = await acceptByToken(token!);
+        if (respError) throw new Error(respError.detail || 'Failed to accept');
       } else {
-        updateData.status = 'declined';
-      }
-
-      const { error: updateError } = await supabase
-        .from('review_assignments')
-        .update(updateData)
-        .eq('id', assignmentId);
-
-      if (updateError) {
-        throw updateError;
+        const { error: respError } = await declineByToken(token!);
+        if (respError) throw new Error(respError.detail || 'Failed to decline');
       }
 
       setSuccess(true);
@@ -173,20 +125,12 @@ export function ReviewInvite() {
 
   const handleAccept = async () => {
     if (!invitation) return;
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    if (!session) return;
-    await processAction('accept', invitation.id, session.user.id);
+    await processAction('accept');
   };
 
   const handleDecline = async () => {
     if (!invitation) return;
-    const {
-      data: { session },
-    } = await supabase.auth.getSession();
-    if (!session) return;
-    await processAction('decline', invitation.id, session.user.id);
+    await processAction('decline');
   };
 
   if (loading) {
@@ -248,10 +192,10 @@ export function ReviewInvite() {
                 <ul className="space-y-1 text-sm text-blue-800">
                   <li>• Access the manuscript in your reviewer dashboard</li>
                   <li>• Review the submission materials</li>
-                  {invitation?.review_due_at && (
+                  {invitation?.due_date && (
                     <li>
                       • Submit your review by{' '}
-                      <strong>{new Date(invitation.review_due_at).toLocaleDateString()}</strong>
+                      <strong>{new Date(invitation.due_date).toLocaleDateString()}</strong>
                     </li>
                   )}
                 </ul>
@@ -294,7 +238,7 @@ export function ReviewInvite() {
               <div className="flex items-center gap-2 text-sm text-gray-600">
                 <Mail className="h-4 w-4" />
                 <span>
-                  Invitation sent to: <strong>{invitation?.invited_email}</strong>
+                  Invitation sent to: <strong>{invitation?.reviewer_email}</strong>
                 </span>
               </div>
               <div className="mt-2 flex items-center gap-2 text-sm text-gray-600">
@@ -315,24 +259,24 @@ export function ReviewInvite() {
               <div className="space-y-3">
                 <div>
                   <h3 className="mb-1 font-medium text-gray-900">
-                    {invitation?.submissions?.title || 'Untitled Submission'}
+                    {invitation?.submission_title || 'Untitled Submission'}
                   </h3>
                 </div>
 
-                {invitation?.submissions?.abstract && (
+                {invitation?.submission_abstract && (
                   <div>
                     <h4 className="mb-1 text-sm font-semibold text-gray-700">Abstract</h4>
                     <p className="line-clamp-6 text-sm leading-relaxed text-gray-600">
-                      {invitation.submissions.abstract}
+                      {invitation.submission_abstract}
                     </p>
                   </div>
                 )}
 
-                {(invitation?.submissions?.topic_area || invitation?.submissions?.topic) && (
+                {(invitation as any)?.submission_topic_area && (
                   <div>
                     <h4 className="mb-1 text-sm font-semibold text-gray-700">Topic</h4>
                     <span className="inline-block bg-blue-100 px-3 py-1 text-sm text-blue-800">
-                      {invitation.submissions.topic_area || invitation.submissions.topic}
+                      {(invitation as any).submission_topic_area}
                     </span>
                   </div>
                 )}
@@ -347,24 +291,11 @@ export function ReviewInvite() {
               </h2>
 
               <div className="space-y-2 text-sm">
-                {invitation?.response_due_at && (
-                  <div className="flex justify-between border-b border-gray-200 py-2">
-                    <span className="text-gray-600">Response Due:</span>
-                    <span className="font-medium text-gray-900">
-                      {new Date(invitation.response_due_at).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })}
-                    </span>
-                  </div>
-                )}
-
-                {invitation?.review_due_at && (
+                {invitation?.due_date && (
                   <div className="flex justify-between border-b border-gray-200 py-2">
                     <span className="text-gray-600">Review Due:</span>
                     <span className="font-medium text-gray-900">
-                      {new Date(invitation.review_due_at).toLocaleDateString('en-US', {
+                      {new Date(invitation.due_date).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric',

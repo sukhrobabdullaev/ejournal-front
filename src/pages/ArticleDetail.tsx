@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router';
 import { Download, Copy, CheckCircle, Calendar, FileText, ChevronRight } from 'lucide-react';
-import { getArticleBySlug, getAuthorsByArticle } from '../lib/queries';
-import { Article, Author } from '../lib/supabase';
+import { getArticleBySlug } from '../lib/queries-api';
+import type { Article, ArticleAuthor } from '../lib/api';
 
 export function ArticleDetail() {
   const { articleSlug } = useParams<{ articleSlug: string }>();
   const [article, setArticle] = useState<Article | null>(null);
-  const [authors, setAuthors] = useState<Author[]>([]);
+  const [authors, setAuthors] = useState<ArticleAuthor[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [citationCopied, setCitationCopied] = useState(false);
@@ -24,17 +24,13 @@ export function ArticleDetail() {
         setLoading(true);
         setError(null);
 
-        // Load article data
         const articleData = await getArticleBySlug(articleSlug);
         if (!articleData) {
           setError('Article not found');
           return;
         }
         setArticle(articleData);
-
-        // Load authors
-        const authorsData = await getAuthorsByArticle(articleData.id);
-        setAuthors(authorsData);
+        setAuthors(articleData.authors || []);
       } catch (err) {
         console.error('Error loading article:', err);
         setError('Failed to load article');

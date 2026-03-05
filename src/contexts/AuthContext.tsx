@@ -1,61 +1,31 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Session } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabase';
+import { TokenManager } from '../lib/api';
 
 interface AuthContextType {
-  session: Session | null;
+  isAuthenticated: boolean;
   isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
-  session: null,
-  isLoading: true,
+  isAuthenticated: false,
+  isLoading: false,
 });
 
 export function AuthProvider({ children }: { children?: React.ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    let mounted = true;
-
-    // Get initial session
-    const initSession = async () => {
-      try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        if (mounted) {
-          setSession(session);
-          setIsLoading(false);
-        }
-      } catch (error) {
-        console.error('Error getting session:', error);
-        if (mounted) {
-          setSession(null);
-          setIsLoading(false);
-        }
-      }
-    };
-
-    initSession();
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (mounted) {
-        setSession(session);
-      }
-    });
-
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
+    const token = TokenManager.getAccessToken();
+    setIsAuthenticated(!!token);
+    setIsLoading(false);
   }, []);
 
-  return <AuthContext.Provider value={{ session, isLoading }}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={{ isAuthenticated, isLoading }}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {

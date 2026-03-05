@@ -96,8 +96,8 @@ export class APIClient {
 
     console.log(`[API Request] ${options.method || 'GET'} ${url}`);
 
-    const headers: HeadersInit = {
-      ...options.headers,
+    const headers: Record<string, string> = {
+      ...(options.headers as Record<string, string>),
     };
 
     // Add Authorization header if token exists
@@ -296,6 +296,30 @@ export interface ReviewAssignment {
   reviewer?: number;
   reviewer_email: string;
   review?: Review | null;
+}
+
+export interface ArticleAuthor {
+  full_name: string;
+  affiliation?: string;
+  orcid?: string;
+  is_corresponding?: boolean;
+  author_order?: number;
+}
+
+export interface Article {
+  id: string;
+  slug: string;
+  title: string;
+  abstract: string;
+  keywords: string[];
+  topic_tags?: string[];
+  authors?: ArticleAuthor[];
+  published_at?: string;
+  received_at?: string;
+  accepted_at?: string;
+  doi?: string;
+  pdf_public_url?: string;
+  status?: string;
 }
 
 export interface EditorialBoardMember {

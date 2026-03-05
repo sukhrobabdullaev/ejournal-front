@@ -73,10 +73,11 @@ export function DashboardNew() {
       setActiveRoleState(initializedActiveRole);
 
       // Load profile and data
+      const isReviewer = rolesData.includes('reviewer') || rolesData.includes('editor') || rolesData.includes('admin');
       const [profileData, submissionsData, reviewAssignmentsData] = await Promise.all([
         getMyProfile(),
         getMySubmissions(),
-        getMyAssignments(),
+        isReviewer ? getMyAssignments() : Promise.resolve([]),
       ]);
 
       if (!profileData) {
@@ -269,11 +270,10 @@ export function DashboardNew() {
                         <button
                           key={role}
                           onClick={() => handleRoleSwitch(role)}
-                          className={`w-full px-4 py-2 text-left text-sm capitalize transition-colors hover:bg-gray-50 ${
-                            role === activeRole
+                          className={`w-full px-4 py-2 text-left text-sm capitalize transition-colors hover:bg-gray-50 ${role === activeRole
                               ? 'bg-blue-50 font-medium text-blue-700'
                               : 'text-gray-700'
-                          }`}
+                            }`}
                           disabled={switchingRole}
                         >
                           {getRoleTitleCase(role)}
@@ -381,10 +381,10 @@ export function DashboardNew() {
                             Invited:{' '}
                             {assignment.invited_at
                               ? new Date(assignment.invited_at).toLocaleDateString('en-US', {
-                                  year: 'numeric',
-                                  month: 'long',
-                                  day: 'numeric',
-                                })
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                              })
                               : 'N/A'}
                           </p>
                           {assignment.due_date && (
@@ -399,8 +399,7 @@ export function DashboardNew() {
                           )}
                         </div>
                         <span
-                          className={`border px-3 py-1 text-xs capitalize ${
-                            assignment.status === 'invited'
+                          className={`border px-3 py-1 text-xs capitalize ${assignment.status === 'invited'
                               ? 'border-yellow-300 bg-yellow-50 text-yellow-700'
                               : assignment.status === 'accepted'
                                 ? 'border-blue-300 bg-blue-50 text-blue-700'
@@ -409,7 +408,7 @@ export function DashboardNew() {
                                   : assignment.status === 'review_submitted'
                                     ? 'border-green-300 bg-green-50 text-green-700'
                                     : 'border-gray-300 bg-gray-100 text-gray-700'
-                          }`}
+                            }`}
                         >
                           {assignment.status.replace('_', ' ')}
                         </span>
@@ -505,10 +504,10 @@ export function DashboardNew() {
                             Submitted:{' '}
                             {submission.created_at
                               ? new Date(submission.created_at).toLocaleDateString('en-US', {
-                                  year: 'numeric',
-                                  month: 'long',
-                                  day: 'numeric',
-                                })
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                              })
                               : 'N/A'}
                           </p>
                         </div>
@@ -702,10 +701,10 @@ export function DashboardNew() {
                             Submitted:{' '}
                             {submission.created_at
                               ? new Date(submission.created_at).toLocaleDateString('en-US', {
-                                  year: 'numeric',
-                                  month: 'long',
-                                  day: 'numeric',
-                                })
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                              })
                               : 'N/A'}
                           </p>
                         </div>

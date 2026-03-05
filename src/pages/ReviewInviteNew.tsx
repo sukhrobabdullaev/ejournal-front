@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router';
-import { supabase } from '../lib/supabase';
-import { getAssignmentByToken, getSubmissionFiles } from '../lib/queries';
+import { getAssignmentByToken, getSubmissionFiles, acceptReviewInvitation, declineReviewInvitation, getCurrentUser } from '../lib/queries-api';
 import { CheckCircle, XCircle, FileText, Download } from 'lucide-react';
 
 export function ReviewInviteNew() {
@@ -34,8 +33,8 @@ export function ReviewInviteNew() {
       setAssignment(assignmentData);
 
       // Load files if assignment is accepted (reviewer can view)
-      if (assignmentData.status === 'accepted' && assignmentData.submissions?.id) {
-        const filesData = await getSubmissionFiles(assignmentData.submissions.id);
+      if (assignmentData.status === 'accepted' && assignmentData.submission) {
+        const filesData = await getSubmissionFiles(String(assignmentData.submission));
         setFiles(filesData);
       }
     } catch (err: any) {
@@ -52,38 +51,20 @@ export function ReviewInviteNew() {
       setError(null);
 
       // Check if user is logged in
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const user = await getCurrentUser();
       if (!user) {
-        // Redirect to login with return URL
         navigate(`/login?returnTo=/review/invite/${token}`);
         return;
       }
 
-      const updateData: any = {
-        status: accepted ? 'accepted' : 'declined',
-        updated_at: new Date().toISOString(),
-      };
-
       if (accepted) {
-        updateData.accepted_at = new Date().toISOString();
+        const { error: respError } = await acceptReviewInvitation(String(assignment.id));
+        if (respError) throw new Error(respError.detail || 'Failed to accept invitation');
       } else {
-        updateData.declined_at = new Date().toISOString();
+        const { error: respError } = await declineReviewInvitation(String(assignment.id));
+        if (respError) throw new Error(respError.detail || 'Failed to decline invitation');
       }
 
-      const { error: updateError } = await supabase
-        .from('review_assignments')
-        .update(updateData)
-        .eq('id', assignment.id);
-
-      if (updateError) {
-        console.error('Error updating assignment:', updateError);
-        setError('Failed to update assignment');
-        return;
-      }
-
-      // Reload assignment data
       await loadInvitation();
     } catch (err: any) {
       console.error('Error responding to invitation:', err);
@@ -93,29 +74,12 @@ export function ReviewInviteNew() {
     }
   };
 
-  const handleDownload = async (file: any) => {
-    try {
-      const { data, error } = await supabase.storage
-        .from('submission-files')
-        .download(file.storage_path);
-
-      if (error) {
-        console.error('Error downloading file:', error);
-        alert('Failed to download file');
-        return;
-      }
-
-      const url = URL.createObjectURL(data);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = file.original_filename;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (err: any) {
-      console.error('Error downloading file:', err);
-      alert('Failed to download file');
+  const handleDownload = (file: any) => {
+    const url = file.manuscript_url || file.file || file.url;
+    if (url) {
+      window.open(url, '_blank');
+    } else {
+      alert('File URL not available');
     }
   };
 
@@ -160,8 +124,8 @@ export function ReviewInviteNew() {
             <h2 className="mb-2 text-2xl font-bold text-green-900">Invitation Accepted</h2>
             <p className="text-green-800">
               You have accepted this review invitation on{' '}
-              {assignment.accepted_at
-                ? new Date(assignment.accepted_at).toLocaleDateString()
+              {assignment.responded_at
+                ? new Date(assignment.responded_at).toLocaleDateString()
                 : 'an earlier date'}
               .
             </p>
@@ -174,44 +138,28 @@ export function ReviewInviteNew() {
             <div className="mb-4">
               <span className="text-sm text-gray-600">Title:</span>
               <p className="mt-1 text-base font-medium text-gray-900">
-                {assignment.submissions?.title || 'Untitled'}
+                {assignment.submission_title || 'Untitled'}
               </p>
             </div>
 
-            {assignment.submissions?.topic_area && (
+            {(assignment as any).submission_topic_area && (
               <div className="mb-4">
                 <span className="text-sm text-gray-600">Topic Area:</span>
-                <p className="mt-1 text-sm text-gray-900">{assignment.submissions.topic_area}</p>
+                <p className="mt-1 text-sm text-gray-900">{(assignment as any).submission_topic_area}</p>
               </div>
             )}
 
-            {assignment.submissions?.keywords && assignment.submissions.keywords.length > 0 && (
-              <div className="mb-4">
-                <span className="text-sm text-gray-600">Keywords:</span>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  {assignment.submissions.keywords.map((keyword: string, index: number) => (
-                    <span
-                      key={index}
-                      className="border border-gray-300 bg-gray-100 px-3 py-1 text-xs text-gray-700"
-                    >
-                      {keyword}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {assignment.submissions?.abstract && (
+            {assignment.submission_abstract && (
               <div>
                 <span className="text-sm text-gray-600">Abstract:</span>
                 <p className="mt-2 text-sm leading-relaxed whitespace-pre-wrap text-gray-700">
-                  {assignment.submissions.abstract}
+                  {assignment.submission_abstract}
                 </p>
               </div>
             )}
           </div>
 
-          {/* Files Section */}
+          {/* Files Section */}}
           {files.length > 0 && (
             <div className="mb-6 border border-gray-300 bg-white p-6">
               <h3 className="mb-4 text-lg font-semibold text-gray-900">Manuscript Files</h3>
@@ -268,8 +216,8 @@ export function ReviewInviteNew() {
           <h2 className="mb-2 text-2xl font-bold text-gray-900">Invitation Declined</h2>
           <p className="mb-6 text-gray-600">
             You declined this review invitation on{' '}
-            {assignment.declined_at
-              ? new Date(assignment.declined_at).toLocaleDateString()
+            {assignment.responded_at
+              ? new Date(assignment.responded_at).toLocaleDateString()
               : 'an earlier date'}
             .
           </p>
@@ -302,38 +250,22 @@ export function ReviewInviteNew() {
           <div className="mb-4">
             <span className="text-sm text-gray-600">Title:</span>
             <p className="mt-1 text-base font-medium text-gray-900">
-              {assignment.submissions?.title || 'Untitled'}
+              {assignment.submission_title || 'Untitled'}
             </p>
           </div>
 
-          {assignment.submissions?.topic_area && (
+          {(assignment as any).submission_topic_area && (
             <div className="mb-4">
               <span className="text-sm text-gray-600">Topic Area:</span>
-              <p className="mt-1 text-sm text-gray-900">{assignment.submissions.topic_area}</p>
+              <p className="mt-1 text-sm text-gray-900">{(assignment as any).submission_topic_area}</p>
             </div>
           )}
 
-          {assignment.submissions?.keywords && assignment.submissions.keywords.length > 0 && (
-            <div className="mb-4">
-              <span className="text-sm text-gray-600">Keywords:</span>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {assignment.submissions.keywords.map((keyword: string, index: number) => (
-                  <span
-                    key={index}
-                    className="border border-gray-300 bg-gray-100 px-3 py-1 text-xs text-gray-700"
-                  >
-                    {keyword}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {assignment.submissions?.abstract && (
+          {assignment.submission_abstract && (
             <div>
               <span className="text-sm text-gray-600">Abstract:</span>
               <p className="mt-2 text-sm leading-relaxed whitespace-pre-wrap text-gray-700">
-                {assignment.submissions.abstract}
+                {assignment.submission_abstract}
               </p>
             </div>
           )}

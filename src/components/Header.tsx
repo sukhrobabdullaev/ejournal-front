@@ -29,12 +29,16 @@ export function Header() {
         }
 
         const roles = await getMyRoles();
-        const assignments = await getMyAssignments();
 
         if (!mounted) return;
 
         setUserRoles(roles || []);
-        setHasReviewAssignments(assignments.length > 0);
+
+        const canReview = roles.includes('reviewer') || roles.includes('editor') || roles.includes('admin');
+        if (canReview) {
+          const assignments = await getMyAssignments();
+          if (mounted) setHasReviewAssignments(assignments.length > 0);
+        }
       } catch (error) {
         console.error('Error fetching user data:', error);
         if (mounted) {
@@ -82,9 +86,8 @@ export function Header() {
               <Link
                 key={link.path}
                 to={link.path}
-                className={`text-sm transition-colors ${
-                  isActive(link.path) ? 'border-b-2 pb-0.5 font-medium' : 'hover:opacity-80'
-                }`}
+                className={`text-sm transition-colors ${isActive(link.path) ? 'border-b-2 pb-0.5 font-medium' : 'hover:opacity-80'
+                  }`}
                 style={{
                   color: isActive(link.path) ? '#2563EB' : '#475569',
                   borderColor: isActive(link.path) ? '#2563EB' : 'transparent',
@@ -204,11 +207,10 @@ export function Header() {
                 key={link.path}
                 to={link.path}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`block rounded px-3 py-2 text-sm ${
-                  isActive(link.path)
+                className={`block rounded px-3 py-2 text-sm ${isActive(link.path)
                     ? 'bg-blue-50 font-medium text-[#1d4ed8]'
                     : 'text-gray-700 hover:bg-gray-50 hover:text-[#1d4ed8]'
-                }`}
+                  }`}
               >
                 {link.name}
               </Link>

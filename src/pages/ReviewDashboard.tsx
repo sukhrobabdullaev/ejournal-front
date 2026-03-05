@@ -1,26 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import { FileText, Clock, CheckCircle, AlertCircle, Download, X, Send } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { getMyAssignments, getSubmissionFiles, getExistingReview } from '../lib/queries';
-
-interface ReviewAssignment {
-  id: string;
-  submission_id: string;
-  invited_email: string;
-  status: string;
-  response_due_at: string | null;
-  review_due_at: string | null;
-  invited_at: string;
-  submissions: {
-    id: string;
-    title: string;
-    abstract: string;
-    keywords: string[];
-    topic_area: string;
-    submitted_at: string;
-  };
-}
+import { TokenManager } from '../lib/api';
+import type { ReviewAssignment } from '../lib/api';
+import { getMyAssignments, getSubmissionFiles, submitReview } from '../lib/queries-api';
 
 export function ReviewDashboard() {
   const navigate = useNavigate();
@@ -41,11 +24,7 @@ export function ReviewDashboard() {
     const checkAccessAndLoad = async () => {
       setLoading(true);
 
-      // Check if user is authenticated
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      if (!session) {
+      if (!TokenManager.getAccessToken()) {
         navigate('/login');
         return;
       }
@@ -70,17 +49,14 @@ export function ReviewDashboard() {
     setSelectedAssignment(assignment);
     setError(null);
 
-    // Load submission files
-    const filesData = await getSubmissionFiles(assignment.submission_id);
+    const filesData = await getSubmissionFiles(String(assignment.submission));
     setFiles(filesData);
 
-    // Load existing review
-    const reviewData = await getExistingReview(assignment.id);
-    if (reviewData) {
-      setExistingReview(reviewData);
-      setRecommendation(reviewData.recommendation || '');
-      setCommentsToAuthor(reviewData.comments_to_author || '');
-      setCommentsToEditor(reviewData.comments_to_editor || '');
+    if (assignment.review) {
+      setExistingReview(assignment.review);
+      setRecommendation(assignment.review.recommendation || '');
+      setCommentsToAuthor(assignment.review.summary || '');
+      setCommentsToEditor(assignment.review.confidential_to_editor || '');
     } else {
       setExistingReview(null);
       setRecommendation('');
@@ -116,45 +92,16 @@ export function ReviewDashboard() {
     setError(null);
 
     try {
-      // Insert or update review
-      if (existingReview) {
-        // Update existing review
-        const { error: updateError } = await supabase
-          .from('reviews')
-          .update({
-            recommendation,
-            comments_to_author: commentsToAuthor,
-            comments_to_editor: commentsToEditor,
-            submitted_at: new Date().toISOString(),
-          })
-          .eq('id', existingReview.id);
+      const { error: submitError } = await submitReview(String(selectedAssignment.id), {
+        summary: commentsToAuthor,
+        strengths: '',
+        weaknesses: '',
+        confidential_to_editor: commentsToEditor,
+        recommendation: recommendation as any,
+      });
 
-        if (updateError) throw updateError;
-      } else {
-        // Insert new review
-        const { error: insertError } = await supabase.from('reviews').insert({
-          assignment_id: selectedAssignment.id,
-          recommendation,
-          comments_to_author: commentsToAuthor,
-          comments_to_editor: commentsToEditor,
-          submitted_at: new Date().toISOString(),
-        });
+      if (submitError) throw new Error(submitError.detail || 'Failed to submit review');
 
-        if (insertError) throw insertError;
-      }
-
-      // Update assignment status to completed
-      const { error: assignmentError } = await supabase
-        .from('review_assignments')
-        .update({
-          status: 'completed',
-          review_submitted_at: new Date().toISOString(),
-        })
-        .eq('id', selectedAssignment.id);
-
-      if (assignmentError) throw assignmentError;
-
-      // Reload assignments
       const updatedAssignments = await getMyAssignments();
       setAssignments(updatedAssignments);
 
@@ -168,19 +115,12 @@ export function ReviewDashboard() {
     }
   };
 
-  const downloadFile = async (file: any) => {
-    try {
-      const { data, error } = await supabase.storage
-        .from('make-e44d10eb-submissions')
-        .createSignedUrl(file.storage_path, 3600);
-
-      if (error) throw error;
-      if (data?.signedUrl) {
-        window.open(data.signedUrl, '_blank');
-      }
-    } catch (err) {
-      console.error('Error downloading file:', err);
-      alert('Failed to download file');
+  const downloadFile = (file: any) => {
+    const url = file.manuscript_url || file.file || file.storage_path;
+    if (url) {
+      window.open(url, '_blank');
+    } else {
+      alert('File URL not available');
     }
   };
 
@@ -335,11 +275,11 @@ export function ReviewDashboard() {
                   <div className="flex-1">
                     <div className="mb-2 flex items-center gap-3">
                       <FileText className="h-5 w-5 flex-shrink-0 text-gray-400" />
-                      <h3 className="font-medium text-gray-900">{assignment.submissions.title}</h3>
+                      <h3 className="font-medium text-gray-900">{assignment.submission_title}</h3>
                     </div>
 
                     <p className="mb-3 ml-8 line-clamp-2 text-sm text-gray-600">
-                      {assignment.submissions.abstract}
+                      {assignment.submission_abstract}
                     </p>
 
                     <div className="ml-8 flex flex-wrap gap-4 text-sm">
@@ -348,29 +288,29 @@ export function ReviewDashboard() {
                         {getStatusBadge(assignment.status)}
                       </div>
 
-                      {assignment.review_due_at && (
+                      {assignment.due_date && (
                         <div className="flex items-center gap-1">
                           <Clock className="h-4 w-4 text-gray-400" />
                           <span className="text-gray-500">Due:</span>
                           <span
                             className={
-                              isOverdue(assignment.review_due_at)
+                              isOverdue(assignment.due_date)
                                 ? 'font-medium text-red-600'
                                 : 'text-gray-900'
                             }
                           >
-                            {new Date(assignment.review_due_at).toLocaleDateString()}
+                            {new Date(assignment.due_date).toLocaleDateString()}
                           </span>
-                          {isOverdue(assignment.review_due_at) && (
+                          {isOverdue(assignment.due_date) && (
                             <span className="text-xs text-red-600">(Overdue)</span>
                           )}
                         </div>
                       )}
 
-                      {assignment.submissions.topic_area && (
+                      {(assignment as any).submission_topic_area && (
                         <div className="flex items-center gap-1">
                           <span className="bg-gray-100 px-2 py-0.5 text-xs text-gray-700">
-                            {assignment.submissions.topic_area}
+                            {(assignment as any).submission_topic_area}
                           </span>
                         </div>
                       )}
@@ -428,23 +368,23 @@ export function ReviewDashboard() {
               {/* Manuscript Info */}
               <div className="mb-6 border-b border-gray-200 pb-6">
                 <h3 className="mb-2 font-semibold text-gray-900">
-                  {selectedAssignment.submissions.title}
+                  {selectedAssignment.submission_title}
                 </h3>
                 <p className="mb-3 text-sm text-gray-600">
-                  {selectedAssignment.submissions.abstract}
+                  {selectedAssignment.submission_abstract}
                 </p>
-                {selectedAssignment.review_due_at && (
+                {selectedAssignment.due_date && (
                   <div className="flex items-center gap-2 text-sm">
                     <Clock className="h-4 w-4 text-gray-400" />
                     <span className="text-gray-600">Review Due:</span>
                     <span
                       className={
-                        isOverdue(selectedAssignment.review_due_at)
+                        isOverdue(selectedAssignment.due_date)
                           ? 'font-medium text-red-600'
                           : 'text-gray-900'
                       }
                     >
-                      {new Date(selectedAssignment.review_due_at).toLocaleDateString('en-US', {
+                      {new Date(selectedAssignment.due_date).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric',

@@ -31,21 +31,6 @@ const Policies = React.lazy(() =>
 );
 const About = React.lazy(() => import('./pages/About').then((m) => ({ default: m.About })));
 const Contact = React.lazy(() => import('./pages/Contact').then((m) => ({ default: m.Contact })));
-const DatabaseSetup = React.lazy(() =>
-  import('./pages/DatabaseSetup').then((m) => ({ default: m.DatabaseSetup }))
-);
-const StorageSetup = React.lazy(() =>
-  import('./pages/StorageSetup').then((m) => ({ default: m.StorageSetup }))
-);
-const MigrationFix = React.lazy(() =>
-  import('./pages/MigrationFix').then((m) => ({ default: m.MigrationFix }))
-);
-const Phase2Migration = React.lazy(() =>
-  import('./pages/Phase2Migration').then((m) => ({ default: m.Phase2Migration }))
-);
-const RolesMigration = React.lazy(() =>
-  import('./pages/RolesMigration').then((m) => ({ default: m.RolesMigration }))
-);
 const Login = React.lazy(() => import('./pages/Login').then((m) => ({ default: m.Login })));
 const Register = React.lazy(() =>
   import('./pages/Register').then((m) => ({ default: m.Register }))
@@ -108,11 +93,6 @@ export default function App() {
                 <Route path="/policies" element={<Policies />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/contact" element={<Contact />} />
-                <Route path="/setup-database" element={<DatabaseSetup />} />
-                <Route path="/setup-storage" element={<StorageSetup />} />
-                <Route path="/migration-fix" element={<MigrationFix />} />
-                <Route path="/phase2-migration" element={<Phase2Migration />} />
-                <Route path="/roles-migration" element={<RolesMigration />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/dashboard" element={<DashboardNew />} />

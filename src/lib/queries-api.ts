@@ -6,6 +6,7 @@ import {
   ReviewAssignment,
   TopicArea,
   EditorialBoardMember,
+  Article,
   TokenManager,
 } from './api';
 
@@ -151,7 +152,7 @@ export async function createSubmission(
 }
 
 export async function getMySubmissions(): Promise<Submission[]> {
-  const { data, error } = await apiClient.get<Submission[]>('/submissions');
+  const { data, error } = await apiClient.get<Submission[]>('/submissions/');
   if (error) {
     console.error('Error fetching submissions:', error);
     return [];
@@ -207,7 +208,7 @@ export async function deleteSubmission(id: string): Promise<{ data: any; error: 
 // ==========================================
 
 export async function getMyAssignments(): Promise<ReviewAssignment[]> {
-  const { data, error } = await apiClient.get<ReviewAssignment[]>('/reviewer/assignments');
+  const { data, error } = await apiClient.get<ReviewAssignment[]>('/reviewer/assignments/');
   if (error) {
     console.error('Error fetching review assignments:', error);
     return [];
@@ -265,6 +266,32 @@ export async function getAssignmentByToken(token: string): Promise<ReviewAssignm
 
 export async function acceptByToken(token: string): Promise<{ data: any; error: any }> {
   return await apiClient.post('/reviewer/accept-by-token/', { token });
+}
+
+export async function declineByToken(token: string): Promise<{ data: any; error: any }> {
+  return await apiClient.post('/reviewer/decline-by-token/', { token });
+}
+
+// ==========================================
+// PUBLIC - ARTICLES
+// ==========================================
+
+export async function getPublishedArticles(): Promise<Article[]> {
+  const { data, error } = await apiClient.get<Article[]>('/articles/');
+  if (error) {
+    console.error('Error fetching articles:', error);
+    return [];
+  }
+  return data || [];
+}
+
+export async function getArticleBySlug(slug: string): Promise<Article | null> {
+  const { data, error } = await apiClient.get<Article>(`/articles/${slug}/`);
+  if (error) {
+    console.error('Error fetching article:', error);
+    return null;
+  }
+  return data;
 }
 
 // ==========================================

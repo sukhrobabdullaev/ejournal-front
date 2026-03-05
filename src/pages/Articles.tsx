@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router';
 import { Search, Filter, Download, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
-import { getJournalBySlug, getPublishedArticlesByJournal } from '../lib/queries';
-import { Article } from '../lib/supabase';
+import { getPublishedArticles } from '../lib/queries-api';
+import type { Article } from '../lib/api';
 
 export function Articles() {
   const [articles, setArticles] = useState<Article[]>([]);
@@ -21,16 +21,7 @@ export function Articles() {
       try {
         setLoading(true);
         setError(null);
-
-        // Load journal first
-        const journal = await getJournalBySlug('nexa-jct');
-        if (!journal) {
-          setError('Journal not found');
-          return;
-        }
-
-        // Load all published articles
-        const articlesData = await getPublishedArticlesByJournal(journal.id);
+        const articlesData = await getPublishedArticles();
         setArticles(articlesData);
       } catch (err) {
         console.error('Error loading articles:', err);
@@ -330,10 +321,10 @@ export function Articles() {
                     Published:{' '}
                     {article.published_at
                       ? new Date(article.published_at).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                        })
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })
                       : 'N/A'}
                     {article.doi && <> | DOI: {article.doi}</>}
                   </span>
@@ -388,11 +379,10 @@ export function Articles() {
                 <button
                   key={pageNum}
                   onClick={() => setCurrentPage(pageNum)}
-                  className={`px-4 py-1.5 text-sm font-medium ${
-                    currentPage === pageNum
+                  className={`px-4 py-1.5 text-sm font-medium ${currentPage === pageNum
                       ? 'bg-blue-600 text-white'
                       : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
-                  }`}
+                    }`}
                 >
                   {pageNum}
                 </button>
