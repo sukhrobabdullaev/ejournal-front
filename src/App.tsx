@@ -33,6 +33,9 @@ const Login = React.lazy(() => import('./pages/Login').then((m) => ({ default: m
 const Register = React.lazy(() =>
   import('./pages/Register').then((m) => ({ default: m.Register }))
 );
+const VerifyEmail = React.lazy(() =>
+  import('./pages/VerifyEmail').then((m) => ({ default: m.VerifyEmail }))
+);
 const DashboardNew = React.lazy(() =>
   import('./pages/DashboardNew').then((m) => ({ default: m.DashboardNew }))
 );
@@ -93,6 +96,7 @@ export default function App() {
                 <Route path="/contact" element={<Contact />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/verify-email" element={<VerifyEmail />} />
                 <Route path="/dashboard" element={<DashboardNew />} />
                 <Route path="/submission/:id" element={<SubmissionDetail />} />
                 <Route path="/editor" element={<EditorDashboard />} />

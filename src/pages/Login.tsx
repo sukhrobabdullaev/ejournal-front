@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
 import { Eye, EyeOff } from 'lucide-react';
-import { login } from '../lib/queries-api';
+import { login, resendVerificationEmail } from '../lib/queries-api';
 import { TokenManager } from '../lib/api';
 import { useQueryClient } from '@tanstack/react-query';
 
@@ -14,6 +14,8 @@ export function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showEmailVerificationWarning, setShowEmailVerificationWarning] = useState(false);
+  const [resendingEmail, setResendingEmail] = useState(false);
 
   useEffect(() => {
     // Check if user is already logged in by token presence only (no API call)
@@ -32,22 +34,27 @@ export function Login() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setShowEmailVerificationWarning(false);
 
     try {
       const { data, error: loginError } = await login(email, password);
 
       if (loginError) {
-        // Show detailed error message
         const errorMessage = loginError.detail || 'Invalid email or password';
         setError(errorMessage);
 
-        // Log full error for debugging
+        if (errorMessage.toLowerCase().includes('email') && 
+            (errorMessage.toLowerCase().includes('verify') || 
+             errorMessage.toLowerCase().includes('verification') ||
+             errorMessage.toLowerCase().includes('not verified'))) {
+          setShowEmailVerificationWarning(true);
+        }
+
         console.error('[Login Error]:', loginError);
         return;
       }
 
       if (data) {
-        // Clear stale ['me'] cache so dashboard fetches fresh user data with the new token
         queryClient.removeQueries({ queryKey: ['me'] });
         const nextUrl = searchParams.get('next') || sessionStorage.getItem('returnUrl');
         if (nextUrl) {
@@ -57,11 +64,32 @@ export function Login() {
           navigate('/dashboard');
         }
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('[Login Exception]:', err);
-      setError(err.message || 'An error occurred during login');
+      setError((err as Error).message || 'An error occurred during login');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    if (!email) {
+      setError('Please enter your email address');
+      return;
+    }
+
+    setResendingEmail(true);
+    try {
+      const { error: resendError } = await resendVerificationEmail(email);
+      if (resendError) {
+        setError(resendError.detail || 'Failed to resend verification email');
+      } else {
+        setError('Verification email sent! Please check your inbox.');
+      }
+    } catch (err) {
+      setError((err as Error).message || 'An error occurred while resending email');
+    } finally {
+      setResendingEmail(false);
     }
   };
 
@@ -108,6 +136,28 @@ export function Login() {
               <p className="mb-2 text-sm font-medium" style={{ color: '#991B1B' }}>
                 {error}
               </p>
+              
+              {showEmailVerificationWarning && (
+                <div className="mt-3 pt-3" style={{ borderTop: '1px solid #FCA5A5' }}>
+                  <p className="mb-3 text-sm" style={{ color: '#7F1D1D' }}>
+                    Please verify your email address to log in.
+                  </p>
+                  <button
+                    onClick={handleResendVerification}
+                    disabled={resendingEmail}
+                    className="w-full text-sm font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-50"
+                    style={{
+                      padding: '10px 16px',
+                      background: resendingEmail ? '#94A3B8' : '#EF4444',
+                      color: '#FFFFFF',
+                      borderRadius: '8px',
+                    }}
+                  >
+                    {resendingEmail ? 'Sending...' : 'Resend Verification Email'}
+                  </button>
+                </div>
+              )}
+              
               {error.includes('Network error') && (
                 <div className="mt-3 pt-3" style={{ borderTop: '1px solid #FCA5A5' }}>
                   <p className="mb-2 text-sm font-medium" style={{ color: '#991B1B' }}>

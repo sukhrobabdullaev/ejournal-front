@@ -46,6 +46,14 @@ export async function logout(): Promise<void> {
   TokenManager.clearTokens();
 }
 
+export async function verifyEmail(token: string): Promise<{ data: any; error: any }> {
+  return await apiClient.post('/auth/verify-email', { token });
+}
+
+export async function resendVerificationEmail(email: string): Promise<{ data: any; error: any }> {
+  return await apiClient.post('/auth/resend-verification', { email });
+}
+
 export async function getCurrentUser(): Promise<User | null> {
   const { data, error } = await apiClient.get<User>('/me');
   if (error) {

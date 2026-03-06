@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Eye, EyeOff } from 'lucide-react';
-import { signup } from '../lib/queries-api';
+import { signup, resendVerificationEmail } from '../lib/queries-api';
 
 export function Register() {
   const navigate = useNavigate();
@@ -18,8 +18,10 @@ export function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [resendingEmail, setResendingEmail] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -91,13 +93,27 @@ export function Register() {
       }
 
       setSuccess(true);
-      setTimeout(() => {
-        navigate('/login');
-      }, 3000);
+      setUserEmail(formData.email);
     } catch (err: any) {
       setError(err.message || 'An error occurred during registration');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendEmail = async () => {
+    setResendingEmail(true);
+    try {
+      const { error: resendError } = await resendVerificationEmail(userEmail);
+      if (resendError) {
+        setError(resendError.detail || 'Failed to resend verification email');
+      } else {
+        setError(null);
+      }
+    } catch (err: any) {
+      setError(err.message || 'An error occurred while resending email');
+    } finally {
+      setResendingEmail(false);
     }
   };
 
@@ -120,7 +136,7 @@ export function Register() {
               borderRadius: '16px',
               padding: '40px',
               boxShadow: '0 10px 30px rgba(11, 28, 77, 0.15)',
-              borderTop: '4px solid #10B981',
+              borderTop: '4px solid #2563EB',
             }}
           >
             <div
@@ -128,12 +144,12 @@ export function Register() {
               style={{
                 width: '80px',
                 height: '80px',
-                backgroundColor: '#DCFCE7',
+                backgroundColor: '#DBEAFE',
               }}
             >
               <svg
                 className="h-10 w-10"
-                style={{ color: '#10B981' }}
+                style={{ color: '#2563EB' }}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -142,19 +158,64 @@ export function Register() {
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M5 13l4 4L19 7"
+                  d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                 />
               </svg>
             </div>
             <h1 className="mb-3 text-3xl font-bold" style={{ color: '#0B1C4D' }}>
-              Registration Successful!
+              Check Your Email
             </h1>
+            <p className="mb-4 text-sm" style={{ color: '#64748B' }}>
+              We've sent a verification link to:
+            </p>
+            <p className="mb-6 text-base font-semibold" style={{ color: '#2563EB' }}>
+              {userEmail}
+            </p>
             <p className="mb-6 text-sm" style={{ color: '#64748B' }}>
-              Your account has been created. You can now sign in.
+              Please click the verification link in your email to activate your account.
             </p>
-            <p className="text-xs" style={{ color: '#94A3B8' }}>
-              Redirecting to login page...
-            </p>
+            
+            {error && (
+              <div
+                className="mb-4"
+                style={{
+                  padding: '12px',
+                  backgroundColor: '#FEF2F2',
+                  border: '2px solid #FCA5A5',
+                  borderRadius: '8px',
+                  color: '#991B1B',
+                }}
+              >
+                <p className="text-sm">{error}</p>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <button
+                onClick={handleResendEmail}
+                disabled={resendingEmail}
+                className="w-full text-base font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-50"
+                style={{
+                  padding: '14px 20px',
+                  background: resendingEmail
+                    ? '#94A3B8'
+                    : 'linear-gradient(135deg, #0B1C4D 0%, #2563EB 100%)',
+                  color: '#FFFFFF',
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 12px rgba(11, 28, 77, 0.2)',
+                }}
+              >
+                {resendingEmail ? 'Sending...' : 'Resend Verification Email'}
+              </button>
+              
+              <Link
+                to="/login"
+                className="block text-sm font-semibold hover:underline"
+                style={{ color: '#2563EB' }}
+              >
+                Already verified? Sign in here
+              </Link>
+            </div>
           </div>
         </div>
       </div>
