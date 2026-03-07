@@ -10,13 +10,11 @@ interface SubmissionDetailsProps {
   submission: Submission | null;
   reviewers: Reviewer[];
   isLoadingReviewers: boolean;
-  inviteEmail: string;
   inviteDueDate: string;
-  selectedReviewerId: number | null;
+  selectedReviewerIds: number[];
   decision: 'accept' | 'reject' | 'revision_required';
   decisionLetter: string;
-  onReviewerSelect: (reviewerId: number | null) => void;
-  onInviteEmailChange: (email: string) => void;
+  onReviewerIdsSelect: (reviewerIds: number[]) => void;
   onInviteDueDateChange: (date: string) => void;
   onInviteReviewer: () => void;
   onRemindReviewer: (assignment: ReviewAssignment) => void;
@@ -37,13 +35,11 @@ export const SubmissionDetails: React.FC<SubmissionDetailsProps> = ({
   submission,
   reviewers,
   isLoadingReviewers,
-  inviteEmail,
   inviteDueDate,
-  selectedReviewerId,
+  selectedReviewerIds,
   decision,
   decisionLetter,
-  onReviewerSelect,
-  onInviteEmailChange,
+  onReviewerIdsSelect,
   onInviteDueDateChange,
   onInviteReviewer,
   onRemindReviewer,
@@ -174,11 +170,11 @@ export const SubmissionDetails: React.FC<SubmissionDetailsProps> = ({
                     </p>
                   )}
                 </div>
-                {['invited', 'accepted'].includes(assignment.status) && (
+                {assignment.status === 'invited' && (
                   <button
                     type="button"
                     onClick={() => onRemindReviewer(assignment)}
-                    className="text-[11px] font-medium text-blue-600 hover:text-blue-700"
+                    className="rounded bg-blue-100 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-200 transition-colors"
                   >
                     Send Reminder
                   </button>
@@ -194,11 +190,12 @@ export const SubmissionDetails: React.FC<SubmissionDetailsProps> = ({
         <ReviewerInviteForm
           reviewers={reviewers}
           isLoadingReviewers={isLoadingReviewers}
-          email={inviteEmail}
           dueDate={inviteDueDate}
-          selectedReviewerId={selectedReviewerId}
-          onReviewerSelect={onReviewerSelect}
-          onEmailChange={onInviteEmailChange}
+          selectedReviewerIds={selectedReviewerIds}
+          alreadyInvitedEmails={
+            submission.review_assignments?.map((a) => a.reviewer_email?.toLowerCase()) || []
+          }
+          onReviewerIdsSelect={onReviewerIdsSelect}
           onDueDateChange={onInviteDueDateChange}
           onSubmit={onInviteReviewer}
           isLoading={inviting}

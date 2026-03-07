@@ -35,11 +35,11 @@ export function EditorDashboard() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
-  const [inviteEmail, setInviteEmail] = useState('');
   const [inviteDueDate, setInviteDueDate] = useState('');
-  const [selectedReviewerId, setSelectedReviewerId] = useState<number | null>(null);
+  const [selectedReviewerIds, setSelectedReviewerIds] = useState<number[]>([]);
   const [decision, setDecision] = useState<'accept' | 'reject' | 'revision_required'>('accept');
   const [decisionLetter, setDecisionLetter] = useState('');
+  const [showSendToReviewModal, setShowSendToReviewModal] = useState(false);
 
   const { data: role, isLoading: roleLoading } = useQuery({
     queryKey: ['my-role'],
@@ -156,18 +156,73 @@ export function EditorDashboard() {
   });
 
   const inviteReviewerMutation = useMutation({
-    mutationFn: (params: { submissionId: string; data: any }) =>
-      inviteReviewer(params.submissionId, params.data),
-    onSuccess: async () => {
-      setSuccess('Reviewer invited successfully.');
-      setInviteEmail('');
-      setSelectedReviewerId(null);
+    mutationFn: async (params: { submissionId: string; reviewerIds: number[]; dueDate: string }) => {
+      const { submissionId, reviewerIds, dueDate } = params;
+      
+      // Send invitations to all selected reviewers
+      const results = await Promise.allSettled(
+        reviewerIds.map((reviewerId) =>
+          inviteReviewer(submissionId, {
+            reviewer_user_id: reviewerId,
+            due_date: dueDate,
+          })
+        )
+      );
+      
+      // Collect success and failure information
+      const successes = results.filter((r) => r.status === 'fulfilled');
+      const failures = results.filter((r) => r.status === 'rejected') as PromiseRejectedResult[];
+      
+      return {
+        results,
+        successes: successes.length,
+        failures: failures.length,
+        failureReasons: failures.map(f => f.reason),
+        reviewerIds,
+      };
+    },
+    onSuccess: async (data, variables) => {
+      const { successes, failures, failureReasons, reviewerIds } = data;
+      
+      if (failures > 0) {
+        // Check if error is about already invited reviewers
+        const alreadyInvitedErrors = failureReasons.filter((reason: any) => 
+          reason?.detail?.includes('already invited') || 
+          reason?.message?.includes('already invited')
+        );
+        
+        if (alreadyInvitedErrors.length === failures) {
+          // All failures are "already invited"
+          if (failures === reviewerIds.length) {
+            setError('All selected reviewers have already been invited to this submission.');
+          } else {
+            setSuccess(
+              `${successes} reviewer${successes > 1 ? 's' : ''} invited successfully. ` +
+              `${failures} reviewer${failures > 1 ? 's were' : ' was'} already invited.`
+            );
+          }
+        } else {
+          // Mixed errors or other errors
+          setError(
+            successes > 0
+              ? `${successes} reviewer${successes > 1 ? 's' : ''} invited, but ${failures} failed. Please check the reviewers.`
+              : `Failed to invite ${failures} reviewer${failures > 1 ? 's' : ''}.`
+          );
+        }
+      } else {
+        // All successful
+        setSuccess(
+          `${successes} reviewer${successes > 1 ? 's' : ''} invited successfully. Invitation email${successes > 1 ? 's have' : ' has'} been sent.`
+        );
+      }
+      
+      setSelectedReviewerIds([]);
       setInviteDueDate('');
       await refreshSelected();
     },
     onError: (err) => {
       const apiError = err as ApiError;
-      setError(apiError.detail || apiError.message || 'Failed to invite reviewer');
+      setError(apiError.detail || apiError.message || 'Failed to invite reviewer(s)');
     },
   });
 
@@ -235,31 +290,29 @@ export function EditorDashboard() {
   };
 
   const handleSendToReview = () => {
+    setShowSendToReviewModal(true);
+  };
+
+  const confirmSendToReview = () => {
     setSuccess(null);
     setError(null);
+    setShowSendToReviewModal(false);
     sendToReviewMutation.mutate();
   };
 
   const handleInviteReviewer = () => {
     if (!selectedSubmission) return;
-    if (!selectedReviewerId && !inviteEmail) return;
+    if (selectedReviewerIds.length === 0) return;
 
     setSuccess(null);
     setError(null);
 
-    const requestData: any = {
-      due_date: inviteDueDate || new Date().toISOString().slice(0, 10),
-    };
-
-    if (selectedReviewerId) {
-      requestData.reviewer_user_id = selectedReviewerId;
-    } else {
-      requestData.reviewer_email = inviteEmail;
-    }
+    const dueDate = inviteDueDate || new Date().toISOString().slice(0, 10);
 
     inviteReviewerMutation.mutate({
       submissionId: selectedSubmission.id.toString(),
-      data: requestData,
+      reviewerIds: selectedReviewerIds,
+      dueDate,
     });
   };
 
@@ -433,13 +486,11 @@ export function EditorDashboard() {
               submission={selectedSubmission}
               reviewers={reviewers}
               isLoadingReviewers={isLoadingReviewers}
-              inviteEmail={inviteEmail}
               inviteDueDate={inviteDueDate}
-              selectedReviewerId={selectedReviewerId}
+              selectedReviewerIds={selectedReviewerIds}
               decision={decision}
               decisionLetter={decisionLetter}
-              onReviewerSelect={setSelectedReviewerId}
-              onInviteEmailChange={setInviteEmail}
+              onReviewerIdsSelect={setSelectedReviewerIds}
               onInviteDueDateChange={setInviteDueDate}
               onInviteReviewer={handleInviteReviewer}
               onRemindReviewer={handleRemindReviewer}
@@ -458,6 +509,39 @@ export function EditorDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Send to Review Confirmation Modal */}
+      {showSendToReviewModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+          <div className="m-4 w-full max-w-md rounded-lg bg-white shadow-xl">
+            <div className="border-b border-gray-200 px-6 py-4">
+              <h3 className="text-lg font-semibold text-gray-900">Confirm Send to Review</h3>
+            </div>
+            <div className="px-6 py-4">
+              <p className="text-sm text-gray-700">
+                Once you send this submission to review, you will no longer be able to assign additional reviewers. 
+                Are you sure you want to proceed?
+              </p>
+            </div>
+            <div className="flex justify-end gap-3 border-t border-gray-200 px-6 py-4">
+              <button
+                type="button"
+                onClick={() => setShowSendToReviewModal(false)}
+                className="rounded bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmSendToReview}
+                className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+              >
+                Send to Review
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
