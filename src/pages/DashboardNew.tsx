@@ -40,7 +40,7 @@ export function DashboardNew() {
     isError: userError,
   } = useQuery({
     queryKey: ['me'],
-    queryFn: getCurrentUser,
+    queryFn: () => getCurrentUser(),
     retry: false,
   });
 
@@ -51,7 +51,7 @@ export function DashboardNew() {
 
   const { data: submissions = [] } = useQuery({
     queryKey: ['my-submissions'],
-    queryFn: getMySubmissions,
+    queryFn: () => getMySubmissions(),
     enabled: !!currentUser,
   });
 
@@ -189,11 +189,10 @@ export function DashboardNew() {
                         <button
                           key={role}
                           onClick={() => handleRoleSwitch(role)}
-                          className={`w-full px-4 py-2 text-left text-sm capitalize transition-colors hover:bg-gray-50 ${
-                            role === activeRole
+                          className={`w-full px-4 py-2 text-left text-sm capitalize transition-colors hover:bg-gray-50 ${role === activeRole
                               ? 'bg-blue-50 font-medium text-blue-700'
                               : 'text-gray-700'
-                          }`}
+                            }`}
                           disabled={roleSwitchMutation.isPending}
                         >
                           {getRoleTitleCase(role)}
@@ -277,10 +276,10 @@ export function DashboardNew() {
                             Submitted:{' '}
                             {submission.created_at
                               ? new Date(submission.created_at).toLocaleDateString('en-US', {
-                                  year: 'numeric',
-                                  month: 'long',
-                                  day: 'numeric',
-                                })
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                              })
                               : 'N/A'}
                           </p>
                         </div>
@@ -354,7 +353,7 @@ export function DashboardNew() {
 function ReviewerSection() {
   const { data: reviewAssignments = [] } = useQuery({
     queryKey: ['my-assignments'],
-    queryFn: getMyAssignments,
+    queryFn: () => getMyAssignments(),
   });
 
   return (
@@ -429,10 +428,10 @@ function ReviewerSection() {
                       Invited:{' '}
                       {assignment.invited_at
                         ? new Date(assignment.invited_at).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                          })
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                        })
                         : 'N/A'}
                     </p>
                     {assignment.due_date && (
@@ -447,8 +446,7 @@ function ReviewerSection() {
                     )}
                   </div>
                   <span
-                    className={`border px-3 py-1 text-xs capitalize ${
-                      assignment.status === 'invited'
+                    className={`border px-3 py-1 text-xs capitalize ${assignment.status === 'invited'
                         ? 'border-yellow-300 bg-yellow-50 text-yellow-700'
                         : assignment.status === 'accepted'
                           ? 'border-blue-300 bg-blue-50 text-blue-700'
@@ -457,7 +455,7 @@ function ReviewerSection() {
                             : assignment.status === 'review_submitted'
                               ? 'border-green-300 bg-green-50 text-green-700'
                               : 'border-gray-300 bg-gray-100 text-gray-700'
-                    }`}
+                      }`}
                   >
                     {assignment.status.replace('_', ' ')}
                   </span>
@@ -493,13 +491,26 @@ function EditorAdminSection({
 }) {
   const { data: allSubmissions = [] } = useQuery({
     queryKey: ['all-submissions'],
-    queryFn: getAllSubmissions,
+    queryFn: () => getAllSubmissions(),
   });
 
+  console.log('[EditorDashboard] All submissions:', allSubmissions);
+  console.log('[EditorDashboard] Status values:', allSubmissions.map(s => ({ id: s.id, status: s.status })));
+
   const submittedCount = allSubmissions.filter((s) => s.status === 'submitted').length;
+  const screeningCount = allSubmissions.filter((s) => s.status === 'screening').length;
   const underReviewCount = allSubmissions.filter((s) => s.status === 'under_review').length;
   const acceptedCount = allSubmissions.filter((s) => s.status === 'accepted').length;
   const rejectedCount = allSubmissions.filter((s) => s.status === 'rejected').length;
+
+  console.log('[EditorDashboard] Counts:', { 
+    submittedCount, 
+    screeningCount,
+    underReviewCount, 
+    acceptedCount, 
+    rejectedCount,
+    total: allSubmissions.length 
+  });
 
   if (role === 'editor') {
     return (
@@ -522,6 +533,15 @@ function EditorAdminSection({
           <div className="border border-gray-300 bg-white p-6">
             <div className="flex items-center justify-between">
               <div>
+                <p className="mb-1 text-sm text-gray-600">Screening</p>
+                <p className="text-3xl font-bold text-purple-600">{screeningCount}</p>
+              </div>
+              <Eye className="h-8 w-8 text-purple-600" />
+            </div>
+          </div>
+          <div className="border border-gray-300 bg-white p-6">
+            <div className="flex items-center justify-between">
+              <div>
                 <p className="mb-1 text-sm text-gray-600">Under Review</p>
                 <p className="text-3xl font-bold text-yellow-600">{underReviewCount}</p>
               </div>
@@ -531,19 +551,10 @@ function EditorAdminSection({
           <div className="border border-gray-300 bg-white p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="mb-1 text-sm text-gray-600">Accepted</p>
-                <p className="text-3xl font-bold text-green-600">{acceptedCount}</p>
+                <p className="mb-1 text-sm text-gray-600">Completed</p>
+                <p className="text-3xl font-bold text-green-600">{acceptedCount + rejectedCount}</p>
               </div>
               <CheckCircle className="h-8 w-8 text-green-600" />
-            </div>
-          </div>
-          <div className="border border-gray-300 bg-white p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="mb-1 text-sm text-gray-600">Rejected</p>
-                <p className="text-3xl font-bold text-red-600">{rejectedCount}</p>
-              </div>
-              <AlertCircle className="h-8 w-8 text-red-600" />
             </div>
           </div>
         </div>
@@ -571,10 +582,10 @@ function EditorAdminSection({
                         Submitted:{' '}
                         {submission.created_at
                           ? new Date(submission.created_at).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'long',
-                              day: 'numeric',
-                            })
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                          })
                           : 'N/A'}
                       </p>
                     </div>
