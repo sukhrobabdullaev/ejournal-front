@@ -52,7 +52,32 @@ export const WorkflowActions: React.FC<WorkflowActionsProps> = ({
           type="button"
           onClick={onMoveToDecision}
           disabled={movingToDecision}
-          className="flex w-full items-center justify-center gap-2 bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+          style={{
+            display: 'flex',
+            width: '100%',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '0.5rem',
+            backgroundColor: movingToDecision ? '#9ca3af' : '#4f46e5',
+            color: 'white',
+            padding: '0.5rem 1rem',
+            fontSize: '0.875rem',
+            fontWeight: '500',
+            borderRadius: '0.25rem',
+            border: 'none',
+            cursor: movingToDecision ? 'not-allowed' : 'pointer',
+            transition: 'background-color 0.2s',
+          }}
+          onMouseEnter={(e) => {
+            if (!movingToDecision) {
+              e.currentTarget.style.backgroundColor = '#4338ca';
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!movingToDecision) {
+              e.currentTarget.style.backgroundColor = '#4f46e5';
+            }
+          }}
         >
           {movingToDecision ? 'Moving to Decision...' : 'Move to Decision'}
         </button>

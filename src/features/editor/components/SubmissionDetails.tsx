@@ -5,6 +5,7 @@ import { getStatusLabel, getStatusChipClasses } from '../utils';
 import { ReviewerInviteForm } from './ReviewerInviteForm';
 import { EditorialDecisionForm } from './EditorialDecisionForm';
 import { WorkflowActions } from './WorkflowActions';
+import { ReviewDetailsModal } from './ReviewDetailsModal';
 
 interface SubmissionDetailsProps {
   submission: Submission | null;
@@ -55,6 +56,8 @@ export const SubmissionDetails: React.FC<SubmissionDetailsProps> = ({
   movingToDecision,
   publishing,
 }) => {
+  const [selectedAssignment, setSelectedAssignment] = React.useState<ReviewAssignment | null>(null);
+
   if (!submission) {
     return (
       <div className="p-8 text-center text-gray-500">
@@ -108,7 +111,7 @@ export const SubmissionDetails: React.FC<SubmissionDetailsProps> = ({
       <div>
         <h4 className="mb-2 text-sm font-semibold text-gray-700">Files</h4>
         {(!submission.manuscript_pdf || submission.manuscript_pdf.trim().length === 0) &&
-        (!submission.supplementary_files || submission.supplementary_files.length === 0) ? (
+          (!submission.supplementary_files || submission.supplementary_files.length === 0) ? (
           <p className="text-sm text-gray-500">No files uploaded</p>
         ) : (
           <div className="space-y-2">
@@ -159,8 +162,14 @@ export const SubmissionDetails: React.FC<SubmissionDetailsProps> = ({
                 key={assignment.id}
                 className="flex items-center justify-between border border-gray-200 bg-gray-50 p-2 text-xs"
               >
-                <div>
-                  <p className="font-medium text-gray-800">{assignment.reviewer_email}</p>
+                <div className="flex-1">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedAssignment(assignment)}
+                    className="font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                  >
+                    {assignment.reviewer_email}
+                  </button>
                   <p className="text-gray-500 capitalize">
                     Status: {assignment.status.replace('_', ' ')}
                   </p>
@@ -186,7 +195,7 @@ export const SubmissionDetails: React.FC<SubmissionDetailsProps> = ({
       </div>
 
       {/* Reviewer invite form */}
-      {['screening', 'under_review'].includes(submission.status) && (
+      {submission.status === 'screening' && (
         <ReviewerInviteForm
           reviewers={reviewers}
           isLoadingReviewers={isLoadingReviewers}
@@ -223,6 +232,12 @@ export const SubmissionDetails: React.FC<SubmissionDetailsProps> = ({
         onPublish={onPublish}
         movingToDecision={movingToDecision}
         publishing={publishing}
+      />
+
+      {/* Review Details Modal */}
+      <ReviewDetailsModal
+        assignment={selectedAssignment}
+        onClose={() => setSelectedAssignment(null)}
       />
     </div>
   );
