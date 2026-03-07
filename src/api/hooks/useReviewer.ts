@@ -45,10 +45,7 @@ export function useAcceptReview() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      return await apiClient.post<ReviewAssignment>(
-        API_ENDPOINTS.reviewer.accept(id),
-        {}
-      );
+      return await apiClient.post<ReviewAssignment>(API_ENDPOINTS.reviewer.accept(id), {});
     },
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.assignment(id) });
@@ -62,10 +59,7 @@ export function useDeclineReview() {
 
   return useMutation({
     mutationFn: async (id: string) => {
-      return await apiClient.post<ReviewAssignment>(
-        API_ENDPOINTS.reviewer.decline(id),
-        {}
-      );
+      return await apiClient.post<ReviewAssignment>(API_ENDPOINTS.reviewer.decline(id), {});
     },
     onSuccess: (_, id) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.assignment(id) });

@@ -632,5 +632,3 @@ export function SubmitPaperForm({
     </div>
   );
 }
-
-

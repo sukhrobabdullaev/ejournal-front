@@ -148,7 +148,7 @@ export function ReviewInvite() {
               </div>
 
               <button
-                onClick={() => navigate('/review/dashboard')}
+                onClick={() => navigate('/dashboard')}
                 className="mb-3 flex w-full items-center justify-center gap-2 bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
               >
                 Go to Reviewer Dashboard

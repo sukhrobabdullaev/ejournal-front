@@ -106,11 +106,7 @@ export function About() {
           }}
         >
           <div className="mb-6 flex items-start">
-            <TrendingUp
-              className="mt-1 mr-4 shrink-0"
-              size={32}
-              style={{ color: '#2563EB' }}
-            />
+            <TrendingUp className="mt-1 mr-4 shrink-0" size={32} style={{ color: '#2563EB' }} />
             <div>
               <h2 className="mb-4 text-3xl font-bold" style={{ color: '#0B1C4D' }}>
                 Our Vision

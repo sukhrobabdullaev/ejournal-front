@@ -43,10 +43,12 @@ export function Login() {
         const errorMessage = loginError.detail || 'Invalid email or password';
         setError(errorMessage);
 
-        if (errorMessage.toLowerCase().includes('email') && 
-            (errorMessage.toLowerCase().includes('verify') || 
-             errorMessage.toLowerCase().includes('verification') ||
-             errorMessage.toLowerCase().includes('not verified'))) {
+        if (
+          errorMessage.toLowerCase().includes('email') &&
+          (errorMessage.toLowerCase().includes('verify') ||
+            errorMessage.toLowerCase().includes('verification') ||
+            errorMessage.toLowerCase().includes('not verified'))
+        ) {
           setShowEmailVerificationWarning(true);
         }
 
@@ -136,7 +138,7 @@ export function Login() {
               <p className="mb-2 text-sm font-medium" style={{ color: '#991B1B' }}>
                 {error}
               </p>
-              
+
               {showEmailVerificationWarning && (
                 <div className="mt-3 pt-3" style={{ borderTop: '1px solid #FCA5A5' }}>
                   <p className="mb-3 text-sm" style={{ color: '#7F1D1D' }}>
@@ -157,7 +159,7 @@ export function Login() {
                   </button>
                 </div>
               )}
-              
+
               {error.includes('Network error') && (
                 <div className="mt-3 pt-3" style={{ borderTop: '1px solid #FCA5A5' }}>
                   <p className="mb-2 text-sm font-medium" style={{ color: '#991B1B' }}>

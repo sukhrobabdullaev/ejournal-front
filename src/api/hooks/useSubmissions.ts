@@ -25,9 +25,7 @@ export function useSubmission(id: string) {
   return useQuery<Submission | null>({
     queryKey: QUERY_KEYS.submission(id),
     queryFn: async () => {
-      const { data, error } = await apiClient.get<Submission>(
-        API_ENDPOINTS.submissions.detail(id)
-      );
+      const { data, error } = await apiClient.get<Submission>(API_ENDPOINTS.submissions.detail(id));
       if (error) {
         console.error('Error fetching submission:', error);
         return null;

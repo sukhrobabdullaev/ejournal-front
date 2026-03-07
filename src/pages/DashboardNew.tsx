@@ -189,10 +189,11 @@ export function DashboardNew() {
                         <button
                           key={role}
                           onClick={() => handleRoleSwitch(role)}
-                          className={`w-full px-4 py-2 text-left text-sm capitalize transition-colors hover:bg-gray-50 ${role === activeRole
+                          className={`w-full px-4 py-2 text-left text-sm capitalize transition-colors hover:bg-gray-50 ${
+                            role === activeRole
                               ? 'bg-blue-50 font-medium text-blue-700'
                               : 'text-gray-700'
-                            }`}
+                          }`}
                           disabled={roleSwitchMutation.isPending}
                         >
                           {getRoleTitleCase(role)}
@@ -276,10 +277,10 @@ export function DashboardNew() {
                             Submitted:{' '}
                             {submission.created_at
                               ? new Date(submission.created_at).toLocaleDateString('en-US', {
-                                year: 'numeric',
-                                month: 'long',
-                                day: 'numeric',
-                              })
+                                  year: 'numeric',
+                                  month: 'long',
+                                  day: 'numeric',
+                                })
                               : 'N/A'}
                           </p>
                         </div>
@@ -428,10 +429,10 @@ function ReviewerSection() {
                       Invited:{' '}
                       {assignment.invited_at
                         ? new Date(assignment.invited_at).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'long',
-                          day: 'numeric',
-                        })
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric',
+                          })
                         : 'N/A'}
                     </p>
                     {assignment.due_date && (
@@ -446,7 +447,8 @@ function ReviewerSection() {
                     )}
                   </div>
                   <span
-                    className={`border px-3 py-1 text-xs capitalize ${assignment.status === 'invited'
+                    className={`border px-3 py-1 text-xs capitalize ${
+                      assignment.status === 'invited'
                         ? 'border-yellow-300 bg-yellow-50 text-yellow-700'
                         : assignment.status === 'accepted'
                           ? 'border-blue-300 bg-blue-50 text-blue-700'
@@ -455,7 +457,7 @@ function ReviewerSection() {
                             : assignment.status === 'review_submitted'
                               ? 'border-green-300 bg-green-50 text-green-700'
                               : 'border-gray-300 bg-gray-100 text-gray-700'
-                      }`}
+                    }`}
                   >
                     {assignment.status.replace('_', ' ')}
                   </span>
@@ -495,7 +497,10 @@ function EditorAdminSection({
   });
 
   console.log('[EditorDashboard] All submissions:', allSubmissions);
-  console.log('[EditorDashboard] Status values:', allSubmissions.map(s => ({ id: s.id, status: s.status })));
+  console.log(
+    '[EditorDashboard] Status values:',
+    allSubmissions.map((s) => ({ id: s.id, status: s.status }))
+  );
 
   const submittedCount = allSubmissions.filter((s) => s.status === 'submitted').length;
   const screeningCount = allSubmissions.filter((s) => s.status === 'screening').length;
@@ -503,13 +508,13 @@ function EditorAdminSection({
   const acceptedCount = allSubmissions.filter((s) => s.status === 'accepted').length;
   const rejectedCount = allSubmissions.filter((s) => s.status === 'rejected').length;
 
-  console.log('[EditorDashboard] Counts:', { 
-    submittedCount, 
+  console.log('[EditorDashboard] Counts:', {
+    submittedCount,
     screeningCount,
-    underReviewCount, 
-    acceptedCount, 
+    underReviewCount,
+    acceptedCount,
     rejectedCount,
-    total: allSubmissions.length 
+    total: allSubmissions.length,
   });
 
   if (role === 'editor') {
@@ -582,10 +587,10 @@ function EditorAdminSection({
                         Submitted:{' '}
                         {submission.created_at
                           ? new Date(submission.created_at).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                          })
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                            })
                           : 'N/A'}
                       </p>
                     </div>

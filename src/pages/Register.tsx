@@ -174,7 +174,7 @@ export function Register() {
             <p className="mb-6 text-sm" style={{ color: '#64748B' }}>
               Please click the verification link in your email to activate your account.
             </p>
-            
+
             {error && (
               <div
                 className="mb-4"
@@ -207,7 +207,7 @@ export function Register() {
               >
                 {resendingEmail ? 'Sending...' : 'Resend Verification Email'}
               </button>
-              
+
               <Link
                 to="/login"
                 className="block text-sm font-semibold hover:underline"

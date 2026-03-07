@@ -29,11 +29,6 @@ export function Header() {
 
   const hasReviewAssignments = assignments.length > 0;
 
-  const handleLogout = async () => {
-    await logout();
-    navigate('/login');
-  };
-
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'Articles', path: '/articles' },
@@ -88,15 +83,6 @@ export function Header() {
                     style={{ color: '#475569' }}
                   >
                     Editor
-                  </Link>
-                )}
-                {hasReviewAssignments && (
-                  <Link
-                    to="/review/dashboard"
-                    className="px-3 py-2 text-sm font-medium whitespace-nowrap transition-colors hover:opacity-80"
-                    style={{ color: '#475569' }}
-                  >
-                    Reviewer
                   </Link>
                 )}
                 <Link
@@ -209,7 +195,7 @@ export function Header() {
                   )}
                   {hasReviewAssignments && (
                     <Link
-                      to="/review/dashboard"
+                      to="/dashboard"
                       onClick={() => setMobileMenuOpen(false)}
                       className="block w-full rounded border border-gray-300 px-4 py-2 text-center text-sm font-medium text-gray-700 hover:bg-gray-50"
                     >

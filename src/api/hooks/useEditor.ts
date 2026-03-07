@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiClient, type Submission } from '../../lib/api';
+import { apiClient, type Submission, type Reviewer } from '../../lib/api';
 import { API_ENDPOINTS } from '../endpoints';
 
 export const QUERY_KEYS = {
   editorSubmissions: ['editor-submissions'],
   editorSubmission: (id: string) => ['editor-submissions', id],
+  reviewers: ['reviewers'],
 };
 
 export function useEditorSubmissions(status?: string) {
@@ -153,6 +154,20 @@ export function useRemindReviewer() {
   return useMutation({
     mutationFn: async (assignmentId: string) => {
       return await apiClient.post(API_ENDPOINTS.editor.remindReviewer(assignmentId), {});
+    },
+  });
+}
+
+export function useReviewers() {
+  return useQuery<Reviewer[]>({
+    queryKey: QUERY_KEYS.reviewers,
+    queryFn: async () => {
+      const { data, error } = await apiClient.get<Reviewer[]>(API_ENDPOINTS.editor.reviewers);
+      if (error) {
+        console.error('Error fetching reviewers:', error);
+        return [];
+      }
+      return data || [];
     },
   });
 }

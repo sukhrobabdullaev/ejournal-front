@@ -19,6 +19,7 @@ export const API_ENDPOINTS = {
   editor: {
     submissions: '/editor/submissions',
     submissionDetail: (id: string) => `/editor/submissions/${id}`,
+    reviewers: '/editor/reviewers',
     startScreening: (id: string) => `/editor/submissions/${id}/start-screening/`,
     deskReject: (id: string) => `/editor/submissions/${id}/desk-reject/`,
     sendToReview: (id: string) => `/editor/submissions/${id}/send-to-review/`,

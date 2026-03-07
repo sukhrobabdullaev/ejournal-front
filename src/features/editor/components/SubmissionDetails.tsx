@@ -1,6 +1,6 @@
 import React from 'react';
 import { FileText } from 'lucide-react';
-import type { Submission, ReviewAssignment } from '../../../lib/api';
+import type { Submission, ReviewAssignment, Reviewer } from '../../../lib/api';
 import { getStatusLabel, getStatusChipClasses } from '../utils';
 import { ReviewerInviteForm } from './ReviewerInviteForm';
 import { EditorialDecisionForm } from './EditorialDecisionForm';
@@ -8,10 +8,14 @@ import { WorkflowActions } from './WorkflowActions';
 
 interface SubmissionDetailsProps {
   submission: Submission | null;
+  reviewers: Reviewer[];
+  isLoadingReviewers: boolean;
   inviteEmail: string;
   inviteDueDate: string;
+  selectedReviewerId: number | null;
   decision: 'accept' | 'reject' | 'revision_required';
   decisionLetter: string;
+  onReviewerSelect: (reviewerId: number | null) => void;
   onInviteEmailChange: (email: string) => void;
   onInviteDueDateChange: (date: string) => void;
   onInviteReviewer: () => void;
@@ -31,10 +35,14 @@ interface SubmissionDetailsProps {
 
 export const SubmissionDetails: React.FC<SubmissionDetailsProps> = ({
   submission,
+  reviewers,
+  isLoadingReviewers,
   inviteEmail,
   inviteDueDate,
+  selectedReviewerId,
   decision,
   decisionLetter,
+  onReviewerSelect,
   onInviteEmailChange,
   onInviteDueDateChange,
   onInviteReviewer,
@@ -184,8 +192,12 @@ export const SubmissionDetails: React.FC<SubmissionDetailsProps> = ({
       {/* Reviewer invite form */}
       {['screening', 'under_review'].includes(submission.status) && (
         <ReviewerInviteForm
+          reviewers={reviewers}
+          isLoadingReviewers={isLoadingReviewers}
           email={inviteEmail}
           dueDate={inviteDueDate}
+          selectedReviewerId={selectedReviewerId}
+          onReviewerSelect={onReviewerSelect}
           onEmailChange={onInviteEmailChange}
           onDueDateChange={onInviteDueDateChange}
           onSubmit={onInviteReviewer}

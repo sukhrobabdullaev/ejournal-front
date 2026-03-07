@@ -56,9 +56,6 @@ const ReviewInvite = React.lazy(() =>
 const ReviewInviteNew = React.lazy(() =>
   import('./pages/ReviewInviteNew').then((m) => ({ default: m.ReviewInviteNew }))
 );
-const ReviewDashboard = React.lazy(() =>
-  import('./pages/ReviewDashboard').then((m) => ({ default: m.ReviewDashboard }))
-);
 const ReviewAssignmentDetail = React.lazy(() =>
   import('./pages/ReviewAssignmentDetail').then((m) => ({
     default: m.ReviewAssignmentDetail,
@@ -103,7 +100,6 @@ export default function App() {
                 <Route path="/editor/submissions/:id" element={<EditorSubmissionDetail />} />
                 <Route path="/review-invite" element={<ReviewInvite />} />
                 <Route path="/review/invite/:token" element={<ReviewInviteNew />} />
-                <Route path="/review/dashboard" element={<ReviewDashboard />} />
                 <Route path="/review/assignments/:id" element={<ReviewAssignmentDetail />} />
               </Routes>
             </ReactSuspense>

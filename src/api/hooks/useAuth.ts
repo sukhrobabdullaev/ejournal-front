@@ -106,7 +106,7 @@ export function useResendVerification() {
 
 export function useMyRole() {
   const { data: user } = useCurrentUser();
-  
+
   return useQuery<string | null>({
     queryKey: QUERY_KEYS.myRole,
     queryFn: () => {

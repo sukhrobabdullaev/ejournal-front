@@ -15,12 +15,14 @@ import {
   publishSubmission,
   remindReviewer,
 } from '../lib/queries-api';
-import {
-  EditorTab,
-  SubmissionsList,
-  SubmissionDetails,
-} from '../features/editor/components';
+import { EditorTab, SubmissionsList, SubmissionDetails } from '../features/editor/components';
 import { ApiError } from '../features/editor/utils';
+
+const API_BASE_URL =
+  (typeof import.meta !== 'undefined' &&
+    (import.meta as any).env &&
+    (import.meta as any).env.VITE_API_BASE_URL) ||
+  'https://api.uzfintex.uz/api';
 
 type TabType = 'new' | 'screening' | 'review' | 'decisions';
 
@@ -35,6 +37,7 @@ export function EditorDashboard() {
 
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteDueDate, setInviteDueDate] = useState('');
+  const [selectedReviewerId, setSelectedReviewerId] = useState<number | null>(null);
   const [decision, setDecision] = useState<'accept' | 'reject' | 'revision_required'>('accept');
   const [decisionLetter, setDecisionLetter] = useState('');
 
@@ -55,6 +58,24 @@ export function EditorDashboard() {
   const allSubmissions: Submission[] = data ?? [];
   console.log('allSubmissions', allSubmissions);
 
+  // Fetch reviewers for the invite dropdown
+  const { data: reviewers = [], isLoading: isLoadingReviewers } = useQuery({
+    queryKey: ['reviewers'],
+    queryFn: async () => {
+      const response = await fetch(`${API_BASE_URL}/editor/reviewers`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('ejournal_access_token')}`,
+        },
+      });
+      if (!response.ok) {
+        console.error('Failed to fetch reviewers');
+        return [];
+      }
+      return response.json();
+    },
+    enabled: authorized,
+  });
+
   const newCount = allSubmissions.filter((s) => s.status === 'submitted').length;
   const screeningCount = allSubmissions.filter((s) => s.status === 'screening').length;
   const reviewCount = allSubmissions.filter((s) => s.status === 'under_review').length;
@@ -73,14 +94,17 @@ export function EditorDashboard() {
       case 'review':
         return s.status === 'under_review';
       case 'decisions':
-        return ['decision_pending', 'revision_required', 'accepted', 'rejected', 'published'].includes(
-          s.status
-        );
+        return [
+          'decision_pending',
+          'revision_required',
+          'accepted',
+          'rejected',
+          'published',
+        ].includes(s.status);
       default:
         return true;
     }
   });
-
 
   const loading = roleLoading || (authorized && subsLoading);
 
@@ -125,21 +149,19 @@ export function EditorDashboard() {
       const apiError = err as ApiError;
       setError(
         apiError.detail ||
-        apiError.message ||
-        'Failed to move submission to review. Make sure at least one reviewer is invited.'
+          apiError.message ||
+          'Failed to move submission to review. Make sure at least one reviewer is invited.'
       );
     },
   });
 
   const inviteReviewerMutation = useMutation({
-    mutationFn: () =>
-      inviteReviewer(selectedSubmission!.id.toString(), {
-        reviewer_email: inviteEmail,
-        due_date: inviteDueDate || new Date().toISOString().slice(0, 10),
-      }),
+    mutationFn: (params: { submissionId: string; data: any }) =>
+      inviteReviewer(params.submissionId, params.data),
     onSuccess: async () => {
       setSuccess('Reviewer invited successfully.');
       setInviteEmail('');
+      setSelectedReviewerId(null);
       setInviteDueDate('');
       await refreshSelected();
     },
@@ -219,10 +241,26 @@ export function EditorDashboard() {
   };
 
   const handleInviteReviewer = () => {
-    if (!selectedSubmission || !inviteEmail) return;
+    if (!selectedSubmission) return;
+    if (!selectedReviewerId && !inviteEmail) return;
+
     setSuccess(null);
     setError(null);
-    inviteReviewerMutation.mutate();
+
+    const requestData: any = {
+      due_date: inviteDueDate || new Date().toISOString().slice(0, 10),
+    };
+
+    if (selectedReviewerId) {
+      requestData.reviewer_user_id = selectedReviewerId;
+    } else {
+      requestData.reviewer_email = inviteEmail;
+    }
+
+    inviteReviewerMutation.mutate({
+      submissionId: selectedSubmission.id.toString(),
+      data: requestData,
+    });
   };
 
   const handleRemindReviewer = (assignment: ReviewAssignment) => {
@@ -393,10 +431,14 @@ export function EditorDashboard() {
           <div className="border border-gray-300 bg-white">
             <SubmissionDetails
               submission={selectedSubmission}
+              reviewers={reviewers}
+              isLoadingReviewers={isLoadingReviewers}
               inviteEmail={inviteEmail}
               inviteDueDate={inviteDueDate}
+              selectedReviewerId={selectedReviewerId}
               decision={decision}
               decisionLetter={decisionLetter}
+              onReviewerSelect={setSelectedReviewerId}
               onInviteEmailChange={setInviteEmail}
               onInviteDueDateChange={setInviteDueDate}
               onInviteReviewer={handleInviteReviewer}

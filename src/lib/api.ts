@@ -332,3 +332,12 @@ export interface EditorialBoardMember {
   profile_image_url: string;
   role: string;
 }
+
+export interface Reviewer {
+  id: number;
+  email: string;
+  full_name: string;
+  affiliation: string;
+  country: string;
+  is_approved_reviewer: boolean;
+}
