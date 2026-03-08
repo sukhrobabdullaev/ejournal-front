@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router';
-import { AlertCircle, ArrowLeft, FileText, Save, Send, Upload, X } from 'lucide-react';
+import { AlertCircle, ArrowLeft, FileText, Save, Send, Trash2, X } from 'lucide-react';
 import type { Submission, TopicArea } from '../../lib/api';
 import {
   createSubmission,
+  deleteSubmission,
   getSubmissionById,
   getTopicAreas,
   isAuthenticated,
@@ -59,6 +60,7 @@ export function SubmitPaperForm({
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -270,6 +272,34 @@ export function SubmitPaperForm({
   };
 
   const canSubmit = submission?.status === 'draft' && Boolean(submission?.manuscript_pdf?.trim());
+  const isDraftSaved = Boolean(submission?.id);
+
+  const handleDeleteDraft = async () => {
+    if (!submission?.id || submission.status !== 'draft') return;
+    if (!window.confirm('Delete this draft? This cannot be undone.')) return;
+
+    try {
+      setDeleting(true);
+      setError(null);
+      const { error } = await deleteSubmission(submission.id.toString());
+      if (error) {
+        setError(typeof error === 'object' && error?.detail ? String(error.detail) : 'Only drafts can be deleted.');
+        return;
+      }
+      setSubmission(null);
+      setForm({ title: '', abstract: '', keywords: [], topic_area_id: null });
+      setKeywordDraft('');
+      setPolicies({ originality: false, plagiarism: false, ethics: false, copyright: false });
+      setManuscriptFile(null);
+      setSupplementaryFiles([]);
+      setSuccess('Draft deleted.');
+      navigate('/submit');
+    } catch (err: any) {
+      setError(err.message || 'Failed to delete draft');
+    } finally {
+      setDeleting(false);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!submission) return;
@@ -600,31 +630,52 @@ export function SubmitPaperForm({
 
         {/* Actions */}
         <section className="border border-gray-300 bg-white p-6">
-          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end">
-            <button
-              type="button"
-              onClick={handleSaveDraftAndUploads}
-              disabled={saving || uploading || submitting}
-              className="inline-flex items-center justify-center gap-2 bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
-            >
-              <Save className="h-4 w-4" />
-              {saving || uploading ? 'Saving...' : 'Save Draft'}
-            </button>
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-end sm:items-center">
+            {!isDraftSaved && (
+              <button
+                type="button"
+                onClick={handleSaveDraftAndUploads}
+                disabled={saving || uploading || submitting}
+                className="inline-flex items-center justify-center gap-2 bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+              >
+                <Save className="h-4 w-4" />
+                {saving || uploading ? 'Saving...' : 'Save Draft'}
+              </button>
+            )}
 
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={!canSubmit || saving || uploading || submitting}
-              className="inline-flex items-center justify-center gap-2 bg-green-600 px-5 py-3 text-sm font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-400"
-            >
-              <Send className="h-4 w-4" />
-              {submitting ? 'Submitting...' : 'Submit'}
-            </button>
+            {isDraftSaved && (
+              <>
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={!canSubmit || saving || uploading || submitting}
+                  className="inline-flex items-center justify-center gap-2 bg-green-600 px-5 py-3 text-sm font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+                >
+                  <Send className="h-4 w-4" />
+                  {submitting ? 'Submitting...' : 'Submit'}
+                </button>
+                {submission?.status === 'draft' && (
+                  <button
+                    type="button"
+                    onClick={handleDeleteDraft}
+                    disabled={deleting || saving || submitting}
+                    className="inline-flex items-center justify-center gap-2 border border-red-300 bg-white px-5 py-3 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    {deleting ? 'Deleting...' : 'Delete draft'}
+                  </button>
+                )}
+              </>
+            )}
           </div>
-          {!canSubmit && (
+          {isDraftSaved && !canSubmit && (
             <p className="mt-3 text-xs text-gray-500">
-              Submit becomes available after the draft is created and the manuscript PDF is
-              uploaded.
+              Upload the manuscript PDF to submit.
+            </p>
+          )}
+          {!isDraftSaved && (
+            <p className="mt-3 text-xs text-gray-500">
+              Save draft first, then upload files and submit.
             </p>
           )}
         </section>

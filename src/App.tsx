@@ -96,6 +96,7 @@ export default function App() {
                 <Route path="/verify-email" element={<VerifyEmail />} />
                 <Route path="/dashboard" element={<DashboardNew />} />
                 <Route path="/submission/:id" element={<SubmissionDetail />} />
+                <Route path="/submissions/:id" element={<SubmissionDetail />} />
                 <Route path="/editor" element={<EditorDashboard />} />
                 <Route path="/editor/submissions/:id" element={<EditorSubmissionDetail />} />
                 <Route path="/review-invite" element={<ReviewInvite />} />

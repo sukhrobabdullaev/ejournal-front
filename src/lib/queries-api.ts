@@ -181,7 +181,7 @@ export async function updateSubmission(
   id: string,
   updates: Partial<Submission>
 ): Promise<{ data: Submission | null; error: any }> {
-  return await apiClient.post<Submission>(`/submissions/${id}/`, updates);
+  return await apiClient.patch<Submission>(`/submissions/${id}/`, updates);
 }
 
 export async function uploadSubmissionFile(
@@ -208,7 +208,7 @@ export async function resubmitSubmission(
 }
 
 export async function deleteSubmission(id: string): Promise<{ data: any; error: any }> {
-  return await apiClient.delete(`/submissions/${id}`);
+  return await apiClient.delete(`/submissions/${id}/`);
 }
 
 // ==========================================

@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import type { Submission } from '../lib/api';
-import { getSubmissionById, submitSubmission } from '../lib/queries-api';
-import { FileText, ArrowLeft } from 'lucide-react';
+import { deleteSubmission, getSubmissionById, submitSubmission } from '../lib/queries-api';
+import { FileText, ArrowLeft, Trash2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 
 export function SubmissionDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const {
     data: submission,
@@ -31,6 +32,21 @@ export function SubmissionDetail() {
       queryClient.invalidateQueries({ queryKey: ['submission', id] });
     },
     onError: (err: any) => console.error('Error submitting manuscript:', err),
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteSubmission(submission!.id.toString()),
+    onSuccess: ({ error }: any) => {
+      if (error) {
+        const msg = typeof error === 'object' && error?.detail ? String(error.detail) : 'Only drafts can be deleted.';
+        setDeleteError(msg);
+        return;
+      }
+      queryClient.invalidateQueries({ queryKey: ['submissions'] });
+      queryClient.invalidateQueries({ queryKey: ['my-submissions'] });
+      navigate('/submit');
+    },
+    onError: (err: any) => setDeleteError(err.message || 'Failed to delete draft'),
   });
 
   if (loading) {
@@ -91,13 +107,26 @@ export function SubmissionDetail() {
             <div className="flex items-center gap-3">
               <span className={statusClass}>{statusLabel}</span>
               {submission.status === 'draft' && (
-                <button
-                  onClick={() => submitMutation.mutate()}
-                  disabled={submitMutation.isPending}
-                  className="bg-blue-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
-                >
-                  {submitMutation.isPending ? 'Submitting...' : 'Submit Manuscript'}
-                </button>
+                <>
+                  <button
+                    onClick={() => submitMutation.mutate()}
+                    disabled={submitMutation.isPending}
+                    className="bg-blue-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+                  >
+                    {submitMutation.isPending ? 'Submitting...' : 'Submit Manuscript'}
+                  </button>
+                  <button
+                    onClick={() =>
+                      window.confirm('Delete this draft? This cannot be undone.') &&
+                      deleteMutation.mutate()
+                    }
+                    disabled={deleteMutation.isPending}
+                    className="inline-flex items-center gap-1 border border-red-300 bg-white px-4 py-2 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                    {deleteMutation.isPending ? 'Deleting...' : 'Delete draft'}
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -106,6 +135,18 @@ export function SubmissionDetail() {
 
       {/* Body */}
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
+        {deleteError && (
+          <div className="mb-4 border border-red-300 bg-red-50 p-3 text-sm text-red-800">
+            {deleteError}
+            <button
+              type="button"
+              onClick={() => setDeleteError(null)}
+              className="ml-2 font-medium underline"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
         {/* Manuscript details */}
         <div className="mb-6 border border-gray-300 bg-white p-6">
           <h2 className="mb-4 text-lg font-semibold text-gray-900">Manuscript Details</h2>

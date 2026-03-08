@@ -57,7 +57,7 @@ export function useUpdateSubmission() {
 
   return useMutation({
     mutationFn: async ({ id, updates }: { id: string; updates: Partial<Submission> }) => {
-      return await apiClient.post<Submission>(API_ENDPOINTS.submissions.update(id), updates);
+      return await apiClient.patch<Submission>(API_ENDPOINTS.submissions.update(id), updates);
     },
     onSuccess: (_, { id }) => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEYS.submission(id) });
