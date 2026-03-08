@@ -23,12 +23,14 @@ interface SubmissionDetailsProps {
   onDecisionLetterChange: (letter: string) => void;
   onMakeDecision: () => void;
   onStartScreening: () => void;
+  onDeskReject: () => void;
   onSendToReview: () => void;
   onMoveToDecision: () => void;
   onPublish: () => void;
   inviting: boolean;
   deciding: boolean;
   movingToDecision: boolean;
+  deskRejecting: boolean;
   publishing: boolean;
 }
 
@@ -48,15 +50,21 @@ export const SubmissionDetails: React.FC<SubmissionDetailsProps> = ({
   onDecisionLetterChange,
   onMakeDecision,
   onStartScreening,
+  onDeskReject,
   onSendToReview,
   onMoveToDecision,
   onPublish,
   inviting,
   deciding,
   movingToDecision,
+  deskRejecting,
   publishing,
 }) => {
   const [selectedAssignment, setSelectedAssignment] = React.useState<ReviewAssignment | null>(null);
+
+  const deskRejectReason = submission
+    ? submission.desk_reject_reason || submission.reason || ''
+    : '';
 
   if (!submission) {
     return (
@@ -194,6 +202,42 @@ export const SubmissionDetails: React.FC<SubmissionDetailsProps> = ({
         )}
       </div>
 
+      {/* Editorial outcome / desk reject */}
+      {(deskRejectReason || submission.editorial_decision || submission.decision_letter) && (
+        <div>
+          <h4 className="mb-2 text-sm font-semibold text-gray-700">Editorial Outcome</h4>
+
+          {submission.status === 'desk_rejected' && (
+            <span className="mb-2 inline-flex items-center rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700">
+              Desk Rejected
+            </span>
+          )}
+
+          {deskRejectReason && (
+            <div className="mt-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+              <span className="font-semibold">Desk Reject Reason:</span>{' '}
+              <span>{deskRejectReason}</span>
+            </div>
+          )}
+
+          {submission.editorial_decision && (
+            <p className="mt-3 text-sm text-gray-700">
+              <span className="font-semibold">Decision:</span>{' '}
+              <span className="capitalize">{submission.editorial_decision.replace('_', ' ')}</span>
+            </p>
+          )}
+
+          {submission.decision_letter && (
+            <div className="mt-3 rounded-md border border-gray-200 bg-gray-50 p-3">
+              <p className="mb-1 text-xs font-semibold text-gray-500">Decision Letter</p>
+              <p className="whitespace-pre-wrap text-sm text-gray-700">
+                {submission.decision_letter}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Reviewer invite form */}
       {submission.status === 'screening' && (
         <ReviewerInviteForm
@@ -227,10 +271,12 @@ export const SubmissionDetails: React.FC<SubmissionDetailsProps> = ({
       <WorkflowActions
         submission={submission}
         onStartScreening={onStartScreening}
+        onDeskReject={onDeskReject}
         onSendToReview={onSendToReview}
         onMoveToDecision={onMoveToDecision}
         onPublish={onPublish}
         movingToDecision={movingToDecision}
+        deskRejecting={deskRejecting}
         publishing={publishing}
       />
 

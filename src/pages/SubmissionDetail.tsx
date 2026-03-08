@@ -78,6 +78,7 @@ export function SubmissionDetail() {
 
   const statusLabel = getStatusLabel(submission.status);
   const statusClass = getStatusChipClasses(submission.status);
+  const deskRejectReason = submission.desk_reject_reason || submission.reason || '';
 
   return (
     <div className="min-h-screen bg-white">
@@ -263,6 +264,44 @@ export function SubmissionDetail() {
             </div>
           )}
         </div>
+
+        {/* Editorial outcome (for desk reject / decisions) */}
+        {(deskRejectReason || submission.editorial_decision || submission.decision_letter) && (
+          <div className="mt-6 border border-gray-300 bg-white p-6">
+            <h2 className="mb-3 text-lg font-semibold text-gray-900">Editorial Outcome</h2>
+
+            {submission.status === 'desk_rejected' && (
+              <p className="mb-2 text-sm font-medium text-red-700">
+                Your manuscript was <span className="font-semibold">desk rejected</span>.
+              </p>
+            )}
+
+            {deskRejectReason && (
+              <div className="mt-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+                <span className="font-semibold">Reason:</span>{' '}
+                <span>{deskRejectReason}</span>
+              </div>
+            )}
+
+            {submission.editorial_decision && (
+              <p className="mt-3 text-sm text-gray-700">
+                <span className="font-semibold">Decision:</span>{' '}
+                <span className="capitalize">
+                  {submission.editorial_decision.replace('_', ' ')}
+                </span>
+              </p>
+            )}
+
+            {submission.decision_letter && (
+              <div className="mt-3 rounded-md border border-gray-200 bg-gray-50 p-3">
+                <p className="mb-1 text-xs font-semibold text-gray-500">Decision Letter</p>
+                <p className="whitespace-pre-wrap text-sm text-gray-700">
+                  {submission.decision_letter}
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

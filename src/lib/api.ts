@@ -267,6 +267,8 @@ export interface Submission {
   created_at: string;
   updated_at: string;
   author?: number;
+  // Some APIs return `reason` instead of `desk_reject_reason`
+  reason?: string;
   desk_reject_reason?: string;
   editorial_decision?: string;
   decision_letter?: string;

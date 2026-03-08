@@ -9,6 +9,7 @@ import {
   getSubmissionByIdForEditor,
   inviteReviewer,
   startScreening,
+  deskReject,
   sendToReview,
   moveToDecision,
   makeEditorialDecision,
@@ -40,6 +41,8 @@ export function EditorDashboard() {
   const [decision, setDecision] = useState<'accept' | 'reject' | 'revision_required'>('accept');
   const [decisionLetter, setDecisionLetter] = useState('');
   const [showSendToReviewModal, setShowSendToReviewModal] = useState(false);
+  const [showDeskRejectModal, setShowDeskRejectModal] = useState(false);
+  const [deskRejectReason, setDeskRejectReason] = useState('');
 
   const { data: role, isLoading: roleLoading } = useQuery({
     queryKey: ['my-role'],
@@ -80,7 +83,7 @@ export function EditorDashboard() {
   const screeningCount = allSubmissions.filter((s) => s.status === 'screening').length;
   const reviewCount = allSubmissions.filter((s) => s.status === 'under_review').length;
   const decisionsCount = allSubmissions.filter((s) =>
-    ['decision_pending', 'revision_required', 'accepted', 'rejected', 'published'].includes(
+    ['decision_pending', 'revision_required', 'accepted', 'rejected', 'desk_rejected', 'published'].includes(
       s.status
     )
   ).length;
@@ -99,6 +102,7 @@ export function EditorDashboard() {
           'revision_required',
           'accepted',
           'rejected',
+          'desk_rejected',
           'published',
         ].includes(s.status);
       default:
@@ -139,6 +143,22 @@ export function EditorDashboard() {
     onError: (err) => setError((err as Error).message || 'Failed to move submission to screening'),
   });
 
+  const deskRejectMutation = useMutation({
+    mutationFn: (reason: string) =>
+      deskReject(selectedSubmission!.id.toString(), reason),
+    onSuccess: async () => {
+      setSuccess('Submission desk rejected.');
+      setShowDeskRejectModal(false);
+      setDeskRejectReason('');
+      setSelectedSubmission(null);
+      queryClient.invalidateQueries({ queryKey: ['editor-submissions'] });
+    },
+    onError: (err) => {
+      const apiError = err as ApiError;
+      setError(apiError.detail || apiError.message || 'Failed to desk reject submission');
+    },
+  });
+
   const sendToReviewMutation = useMutation({
     mutationFn: () => sendToReview(selectedSubmission!.id.toString()),
     onSuccess: async () => {
@@ -149,8 +169,8 @@ export function EditorDashboard() {
       const apiError = err as ApiError;
       setError(
         apiError.detail ||
-          apiError.message ||
-          'Failed to move submission to review. Make sure at least one reviewer is invited.'
+        apiError.message ||
+        'Failed to move submission to review. Make sure at least one reviewer is invited.'
       );
     },
   });
@@ -158,7 +178,7 @@ export function EditorDashboard() {
   const inviteReviewerMutation = useMutation({
     mutationFn: async (params: { submissionId: string; reviewerIds: number[]; dueDate: string }) => {
       const { submissionId, reviewerIds, dueDate } = params;
-      
+
       // Send invitations to all selected reviewers
       const results = await Promise.allSettled(
         reviewerIds.map((reviewerId) =>
@@ -168,11 +188,11 @@ export function EditorDashboard() {
           })
         )
       );
-      
+
       // Collect success and failure information
       const successes = results.filter((r) => r.status === 'fulfilled');
       const failures = results.filter((r) => r.status === 'rejected') as PromiseRejectedResult[];
-      
+
       return {
         results,
         successes: successes.length,
@@ -183,14 +203,14 @@ export function EditorDashboard() {
     },
     onSuccess: async (data, variables) => {
       const { successes, failures, failureReasons, reviewerIds } = data;
-      
+
       if (failures > 0) {
         // Check if error is about already invited reviewers
-        const alreadyInvitedErrors = failureReasons.filter((reason: any) => 
-          reason?.detail?.includes('already invited') || 
+        const alreadyInvitedErrors = failureReasons.filter((reason: any) =>
+          reason?.detail?.includes('already invited') ||
           reason?.message?.includes('already invited')
         );
-        
+
         if (alreadyInvitedErrors.length === failures) {
           // All failures are "already invited"
           if (failures === reviewerIds.length) {
@@ -215,7 +235,7 @@ export function EditorDashboard() {
           `${successes} reviewer${successes > 1 ? 's' : ''} invited successfully. Invitation email${successes > 1 ? 's have' : ' has'} been sent.`
         );
       }
-      
+
       setSelectedReviewerIds([]);
       setInviteDueDate('');
       await refreshSelected();
@@ -281,12 +301,29 @@ export function EditorDashboard() {
   const inviting = inviteReviewerMutation.isPending;
   const deciding = makeDecisionMutation.isPending;
   const movingToDecision = moveToDecisionMutation.isPending;
+  const deskRejecting = deskRejectMutation.isPending;
   const publishing = publishMutation.isPending;
 
   const handleStartScreening = () => {
     setSuccess(null);
     setError(null);
     screeningMutation.mutate();
+  };
+
+  const handleDeskReject = () => {
+    setDeskRejectReason('');
+    setShowDeskRejectModal(true);
+  };
+
+  const confirmDeskReject = () => {
+    const reason = deskRejectReason.trim();
+    if (!reason) {
+      setError('Please provide a reason for desk rejection.');
+      return;
+    }
+    setError(null);
+    setSuccess(null);
+    deskRejectMutation.mutate(reason);
   };
 
   const handleSendToReview = () => {
@@ -498,17 +535,71 @@ export function EditorDashboard() {
               onDecisionLetterChange={setDecisionLetter}
               onMakeDecision={handleMakeDecision}
               onStartScreening={handleStartScreening}
+              onDeskReject={handleDeskReject}
               onSendToReview={handleSendToReview}
               onMoveToDecision={handleMoveToDecision}
               onPublish={handlePublish}
               inviting={inviting}
               deciding={deciding}
               movingToDecision={movingToDecision}
+              deskRejecting={deskRejecting}
               publishing={publishing}
             />
           </div>
         </div>
       </div>
+
+      {/* Desk Reject Modal */}
+      {showDeskRejectModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
+          <div className="m-4 w-full max-w-md rounded-lg bg-white shadow-xl">
+            <div className="border-b border-gray-200 px-6 py-4">
+              <h3 className="text-lg font-semibold text-gray-900">Desk Reject Submission</h3>
+            </div>
+            <div className="px-6 py-4">
+              <p className="mb-3 text-sm text-gray-700">
+                Provide a reason for desk rejection. This will be recorded and the submission will move to the Decisions list.
+              </p>
+              <textarea
+                value={deskRejectReason}
+                onChange={(e) => setDeskRejectReason(e.target.value)}
+                placeholder="e.g. Out of scope for our journal."
+                rows={4}
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500"
+              />
+            </div>
+            <div className="flex justify-end gap-3 border-t border-gray-200 px-6 py-4">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowDeskRejectModal(false);
+                  setDeskRejectReason('');
+                  setError(null);
+                }}
+                className="rounded bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeskReject}
+                disabled={deskRejecting || !deskRejectReason.trim()}
+                style={{
+                  backgroundColor: deskRejecting ? '#9ca3af' : '#ef4444',
+                  color: 'white',
+                  padding: '0.5rem 1rem',
+                  fontSize: '0.875rem',
+                  fontWeight: '500',
+                  borderRadius: '0.25rem',
+                  border: 'none',
+                }}
+              >
+                {deskRejecting ? 'Rejecting...' : 'Desk Reject'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Send to Review Confirmation Modal */}
       {showSendToReviewModal && (
@@ -519,7 +610,7 @@ export function EditorDashboard() {
             </div>
             <div className="px-6 py-4">
               <p className="text-sm text-gray-700">
-                Once you send this submission to review, you will no longer be able to assign additional reviewers. 
+                Once you send this submission to review, you will no longer be able to assign additional reviewers.
                 Are you sure you want to proceed?
               </p>
             </div>

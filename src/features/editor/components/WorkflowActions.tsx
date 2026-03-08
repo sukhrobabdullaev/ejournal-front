@@ -1,24 +1,28 @@
 import React from 'react';
-import { Eye, Send, CheckCircle } from 'lucide-react';
+import { Eye, Send, CheckCircle, XCircle } from 'lucide-react';
 import type { Submission } from '../../../lib/api';
 
 interface WorkflowActionsProps {
   submission: Submission;
   onStartScreening: () => void;
+  onDeskReject: () => void;
   onSendToReview: () => void;
   onMoveToDecision: () => void;
   onPublish: () => void;
   movingToDecision: boolean;
+  deskRejecting: boolean;
   publishing: boolean;
 }
 
 export const WorkflowActions: React.FC<WorkflowActionsProps> = ({
   submission,
   onStartScreening,
+  onDeskReject,
   onSendToReview,
   onMoveToDecision,
   onPublish,
   movingToDecision,
+  deskRejecting,
   publishing,
 }) => {
   return (
@@ -34,18 +38,29 @@ export const WorkflowActions: React.FC<WorkflowActionsProps> = ({
         </button>
       )}
 
-      {submission.status === 'screening' &&
-        submission.review_assignments &&
-        submission.review_assignments.length > 0 && (
+      {submission.status === 'screening' && (
+        <div className="flex flex-col gap-2 sm:flex-row">
+          {submission.review_assignments && submission.review_assignments.length > 0 && (
+            <button
+              type="button"
+              onClick={onSendToReview}
+              className="flex flex-1 items-center justify-center gap-2 bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
+            >
+              <Send className="h-4 w-4" />
+              Send to Review
+            </button>
+          )}
           <button
             type="button"
-            onClick={onSendToReview}
-            className="flex w-full items-center justify-center gap-2 bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
+            onClick={onDeskReject}
+            disabled={deskRejecting}
+            className="flex flex-1 items-center justify-center gap-2 border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            <Send className="h-4 w-4" />
-            Send to Review
+            <XCircle className="h-4 w-4" />
+            {deskRejecting ? 'Desk Rejecting...' : 'Desk Reject'}
           </button>
-        )}
+        </div>
+      )}
 
       {submission.status === 'under_review' && (
         <button
