@@ -32,6 +32,7 @@ export function Header() {
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'Articles', path: '/articles' },
+    { name: 'Journal Issues', path: '/journal-issues' },
     { name: 'Aims & Scope', path: '/aims-scope' },
     { name: 'Guidelines', path: '/guidelines' },
     { name: 'Editorial Board', path: '/editorial-board' },
