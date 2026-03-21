@@ -42,7 +42,7 @@ export function JournalIssueList() {
     }, 600);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [viewMode]);
 
   const now = new Date();
 
@@ -50,8 +50,14 @@ export function JournalIssueList() {
     viewMode === 'weekly'
       ? journalIssues.filter((issue) => {
           const issueDate = new Date(issue.date);
-          const msPerDay = 1000 * 60 * 60 * 24;
-          return Math.abs(now.getTime() - issueDate.getTime()) <= 7 * msPerDay;
+          // Determine start (Sunday) and end (Saturday) of the current calendar week
+          const startOfWeek = new Date(now);
+          startOfWeek.setDate(now.getDate() - now.getDay());
+          startOfWeek.setHours(0, 0, 0, 0);
+          const endOfWeek = new Date(startOfWeek);
+          endOfWeek.setDate(startOfWeek.getDate() + 6);
+          endOfWeek.setHours(23, 59, 59, 999);
+          return issueDate >= startOfWeek && issueDate <= endOfWeek;
         })
       : journalIssues.filter((issue) => {
           const issueDate = new Date(issue.date);
