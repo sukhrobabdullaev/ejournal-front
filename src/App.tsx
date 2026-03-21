@@ -56,6 +56,7 @@ const ReviewAssignmentDetail = lazyNamed(
   () => import('./pages/ReviewAssignmentDetail'),
   'ReviewAssignmentDetail'
 );
+const JournalIssues = lazyNamed(() => import('./pages/JournalIssues'), 'JournalIssues');
 
 export default function App() {
   return (
@@ -97,6 +98,7 @@ export default function App() {
                 <Route path="/review-invite" element={<ReviewInvite />} />
                 <Route path="/review/invite/:token" element={<ReviewInviteNew />} />
                 <Route path="/review/assignments/:id" element={<ReviewAssignmentDetail />} />
+                <Route path="/journal-issues" element={<JournalIssues />} />
               </Routes>
             </ReactSuspense>
           </main>
