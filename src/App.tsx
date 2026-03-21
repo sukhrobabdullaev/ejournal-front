@@ -5,61 +5,56 @@ import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { Toaster } from './components/ui/sonner';
 
-const Home = React.lazy(() => import('./pages/Home').then((m) => ({ default: m.Home })));
-const Articles = React.lazy(() =>
-  import('./pages/Articles').then((m) => ({ default: m.Articles }))
+function lazyNamed<T extends React.ComponentType<any>>(
+  importer: () => Promise<any>,
+  exportName: string
+) {
+  return React.lazy(async () => {
+    const module = await importer();
+    return { default: module[exportName] } as { default: T };
+  });
+}
+
+const Home = lazyNamed(() => import('./pages/Home'), 'Home');
+const Articles = lazyNamed(() => import('./pages/Articles'), 'Articles');
+const ArticleDetail = lazyNamed(() => import('./pages/ArticleDetail'), 'ArticleDetail');
+const SubmitPaper = lazyNamed(() => import('./pages/SubmitPaper'), 'SubmitPaper');
+const AuthorGuidelines = lazyNamed(
+  () => import('./pages/AuthorGuidelines'),
+  'AuthorGuidelines'
 );
-const ArticleDetail = React.lazy(() =>
-  import('./pages/ArticleDetail').then((m) => ({ default: m.ArticleDetail }))
+const AimsScope = lazyNamed(() => import('./pages/AimsScope'), 'AimsScope');
+const EditorialBoard = lazyNamed(
+  () => import('./pages/EditorialBoard'),
+  'EditorialBoard'
 );
-const SubmitPaper = React.lazy(() =>
-  import('./pages/SubmitPaper').then((m) => ({ default: m.SubmitPaper }))
+const Policies = lazyNamed(() => import('./pages/Policies'), 'Policies');
+const About = lazyNamed(() => import('./pages/About'), 'About');
+const Contact = lazyNamed(() => import('./pages/Contact'), 'Contact');
+const Login = lazyNamed(() => import('./pages/Login'), 'Login');
+const Register = lazyNamed(() => import('./pages/Register'), 'Register');
+const VerifyEmail = lazyNamed(() => import('./pages/VerifyEmail'), 'VerifyEmail');
+const DashboardNew = lazyNamed(() => import('./pages/DashboardNew'), 'DashboardNew');
+const SubmissionDetail = lazyNamed(
+  () => import('./pages/SubmissionDetail'),
+  'SubmissionDetail'
 );
-const AuthorGuidelines = React.lazy(() =>
-  import('./pages/AuthorGuidelines').then((m) => ({ default: m.AuthorGuidelines }))
+const EditorDashboard = lazyNamed(
+  () => import('./pages/EditorDashboard'),
+  'EditorDashboard'
 );
-const AimsScope = React.lazy(() =>
-  import('./pages/AimsScope').then((m) => ({ default: m.AimsScope }))
+const EditorSubmissionDetail = lazyNamed(
+  () => import('./pages/EditorSubmissionDetail'),
+  'EditorSubmissionDetail'
 );
-const EditorialBoard = React.lazy(() =>
-  import('./pages/EditorialBoard').then((m) => ({ default: m.EditorialBoard }))
+const ReviewInvite = lazyNamed(() => import('./pages/ReviewInvite'), 'ReviewInvite');
+const ReviewInviteNew = lazyNamed(
+  () => import('./pages/ReviewInviteNew'),
+  'ReviewInviteNew'
 );
-const Policies = React.lazy(() =>
-  import('./pages/Policies').then((m) => ({ default: m.Policies }))
-);
-const About = React.lazy(() => import('./pages/About').then((m) => ({ default: m.About })));
-const Contact = React.lazy(() => import('./pages/Contact').then((m) => ({ default: m.Contact })));
-const Login = React.lazy(() => import('./pages/Login').then((m) => ({ default: m.Login })));
-const Register = React.lazy(() =>
-  import('./pages/Register').then((m) => ({ default: m.Register }))
-);
-const VerifyEmail = React.lazy(() =>
-  import('./pages/VerifyEmail').then((m) => ({ default: m.VerifyEmail }))
-);
-const DashboardNew = React.lazy(() =>
-  import('./pages/DashboardNew').then((m) => ({ default: m.DashboardNew }))
-);
-const SubmissionDetail = React.lazy(() =>
-  import('./pages/SubmissionDetail').then((m) => ({ default: m.SubmissionDetail }))
-);
-const EditorDashboard = React.lazy(() =>
-  import('./pages/EditorDashboard').then((m) => ({ default: m.EditorDashboard }))
-);
-const EditorSubmissionDetail = React.lazy(() =>
-  import('./pages/EditorSubmissionDetail').then((m) => ({
-    default: m.EditorSubmissionDetail,
-  }))
-);
-const ReviewInvite = React.lazy(() =>
-  import('./pages/ReviewInvite').then((m) => ({ default: m.ReviewInvite }))
-);
-const ReviewInviteNew = React.lazy(() =>
-  import('./pages/ReviewInviteNew').then((m) => ({ default: m.ReviewInviteNew }))
-);
-const ReviewAssignmentDetail = React.lazy(() =>
-  import('./pages/ReviewAssignmentDetail').then((m) => ({
-    default: m.ReviewAssignmentDetail,
-  }))
+const ReviewAssignmentDetail = lazyNamed(
+  () => import('./pages/ReviewAssignmentDetail'),
+  'ReviewAssignmentDetail'
 );
 
 export default function App() {
