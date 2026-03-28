@@ -1,113 +1,104 @@
 import React from 'react';
-import { Eye, Send, CheckCircle, XCircle } from 'lucide-react';
+import { CheckCircle2, Eye, Send } from 'lucide-react';
 import type { Submission } from '../../../lib/api';
 
 interface WorkflowActionsProps {
   submission: Submission;
   onStartScreening: () => void;
-  onDeskReject: () => void;
   onSendToReview: () => void;
   onMoveToDecision: () => void;
   onPublish: () => void;
   movingToDecision: boolean;
-  deskRejecting: boolean;
   publishing: boolean;
 }
+
+const primaryButtonStyle: React.CSSProperties = {
+  transition: 'all 0.3s ease-in-out',
+  backgroundColor: '#1D4ED8',
+  color: '#FFFFFF',
+  borderColor: '#1D4ED8',
+};
+
+const WorkflowButton = ({
+  onClick,
+  disabled,
+  icon,
+  label,
+  style,
+}: {
+  onClick: () => void;
+  disabled?: boolean;
+  icon: React.ReactNode;
+  label: string;
+  style?: React.CSSProperties;
+}) => (
+  <button
+    type="button"
+    onClick={onClick}
+    disabled={disabled}
+    className="inline-flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold"
+    style={{
+      ...primaryButtonStyle,
+      ...style,
+      opacity: disabled ? 0.65 : 1,
+      cursor: disabled ? 'not-allowed' : 'pointer',
+    }}
+  >
+    {icon}
+    {label}
+  </button>
+);
 
 export const WorkflowActions: React.FC<WorkflowActionsProps> = ({
   submission,
   onStartScreening,
-  onDeskReject,
   onSendToReview,
   onMoveToDecision,
   onPublish,
   movingToDecision,
-  deskRejecting,
   publishing,
 }) => {
   return (
-    <div className="space-y-3 border-t border-gray-200 pt-4">
+    <div className="space-y-3 border-t pt-4" style={{ borderColor: '#E2E8F0' }}>
       {submission.status === 'submitted' && (
-        <button
-          type="button"
+        <WorkflowButton
           onClick={onStartScreening}
-          className="flex w-full items-center justify-center gap-2 bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
-          <Eye className="h-4 w-4" />
-          Move to Screening
-        </button>
+          icon={<Eye size={16} />}
+          label="Move to Screening"
+        />
       )}
 
       {submission.status === 'screening' && (
-        <div className="flex flex-col gap-2 sm:flex-row">
+        <div className="grid grid-cols-1 gap-2">
           {submission.review_assignments && submission.review_assignments.length > 0 && (
-            <button
-              type="button"
+            <WorkflowButton
               onClick={onSendToReview}
-              className="flex flex-1 items-center justify-center gap-2 bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
-            >
-              <Send className="h-4 w-4" />
-              Send to Review
-            </button>
+              icon={<Send size={16} />}
+              label="Send to Review"
+              style={{ backgroundColor: '#0F766E', borderColor: '#0F766E' }}
+            />
           )}
-          <button
-            type="button"
-            onClick={onDeskReject}
-            disabled={deskRejecting}
-            className="flex flex-1 items-center justify-center gap-2 border border-red-300 bg-white px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <XCircle className="h-4 w-4" />
-            {deskRejecting ? 'Desk Rejecting...' : 'Desk Reject'}
-          </button>
         </div>
       )}
 
       {submission.status === 'under_review' && (
-        <button
-          type="button"
+        <WorkflowButton
           onClick={onMoveToDecision}
           disabled={movingToDecision}
-          style={{
-            display: 'flex',
-            width: '100%',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '0.5rem',
-            backgroundColor: movingToDecision ? '#9ca3af' : '#4f46e5',
-            color: 'white',
-            padding: '0.5rem 1rem',
-            fontSize: '0.875rem',
-            fontWeight: '500',
-            borderRadius: '0.25rem',
-            border: 'none',
-            cursor: movingToDecision ? 'not-allowed' : 'pointer',
-            transition: 'background-color 0.2s',
-          }}
-          onMouseEnter={(e) => {
-            if (!movingToDecision) {
-              e.currentTarget.style.backgroundColor = '#4338ca';
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!movingToDecision) {
-              e.currentTarget.style.backgroundColor = '#4f46e5';
-            }
-          }}
-        >
-          {movingToDecision ? 'Moving to Decision...' : 'Move to Decision'}
-        </button>
+          icon={<CheckCircle2 size={16} />}
+          label={movingToDecision ? 'Moving to Decision...' : 'Move to Decision'}
+          style={{ backgroundColor: '#4338CA', borderColor: '#4338CA' }}
+        />
       )}
 
       {submission.status === 'accepted' && (
-        <button
-          type="button"
+        <WorkflowButton
           onClick={onPublish}
           disabled={publishing}
-          className="flex w-full items-center justify-center gap-2 bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:cursor-not-allowed disabled:bg-gray-400"
-        >
-          <CheckCircle className="h-4 w-4" />
-          {publishing ? 'Publishing...' : 'Publish Submission'}
-        </button>
+          icon={<CheckCircle2 size={16} />}
+          label={publishing ? 'Publishing...' : 'Publish Submission'}
+          style={{ backgroundColor: '#15803D', borderColor: '#15803D' }}
+        />
       )}
     </div>
   );

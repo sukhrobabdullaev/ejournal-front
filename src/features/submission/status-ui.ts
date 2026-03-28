@@ -1,4 +1,4 @@
-import type { SubmissionStatus } from '../../lib/api';
+﻿import type { SubmissionStatus } from '../../lib/api';
 
 export const getStatusLabel = (status: SubmissionStatus): string =>
   status
@@ -8,8 +8,6 @@ export const getStatusLabel = (status: SubmissionStatus): string =>
 
 export const getStatusChipClasses = (status: SubmissionStatus): string => {
   switch (status) {
-    case 'draft':
-      return 'inline-flex px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700 border border-gray-300';
     case 'submitted':
       return 'inline-flex px-3 py-1 text-xs font-medium rounded-full bg-blue-50 text-blue-700 border border-blue-300';
     case 'screening':

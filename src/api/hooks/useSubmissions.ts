@@ -117,16 +117,3 @@ export function useResubmitSubmission() {
     },
   });
 }
-
-export function useDeleteSubmission() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (id: string) => {
-      return await apiClient.delete(API_ENDPOINTS.submissions.delete(id));
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEYS.submissions });
-    },
-  });
-}

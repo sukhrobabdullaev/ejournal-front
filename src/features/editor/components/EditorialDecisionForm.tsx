@@ -9,6 +9,12 @@ interface EditorialDecisionFormProps {
   isLoading: boolean;
 }
 
+const options: Array<{ value: 'accept' | 'reject' | 'revision_required'; label: string }> = [
+  { value: 'accept', label: 'Accept' },
+  { value: 'revision_required', label: 'Revision Required' },
+  { value: 'reject', label: 'Reject' },
+];
+
 export const EditorialDecisionForm: React.FC<EditorialDecisionFormProps> = ({
   decision,
   decisionLetter,
@@ -18,52 +24,58 @@ export const EditorialDecisionForm: React.FC<EditorialDecisionFormProps> = ({
   isLoading,
 }) => {
   return (
-    <div className="space-y-2">
-      <p className="text-sm font-semibold text-gray-700">Editorial Decision</p>
-      <div className="flex gap-3 text-sm text-gray-700">
-        <label className="flex items-center gap-1">
-          <input
-            type="radio"
-            value="accept"
-            checked={decision === 'accept'}
-            onChange={() => onDecisionChange('accept')}
-          />
-          Accept
-        </label>
-        <label className="flex items-center gap-1">
-          <input
-            type="radio"
-            value="revision_required"
-            checked={decision === 'revision_required'}
-            onChange={() => onDecisionChange('revision_required')}
-          />
-          Revision Required
-        </label>
-        <label className="flex items-center gap-1">
-          <input
-            type="radio"
-            value="reject"
-            checked={decision === 'reject'}
-            onChange={() => onDecisionChange('reject')}
-          />
-          Reject
-        </label>
+    <section
+      className="rounded-xl border bg-[#F8FBFF] p-4"
+      style={{ borderColor: '#D8E4F6' }}
+    >
+      <h4 className="text-sm font-semibold text-[#0B1C4D]">Editorial Decision</h4>
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        {options.map((option) => {
+          const isSelected = decision === option.value;
+          return (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => onDecisionChange(option.value)}
+              className="rounded-lg border px-3 py-2 text-sm font-medium"
+              style={{
+                borderColor: isSelected ? '#1D4ED8' : '#C9DCF6',
+                backgroundColor: isSelected ? '#EAF3FF' : '#FFFFFF',
+                color: isSelected ? '#0B1C4D' : '#334155',
+                transition: 'all 0.3s ease-in-out',
+              }}
+            >
+              {option.label}
+            </button>
+          );
+        })}
       </div>
+
       <textarea
-        rows={4}
+        rows={5}
         value={decisionLetter}
-        onChange={(e) => onLetterChange(e.target.value)}
-        className="w-full border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-        placeholder="Decision letter to the author..."
+        onChange={(event) => onLetterChange(event.target.value)}
+        className="mt-3 w-full rounded-xl border bg-white px-3 py-2 text-sm text-slate-700 outline-none"
+        style={{ borderColor: '#C9DCF6', transition: 'all 0.3s ease-in-out' }}
+        placeholder="Write a clear decision letter for the author"
       />
+
       <button
         type="button"
         onClick={onSubmit}
         disabled={isLoading}
-        className="w-full bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+        className="mt-3 inline-flex w-full items-center justify-center rounded-xl border px-4 py-2.5 text-sm font-semibold text-white"
+        style={{
+          borderColor: '#1D4ED8',
+          backgroundColor: '#1D4ED8',
+          transition: 'all 0.3s ease-in-out',
+          opacity: isLoading ? 0.65 : 1,
+          cursor: isLoading ? 'not-allowed' : 'pointer',
+        }}
       >
         {isLoading ? 'Saving Decision...' : 'Save Decision'}
       </button>
-    </div>
+    </section>
   );
 };

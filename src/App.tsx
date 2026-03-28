@@ -18,6 +18,11 @@ function lazyNamed<T extends React.ComponentType<any>>(
 const Home = lazyNamed(() => import('./pages/Home'), 'Home');
 const Articles = lazyNamed(() => import('./pages/Articles'), 'Articles');
 const ArticleDetail = lazyNamed(() => import('./pages/ArticleDetail'), 'ArticleDetail');
+const PublishedIssues = lazyNamed(() => import('./pages/PublishedIssues'), 'PublishedIssues');
+const PublishedIssueDetail = lazyNamed(
+  () => import('./pages/PublishedIssueDetail'),
+  'PublishedIssueDetail'
+);
 const SubmitPaper = lazyNamed(() => import('./pages/SubmitPaper'), 'SubmitPaper');
 const AuthorGuidelines = lazyNamed(
   () => import('./pages/AuthorGuidelines'),
@@ -56,6 +61,14 @@ const ReviewAssignmentDetail = lazyNamed(
   () => import('./pages/ReviewAssignmentDetail'),
   'ReviewAssignmentDetail'
 );
+const CertificatePublic = lazyNamed(
+  () => import('./pages/CertificatePublic'),
+  'CertificatePublic'
+);
+const JournalCertificatePublic = lazyNamed(
+  () => import('./pages/JournalCertificatePublic'),
+  'JournalCertificatePublic'
+);
 
 export default function App() {
   return (
@@ -63,7 +76,7 @@ export default function App() {
       <Router>
         <div className="flex min-h-screen flex-col bg-white">
           <Header />
-          <main className="grow">
+          <main className="grow pt-2 md:pt-3">
             <ReactSuspense
               fallback={
                 <div className="flex min-h-[50vh] items-center justify-center">
@@ -76,6 +89,8 @@ export default function App() {
             >
               <Routes>
                 <Route path="/" element={<Home />} />
+                <Route path="/published" element={<PublishedIssues />} />
+                <Route path="/published/:issueId" element={<PublishedIssueDetail />} />
                 <Route path="/articles" element={<Articles />} />
                 <Route path="/articles/:articleSlug" element={<ArticleDetail />} />
                 <Route path="/submit" element={<SubmitPaper />} />
@@ -97,6 +112,8 @@ export default function App() {
                 <Route path="/review-invite" element={<ReviewInvite />} />
                 <Route path="/review/invite/:token" element={<ReviewInviteNew />} />
                 <Route path="/review/assignments/:id" element={<ReviewAssignmentDetail />} />
+                <Route path="/certificate/:code" element={<CertificatePublic />} />
+                <Route path="/journal-certificate/:code" element={<JournalCertificatePublic />} />
               </Routes>
             </ReactSuspense>
           </main>

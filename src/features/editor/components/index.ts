@@ -4,3 +4,4 @@ export { SubmissionDetails } from './SubmissionDetails';
 export { ReviewerInviteForm } from './ReviewerInviteForm';
 export { EditorialDecisionForm } from './EditorialDecisionForm';
 export { WorkflowActions } from './WorkflowActions';
+export { MakeJournalPanel } from './MakeJournalPanel';

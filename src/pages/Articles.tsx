@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router';
-import { Search, Filter, Download, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getPublishedArticles } from '../lib/queries-api';
 
@@ -109,16 +109,6 @@ export function Articles() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <p className="text-red-600">Failed to load articles. Please try again later.</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <h2 className="mb-2 text-2xl font-bold text-gray-900">Error Loading Articles</h2>
-        </div>
       </div>
     );
   }
@@ -278,7 +268,7 @@ export function Articles() {
 
                 {article.authors && article.authors.length > 0 && (
                   <p className="mb-3 text-sm" style={{ color: '#475569' }}>
-                    {article.authors.join(', ')}
+                    {article.authors.map((author) => author.full_name).join(', ')}
                   </p>
                 )}
 

@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { Send, Search, X, Check } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Check, Search, Send, UserRound, X } from 'lucide-react';
 
 interface Reviewer {
   id: number;
@@ -18,7 +18,9 @@ interface ReviewerInviteFormProps {
   onReviewerIdsSelect: (reviewerIds: number[]) => void;
   onDueDateChange: (date: string) => void;
   onSubmit: () => void;
+  onDeskReject: () => void;
   isLoading: boolean;
+  deskRejecting: boolean;
 }
 
 export const ReviewerInviteForm: React.FC<ReviewerInviteFormProps> = ({
@@ -30,321 +32,322 @@ export const ReviewerInviteForm: React.FC<ReviewerInviteFormProps> = ({
   onReviewerIdsSelect,
   onDueDateChange,
   onSubmit,
+  onDeskReject,
   isLoading,
+  deskRejecting,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  const canSubmit = selectedReviewerIds.length > 0;
+  const selectedReviewers = useMemo(
+    () => reviewers.filter((reviewer) => selectedReviewerIds.includes(reviewer.id)),
+    [reviewers, selectedReviewerIds]
+  );
 
-  // Check if a reviewer is already invited
-  const isReviewerAlreadyInvited = (reviewer: Reviewer) => {
-    return alreadyInvitedEmails.includes(reviewer.email.toLowerCase());
-  };
-
-  // Get count of already invited reviewers in selection
-  const alreadyInvitedCount = selectedReviewerIds.filter((id) => {
-    const reviewer = reviewers.find((r) => r.id === id);
-    return reviewer && isReviewerAlreadyInvited(reviewer);
-  }).length;
-
-  // Filter reviewers based on search query
   const filteredReviewers = useMemo(() => {
-    if (!searchQuery.trim()) return reviewers;
+    const normalizedQuery = searchQuery.trim().toLowerCase();
+    if (!normalizedQuery) {
+      return reviewers;
+    }
 
-    const query = searchQuery.toLowerCase();
-    return reviewers.filter(
-      (reviewer) =>
-        reviewer.full_name.toLowerCase().includes(query) ||
-        reviewer.email.toLowerCase().includes(query) ||
-        reviewer.affiliation.toLowerCase().includes(query) ||
-        reviewer.country.toLowerCase().includes(query)
+    return reviewers.filter((reviewer) =>
+      [reviewer.full_name, reviewer.email, reviewer.affiliation, reviewer.country]
+        .join(' ')
+        .toLowerCase()
+        .includes(normalizedQuery)
     );
   }, [reviewers, searchQuery]);
 
+  const alreadyInvitedSet = useMemo(
+    () => new Set(alreadyInvitedEmails.map((email) => email.toLowerCase())),
+    [alreadyInvitedEmails]
+  );
+
+  const isAlreadyInvited = (reviewer: Reviewer): boolean =>
+    alreadyInvitedSet.has(reviewer.email.toLowerCase());
+
   const toggleReviewer = (reviewerId: number) => {
-    onReviewerIdsSelect(
-      selectedReviewerIds.includes(reviewerId)
-        ? selectedReviewerIds.filter((id) => id !== reviewerId)
-        : [...selectedReviewerIds, reviewerId]
-    );
+    const updated = selectedReviewerIds.includes(reviewerId)
+      ? selectedReviewerIds.filter((id) => id !== reviewerId)
+      : [...selectedReviewerIds, reviewerId];
+
+    onReviewerIdsSelect(updated);
   };
 
-  const removeReviewer = (reviewerId: number) => {
-    onReviewerIdsSelect(selectedReviewerIds.filter((id) => id !== reviewerId));
-  };
-
-  const handleCloseModal = () => {
+  const closeModal = () => {
     setIsModalOpen(false);
     setSearchQuery('');
   };
 
-  const handleDone = () => {
-    setIsModalOpen(false);
-    setSearchQuery('');
-  };
-
-  const getSelectedReviewersData = () => {
-    return reviewers.filter((r) => selectedReviewerIds.includes(r.id));
-  };
+  const canSendInvitation =
+    !isLoading && selectedReviewerIds.length > 0 && dueDate.trim().length > 0;
 
   return (
-    <div className="space-y-2 border-t border-gray-200 pt-3">
-      <h4 className="text-sm font-semibold text-gray-700">Invite Reviewers</h4>
+    <section
+      className="rounded-xl border bg-[#F8FBFF] p-6"
+      style={{ borderColor: '#D8E4F6' }}
+    >
+      <h4 className="text-base font-semibold text-[#0B1C4D]">Invite Reviewers</h4>
 
-      <div className="space-y-2">
-        {/* Reviewer selection */}
-        <div className="relative">
-          <label className="mb-1 block text-xs font-medium text-gray-700">
-            Select Approved Reviewers
+      <div className="mt-5 space-y-5">
+        <div>
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Approved Reviewers
           </label>
+
           {isLoadingReviewers ? (
-            <div className="w-full border border-gray-300 px-3 py-2 text-sm text-gray-500">
+            <div className="rounded-xl border bg-white px-4 py-3 text-sm text-slate-500" style={{ borderColor: '#C9DCF6' }}>
               Loading reviewers...
             </div>
           ) : reviewers.length === 0 ? (
-            <div className="w-full border border-gray-300 px-3 py-2 text-sm text-gray-500">
-              No approved reviewers available
+            <div className="rounded-xl border bg-white px-4 py-3 text-sm text-slate-500" style={{ borderColor: '#C9DCF6' }}>
+              No approved reviewers available.
             </div>
           ) : (
-            <>
-              <button
-                type="button"
-                onClick={() => setIsModalOpen(true)}
-                className="w-full border border-gray-300 px-3 py-2 text-left text-sm hover:border-blue-500 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-              >
-                {selectedReviewerIds.length === 0
-                  ? 'Select reviewers...'
-                  : `${selectedReviewerIds.length} reviewer${selectedReviewerIds.length > 1 ? 's' : ''} selected`}
-              </button>
+            <button
+              type="button"
+              onClick={() => setIsModalOpen(true)}
+              className="w-full rounded-xl border bg-white px-4 py-3 text-left text-sm text-slate-700"
+              style={{ borderColor: '#C9DCF6', transition: 'all 0.3s ease-in-out' }}
+            >
+              {selectedReviewerIds.length === 0
+                ? 'Select reviewers'
+                : `${selectedReviewerIds.length} reviewer${selectedReviewerIds.length > 1 ? 's' : ''} selected`}
+            </button>
+          )}
 
-              {/* Selected reviewers cards */}
-              {selectedReviewerIds.length > 0 && (
-                <div className="mt-2 space-y-2">
-                  {getSelectedReviewersData().map((reviewer) => {
-                    const alreadyInvited = isReviewerAlreadyInvited(reviewer);
-                    return (
-                      <div
-                        key={reviewer.id}
-                        className={`flex items-start justify-between rounded border p-2 text-xs ${
-                          alreadyInvited
-                            ? 'border-yellow-300 bg-yellow-50'
-                            : 'border-blue-200 bg-blue-50'
-                        }`}
-                      >
-                        <div className="flex-1">
-                          <p
-                            className={`font-medium ${alreadyInvited ? 'text-yellow-900' : 'text-blue-900'}`}
-                          >
-                            {reviewer.full_name}
-                            {alreadyInvited && (
-                              <span className="ml-2 rounded bg-yellow-200 px-1.5 py-0.5 text-[10px] font-semibold text-yellow-800">
-                                Already Invited
-                              </span>
-                            )}
-                          </p>
-                          <p className={alreadyInvited ? 'text-yellow-700' : 'text-blue-700'}>
-                            {reviewer.email}
-                          </p>
-                          <p className={alreadyInvited ? 'text-yellow-600' : 'text-blue-600'}>
-                            {reviewer.affiliation}, {reviewer.country}
-                          </p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => removeReviewer(reviewer.id)}
-                          className={`ml-2 rounded p-1 ${
-                            alreadyInvited
-                              ? 'text-yellow-600 hover:bg-yellow-100'
-                              : 'text-blue-600 hover:bg-blue-100'
-                          }`}
-                        >
-                          <X className="h-4 w-4" />
-                        </button>
-                      </div>
-                    );
-                  })}
-                  {alreadyInvitedCount > 0 && (
-                    <div className="rounded border border-yellow-300 bg-yellow-50 p-2 text-xs text-yellow-800">
-                      ⚠️ {alreadyInvitedCount} reviewer{alreadyInvitedCount > 1 ? 's' : ''} already
-                      invited to this submission
+          {selectedReviewers.length > 0 && (
+            <div className="mt-3 space-y-3">
+              {selectedReviewers.map((reviewer) => {
+                const alreadyInvited = isAlreadyInvited(reviewer);
+
+                return (
+                  <div
+                    key={reviewer.id}
+                    className="flex items-start justify-between gap-3 rounded-xl border bg-white p-4"
+                    style={{
+                      borderColor: alreadyInvited ? '#FCD34D' : '#C9DCF6',
+                      transition: 'all 0.3s ease-in-out',
+                    }}
+                  >
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <p className="truncate text-base font-semibold leading-snug text-[#0B1C4D]">{reviewer.full_name}</p>
+                      <p className="truncate text-sm leading-snug text-slate-600">{reviewer.email}</p>
+                      <p className="truncate text-sm leading-snug text-slate-500">
+                        {reviewer.affiliation}, {reviewer.country}
+                      </p>
+                      {alreadyInvited && (
+                        <p className="mt-1 text-[11px] font-semibold text-amber-700">
+                          Already invited
+                        </p>
+                      )}
                     </div>
-                  )}
-                </div>
-              )}
-            </>
+
+                    <button
+                      type="button"
+                      onClick={() => toggleReviewer(reviewer.id)}
+                      className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border"
+                      style={{
+                        borderColor: '#C9DCF6',
+                        color: '#64748B',
+                        backgroundColor: '#F8FAFC',
+                        transition: 'all 0.3s ease-in-out',
+                      }}
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
           )}
         </div>
 
-        {/* Due date */}
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-700">
-            Review Due Date (optional)
+          <label className="mb-2 block text-xs font-semibold uppercase tracking-wide text-slate-500">
+            Review Due Date *
           </label>
           <input
             type="date"
             value={dueDate}
-            onChange={(e) => onDueDateChange(e.target.value)}
-            className="w-full border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            onChange={(event) => onDueDateChange(event.target.value)}
+            required
+            className="w-full rounded-xl border bg-white px-4 py-3 text-sm text-slate-700 outline-none"
+            style={{ borderColor: '#C9DCF6', transition: 'all 0.3s ease-in-out' }}
           />
-          {selectedReviewerIds.length > 1 && (
-            <p className="mt-1 text-xs text-gray-500">
-              Same due date will be applied to all selected reviewers
-            </p>
-          )}
         </div>
 
-        <button
-          type="button"
-          onClick={onSubmit}
-          disabled={isLoading || !canSubmit}
-          className="flex w-full items-center justify-center gap-2 bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
-        >
-          <Send className="h-4 w-4" />
-          {isLoading
-            ? 'Inviting...'
-            : selectedReviewerIds.length > 1
-              ? `Send ${selectedReviewerIds.length} Invitations`
-              : 'Send Invitation'}
-        </button>
+        <div className="grid grid-cols-1 gap-3 pt-1 sm:grid-cols-2">
+          <button
+            type="button"
+            onClick={onSubmit}
+            disabled={!canSendInvitation}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold text-white"
+            style={{
+              borderColor: '#1D4ED8',
+              backgroundColor: '#1D4ED8',
+              transition: 'all 0.3s ease-in-out',
+              opacity: canSendInvitation ? 1 : 0.65,
+              cursor: canSendInvitation ? 'pointer' : 'not-allowed',
+            }}
+          >
+            <Send size={15} />
+            {isLoading
+              ? 'Inviting...'
+              : selectedReviewerIds.length > 1
+                ? `Send ${selectedReviewerIds.length} Invitations`
+                : 'Send Invitation'}
+          </button>
+
+          <button
+            type="button"
+            onClick={onDeskReject}
+            disabled={deskRejecting}
+            className="inline-flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold"
+            style={{
+              borderColor: '#FCA5A5',
+              color: '#B91C1C',
+              backgroundColor: '#FFFFFF',
+              transition: 'all 0.3s ease-in-out',
+              opacity: deskRejecting ? 0.65 : 1,
+              cursor: deskRejecting ? 'not-allowed' : 'pointer',
+            }}
+          >
+            <X size={15} />
+            {deskRejecting ? 'Desk Rejecting...' : 'Desk Reject'}
+          </button>
+        </div>
       </div>
 
-      {/* Searchable Modal with Multi-select */}
       {isModalOpen && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm"
-          onClick={handleCloseModal}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm"
+          onClick={closeModal}
         >
           <div
-            className="m-4 flex max-h-[80vh] w-full max-w-2xl flex-col rounded-lg bg-white shadow-xl"
-            onClick={(e) => e.stopPropagation()}
+            className="saas-fade-menu flex max-h-[85vh] w-full max-w-2xl flex-col rounded-2xl border bg-white shadow-[0_22px_48px_rgba(15,23,42,0.22)]"
+            style={{ borderColor: '#D8E4F6', transition: 'all 0.3s ease-in-out' }}
+            onClick={(event) => event.stopPropagation()}
           >
-            {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-gray-200 px-4 py-3">
+            <div className="flex items-center justify-between border-b px-4 py-3" style={{ borderColor: '#E2E8F0' }}>
               <div>
-                <h3 className="text-lg font-semibold text-gray-900">Select Reviewers</h3>
-                {selectedReviewerIds.length > 0 && (
-                  <p className="text-xs text-gray-500">
-                    {selectedReviewerIds.length} reviewer{selectedReviewerIds.length > 1 ? 's' : ''}{' '}
-                    selected
-                  </p>
-                )}
+                <h5 className="text-sm font-semibold text-[#0B1C4D]">Select Reviewers</h5>
+                <p className="text-xs text-slate-500">
+                  {selectedReviewerIds.length} selected
+                </p>
               </div>
               <button
                 type="button"
-                onClick={handleCloseModal}
-                className="p-1 text-gray-400 hover:text-gray-600"
+                onClick={closeModal}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-md border"
+                style={{ borderColor: '#C9DCF6', transition: 'all 0.3s ease-in-out' }}
               >
-                <X className="h-5 w-5" />
+                <X size={15} />
               </button>
             </div>
 
-            {/* Search Bar */}
-            <div className="border-b border-gray-200 px-4 py-3">
+            <div className="border-b px-4 py-3" style={{ borderColor: '#E2E8F0' }}>
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
+                  autoFocus
                   type="text"
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search by name, email, affiliation, or country..."
-                  className="w-full rounded border border-gray-300 py-2 pl-10 pr-4 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                  autoFocus
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="Search by name, email, affiliation or country"
+                  className="w-full rounded-xl border bg-[#F8FBFF] py-2.5 pl-9 pr-3 text-sm text-slate-700 outline-none"
+                  style={{ borderColor: '#C9DCF6', transition: 'all 0.3s ease-in-out' }}
                 />
               </div>
             </div>
 
-            {/* Reviewers List with Checkboxes */}
-            <div className="flex-1 overflow-y-auto px-4 py-2">
+            <div className="flex-1 space-y-2 overflow-y-auto p-4">
               {filteredReviewers.length === 0 ? (
-                <div className="py-8 text-center text-gray-500">
-                  <p>No reviewers found matching "{searchQuery}"</p>
+                <div className="rounded-xl border border-dashed border-[#C9DCF6] bg-[#F8FBFF] px-4 py-6 text-center text-sm text-slate-600">
+                  No reviewers found.
                 </div>
               ) : (
-                <div className="space-y-1">
-                  {filteredReviewers.map((reviewer) => {
-                    const isSelected = selectedReviewerIds.includes(reviewer.id);
-                    const alreadyInvited = isReviewerAlreadyInvited(reviewer);
-                    return (
-                      <button
-                        key={reviewer.id}
-                        type="button"
-                        onClick={() => toggleReviewer(reviewer.id)}
-                        className={`flex w-full items-start gap-3 rounded border px-3 py-3 text-left transition-colors ${
-                          isSelected
-                            ? alreadyInvited
-                              ? 'border-yellow-400 bg-yellow-50'
-                              : 'border-blue-500 bg-blue-50'
-                            : alreadyInvited
-                              ? 'border-yellow-200 bg-yellow-50/30 hover:bg-yellow-50'
-                              : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                        }`}
+                filteredReviewers.map((reviewer) => {
+                  const selected = selectedReviewerIds.includes(reviewer.id);
+                  const alreadyInvited = isAlreadyInvited(reviewer);
+
+                  return (
+                    <button
+                      key={reviewer.id}
+                      type="button"
+                      onClick={() => toggleReviewer(reviewer.id)}
+                      className="flex w-full items-start gap-3 rounded-xl border p-3 text-left"
+                      style={{
+                        borderColor: selected ? '#93C5FD' : alreadyInvited ? '#FCD34D' : '#D8E4F6',
+                        backgroundColor: selected ? '#EFF6FF' : '#FFFFFF',
+                        boxShadow: selected ? '0 8px 16px rgba(37,99,235,0.10)' : 'none',
+                        transition: 'all 0.3s ease-in-out',
+                      }}
+                    >
+                      <span
+                        className="mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded border"
+                        style={{
+                          borderColor: selected ? '#1D4ED8' : '#C9DCF6',
+                          backgroundColor: selected ? '#1D4ED8' : '#FFFFFF',
+                          color: '#FFFFFF',
+                          transition: 'all 0.3s ease-in-out',
+                        }}
                       >
-                        <div
-                          className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border-2 ${
-                            isSelected
-                              ? alreadyInvited
-                                ? 'border-yellow-600 bg-yellow-600'
-                                : 'border-blue-600 bg-blue-600'
-                              : alreadyInvited
-                                ? 'border-yellow-400 bg-white'
-                                : 'border-gray-300 bg-white'
-                          }`}
-                        >
-                          {isSelected && <Check className="h-3 w-3 text-white" />}
-                        </div>
-                        <div className="flex-1">
-                          <div className="font-medium text-gray-900">
-                            {reviewer.full_name}
-                            {alreadyInvited && (
-                              <span className="ml-2 rounded bg-yellow-200 px-1.5 py-0.5 text-[10px] font-semibold text-yellow-800">
-                                Already Invited
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-sm text-gray-600">{reviewer.email}</div>
-                          <div className="mt-1 text-xs text-gray-500">
-                            {reviewer.affiliation} • {reviewer.country}
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
+                        {selected ? <Check size={13} /> : <UserRound size={12} style={{ color: '#94A3B8' }} />}
+                      </span>
+
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-semibold text-[#0B1C4D]">
+                          {reviewer.full_name}
+                        </span>
+                        <span className="block truncate text-xs text-slate-600">{reviewer.email}</span>
+                        <span className="block truncate text-xs text-slate-500">
+                          {reviewer.affiliation}, {reviewer.country}
+                        </span>
+                        {alreadyInvited && (
+                          <span className="mt-1 inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800">
+                            Already invited
+                          </span>
+                        )}
+                      </span>
+                    </button>
+                  );
+                })
               )}
             </div>
 
-            {/* Modal Footer */}
-            <div className="flex justify-between gap-2 border-t border-gray-200 px-4 py-3">
+            <div className="flex items-center justify-between border-t px-4 py-3" style={{ borderColor: '#E2E8F0' }}>
               <button
                 type="button"
                 onClick={() => onReviewerIdsSelect([])}
                 disabled={selectedReviewerIds.length === 0}
-                className="rounded px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                className="rounded-md border px-3 py-2 text-xs font-semibold"
+                style={{
+                  borderColor: '#C9DCF6',
+                  color: '#0B1C4D',
+                  opacity: selectedReviewerIds.length === 0 ? 0.45 : 1,
+                  transition: 'all 0.3s ease-in-out',
+                }}
               >
                 Clear All
               </button>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={handleCloseModal}
-                  className="rounded bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleDone}
-                  disabled={selectedReviewerIds.length === 0}
-                  className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
-                >
-                  Done ({selectedReviewerIds.length})
-                </button>
-              </div>
+
+              <button
+                type="button"
+                onClick={closeModal}
+                className="rounded-md border px-3 py-2 text-xs font-semibold text-white"
+                style={{
+                  borderColor: '#1D4ED8',
+                  backgroundColor: '#1D4ED8',
+                  transition: 'all 0.3s ease-in-out',
+                }}
+              >
+                Done ({selectedReviewerIds.length})
+              </button>
             </div>
           </div>
         </div>
       )}
-    </div>
+    </section>
   );
 };

@@ -9,14 +9,17 @@ interface EditorTabProps {
 
 export const EditorTab: React.FC<EditorTabProps> = ({ active, onClick, icon, label }) => (
   <button
+    type="button"
     onClick={onClick}
-    className={`border-b-2 px-6 py-3 text-sm font-medium transition-colors ${
-      active
-        ? 'border-blue-600 text-blue-600'
-        : 'border-transparent text-gray-600 hover:text-gray-900'
-    }`}
+    className="inline-flex items-center border-b-2 px-5 py-3 text-sm font-semibold"
+    style={{
+      borderColor: active ? '#1D4ED8' : 'transparent',
+      color: active ? '#0B1C4D' : '#475569',
+      backgroundColor: active ? '#F1F7FF' : 'transparent',
+      transition: 'all 0.3s ease-in-out',
+    }}
   >
-    {icon}
-    {label}
+    <span className="mr-2 inline-flex">{icon}</span>
+    <span>{label}</span>
   </button>
 );

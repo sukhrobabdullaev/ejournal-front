@@ -4,11 +4,74 @@ import {
   User,
   Submission,
   ReviewAssignment,
+  JournalPublicationCertificate,
+  ReviewerRecognitionCertificate,
   TopicArea,
   EditorialBoardMember,
   Article,
+  IssueBuilderCandidate,
+  MakeIssuePayload,
+  PublishedIssueDetail,
+  PublishedIssueSummary,
   TokenManager,
 } from './api';
+
+export const ACTIVE_ROLE_STORAGE_KEY = 'active_role';
+export const ACTIVE_ROLE_CHANGED_EVENT = 'ejournal:active-role-changed';
+export const ROLE_SELECTION_REQUIRED_KEY = 'ejournal:role-selection-required';
+
+function emitActiveRoleChanged(role: string | null) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.dispatchEvent(
+    new CustomEvent(ACTIVE_ROLE_CHANGED_EVENT, {
+      detail: { role },
+    })
+  );
+}
+
+export function getApprovedRolesFromUser(user: User | null): string[] {
+  if (!user) {
+    return [];
+  }
+
+  const approvedRoles: string[] = [];
+
+  if (user.roles.includes('admin')) {
+    approvedRoles.push('admin');
+  }
+  if (user.roles.includes('editor') && user.editor_status === 'approved') {
+    approvedRoles.push('editor');
+  }
+  if (user.roles.includes('reviewer') && user.reviewer_status === 'approved') {
+    approvedRoles.push('reviewer');
+  }
+  if (user.roles.includes('author')) {
+    approvedRoles.push('author');
+  }
+
+  return approvedRoles;
+}
+
+export function getRoleLabel(role: string): string {
+  return role.charAt(0).toUpperCase() + role.slice(1);
+}
+
+export function getStoredActiveRole(): string | null {
+  return localStorage.getItem(ACTIVE_ROLE_STORAGE_KEY);
+}
+
+export function clearStoredActiveRole() {
+  localStorage.removeItem(ACTIVE_ROLE_STORAGE_KEY);
+  emitActiveRoleChanged(null);
+}
+
+function persistActiveRole(role: string) {
+  localStorage.setItem(ACTIVE_ROLE_STORAGE_KEY, role);
+  emitActiveRoleChanged(role);
+}
 
 // ==========================================
 // AUTH QUERIES
@@ -37,6 +100,8 @@ export async function login(
 
   if (result.data) {
     TokenManager.setTokens(result.data.access, result.data.refresh);
+    clearStoredActiveRole();
+    sessionStorage.setItem(ROLE_SELECTION_REQUIRED_KEY, '1');
   }
 
   return result;
@@ -44,6 +109,8 @@ export async function login(
 
 export async function logout(): Promise<void> {
   TokenManager.clearTokens();
+  clearStoredActiveRole();
+  sessionStorage.removeItem(ROLE_SELECTION_REQUIRED_KEY);
 }
 
 export async function verifyEmail(token: string): Promise<{ data: any; error: any }> {
@@ -93,33 +160,95 @@ export async function getMyRoles(): Promise<string[]> {
   return user?.roles || [];
 }
 
-export async function getMyActiveRole(): Promise<string | null> {
-  const roles = await getMyRoles();
-  return roles.length > 0 ? roles[0] : null;
+export async function getMyApprovedRoles(): Promise<string[]> {
+  const user = await getCurrentUser();
+  return getApprovedRolesFromUser(user);
 }
 
-export async function setMyActiveRole(role: string): Promise<boolean> {
+export async function getMyActiveRole(): Promise<string | null> {
+  const roles = await getMyApprovedRoles();
+  const storedRole = getStoredActiveRole();
+  if (storedRole && roles.includes(storedRole)) {
+    return storedRole;
+  }
+  return roles.length === 1 ? roles[0] : null;
+}
+
+export async function setMyActiveRole(role: string, user?: User | null): Promise<boolean> {
   // Active role is managed client-side, stored in localStorage
-  const roles = await getMyRoles();
+  const roles = user ? getApprovedRolesFromUser(user) : await getMyApprovedRoles();
   if (roles.includes(role)) {
-    localStorage.setItem('active_role', role);
+    persistActiveRole(role);
     return true;
   }
   return false;
 }
 
-export async function initializeActiveRole(): Promise<string | null> {
-  const roles = await getMyRoles();
-  if (roles.length === 0) return null;
+export async function initializeActiveRole(
+  user?: User | null,
+  options?: { forceSelectionForMultipleRoles?: boolean }
+): Promise<string | null> {
+  const roles = user ? getApprovedRolesFromUser(user) : await getMyApprovedRoles();
+  if (roles.length === 0) {
+    clearStoredActiveRole();
+    return null;
+  }
 
-  const storedRole = localStorage.getItem('active_role');
+  const storedRole = getStoredActiveRole();
   if (storedRole && roles.includes(storedRole)) {
+    if (options?.forceSelectionForMultipleRoles && roles.length > 1) {
+      clearStoredActiveRole();
+      return null;
+    }
     return storedRole;
   }
 
-  // Default to first role
-  localStorage.setItem('active_role', roles[0]);
-  return roles[0];
+  if (roles.length === 1) {
+    persistActiveRole(roles[0]);
+    return roles[0];
+  }
+
+  clearStoredActiveRole();
+  return null;
+}
+
+// ==========================================
+// CERTIFICATES
+// ==========================================
+
+export async function getMyCertificates(): Promise<ReviewerRecognitionCertificate[]> {
+  const { data, error } = await apiClient.get<ReviewerRecognitionCertificate[]>('/certificates/my/');
+  if (error) {
+    console.error('Error fetching certificates:', error);
+    return [];
+  }
+  return data || [];
+}
+
+export async function getPublicCertificateByCode(
+  code: string
+): Promise<ReviewerRecognitionCertificate | null> {
+  const { data, error } = await apiClient.get<ReviewerRecognitionCertificate>(
+    `/certificates/public/${code}/`
+  );
+  if (error) {
+    console.error('Error fetching certificate by code:', error);
+    return null;
+  }
+  return data;
+}
+
+export async function getPublicJournalCertificateByCode(
+  code: string
+): Promise<JournalPublicationCertificate | null> {
+  const { data, error } = await apiClient.get<JournalPublicationCertificate>(
+    `/certificates/journal/public/${code}/`
+  );
+  if (error) {
+    console.error('Error fetching journal certificate by code:', error);
+    return null;
+  }
+  return data;
 }
 
 // ==========================================
@@ -127,7 +256,7 @@ export async function initializeActiveRole(): Promise<string | null> {
 // ==========================================
 
 export async function getTopicAreas(): Promise<TopicArea[]> {
-  const { data, error } = await apiClient.get<TopicArea[]>('/topic-areas');
+  const { data, error } = await apiClient.get<TopicArea[]>('/topic-areas/');
   if (error) {
     console.error('Error fetching topic areas:', error);
     return [];
@@ -140,7 +269,7 @@ export async function getTopicAreas(): Promise<TopicArea[]> {
 // ==========================================
 
 export async function getEditorialBoard(role?: string): Promise<EditorialBoardMember[]> {
-  const endpoint = role ? `/editorial-board?role=${role}` : '/editorial-board';
+  const endpoint = role ? `/editorial-board/?role=${role}` : '/editorial-board/';
   const { data, error } = await apiClient.get<EditorialBoardMember[]>(endpoint);
   if (error) {
     console.error('Error fetching editorial board:', error);
@@ -169,7 +298,7 @@ export async function getMySubmissions(): Promise<Submission[]> {
 }
 
 export async function getSubmissionById(id: string): Promise<Submission | null> {
-  const { data, error } = await apiClient.get<Submission>(`/submissions/${id}`);
+  const { data, error } = await apiClient.get<Submission>(`/submissions/${id}/`);
   if (error) {
     console.error('Error fetching submission:', error);
     return null;
@@ -207,10 +336,6 @@ export async function resubmitSubmission(
   return await apiClient.post<Submission>(`/submissions/${id}/resubmit/`, {});
 }
 
-export async function deleteSubmission(id: string): Promise<{ data: any; error: any }> {
-  return await apiClient.delete(`/submissions/${id}/`);
-}
-
 // ==========================================
 // REVIEWER - ASSIGNMENTS
 // ==========================================
@@ -225,7 +350,7 @@ export async function getMyAssignments(): Promise<ReviewAssignment[]> {
 }
 
 export async function getAssignmentById(id: string): Promise<ReviewAssignment | null> {
-  const { data, error } = await apiClient.get<ReviewAssignment>(`/reviewer/assignments/${id}`);
+  const { data, error } = await apiClient.get<ReviewAssignment>(`/reviewer/assignments/${id}/`);
   if (error) {
     console.error('Error fetching assignment:', error);
     return null;
@@ -302,12 +427,30 @@ export async function getArticleBySlug(slug: string): Promise<Article | null> {
   return data;
 }
 
+export async function getPublishedIssues(): Promise<PublishedIssueSummary[]> {
+  const { data, error } = await apiClient.get<PublishedIssueSummary[]>('/published/issues/');
+  if (error) {
+    console.error('Error fetching published issues:', error);
+    return [];
+  }
+  return data || [];
+}
+
+export async function getPublishedIssueById(issueId: string): Promise<PublishedIssueDetail | null> {
+  const { data, error } = await apiClient.get<PublishedIssueDetail>(`/published/issues/${issueId}/`);
+  if (error) {
+    console.error('Error fetching published issue detail:', error);
+    return null;
+  }
+  return data;
+}
+
 // ==========================================
 // EDITOR - SUBMISSIONS MANAGEMENT
 // ==========================================
 
 export async function getAllSubmissions(status?: string): Promise<Submission[]> {
-  const endpoint = status ? `/editor/submissions?status=${status}` : '/editor/submissions';
+  const endpoint = status ? `/editor/submissions/?status=${status}` : '/editor/submissions/';
   const { data, error } = await apiClient.get<Submission[]>(endpoint);
   if (error) {
     console.error('Error fetching editor submissions:', error);
@@ -317,7 +460,7 @@ export async function getAllSubmissions(status?: string): Promise<Submission[]> 
 }
 
 export async function getSubmissionByIdForEditor(id: string): Promise<Submission | null> {
-  const { data, error } = await apiClient.get<Submission>(`/editor/submissions/${id}`);
+  const { data, error } = await apiClient.get<Submission>(`/editor/submissions/${id}/`);
   if (error) {
     console.error('Error fetching submission for editor:', error);
     return null;
@@ -372,23 +515,97 @@ export async function remindReviewer(assignmentId: string): Promise<{ data: any;
   return await apiClient.post(`/editor/review-assignments/${assignmentId}/remind/`, {});
 }
 
+export async function getEditorIssues(): Promise<PublishedIssueDetail[]> {
+  const { data, error } = await apiClient.get<PublishedIssueDetail[]>('/editor/issues/');
+  if (error) {
+    console.error('Error fetching editor issues:', error);
+    return [];
+  }
+  return data || [];
+}
+
+export async function getAcceptedSubmissionsForIssue(): Promise<IssueBuilderCandidate[]> {
+  const { data, error } = await apiClient.get<IssueBuilderCandidate[]>(
+    '/editor/issues/accepted-submissions/'
+  );
+  if (!error) {
+    return data || [];
+  }
+
+  console.error('Error fetching accepted submissions for issue:', error);
+
+  // Backward-compat fallback for environments where /editor/issues/* endpoints are not deployed yet.
+  const fallback = await apiClient.get<Submission[]>('/editor/submissions/');
+  if (fallback.error) {
+    console.error('Fallback error fetching editor submissions:', fallback.error);
+    return [];
+  }
+
+  return (fallback.data || [])
+    .filter((submission) => submission.status === 'accepted' || submission.status === 'published')
+    .map((submission) => {
+      const dynamicSubmission = submission as Submission & {
+        author_name?: string;
+        author_email?: string;
+        author_full_name?: string;
+      };
+      const authorName =
+        dynamicSubmission.author_name ||
+        dynamicSubmission.author_full_name ||
+        (typeof submission.author === 'number' ? `Author #${submission.author}` : 'Unknown');
+
+      return {
+        id: submission.id,
+        status: submission.status,
+        title: submission.title || 'Untitled',
+        author_name: authorName,
+        author_email: dynamicSubmission.author_email || '',
+        created_at: submission.created_at || '',
+        updated_at: submission.updated_at || '',
+        manuscript_pdf_url: submission.manuscript_pdf || null,
+        manuscript_page_count:
+          submission.page_start && submission.page_end
+            ? Math.max(1, submission.page_end - submission.page_start + 1)
+            : null,
+        is_already_assigned: Boolean(submission.issue?.id),
+        issue: submission.issue?.id || null,
+        issue_order: submission.issue_order || null,
+        page_start: submission.page_start || null,
+        page_end: submission.page_end || null,
+      } as IssueBuilderCandidate;
+    });
+}
+
+export async function makeJournalIssue(
+  payload: MakeIssuePayload
+): Promise<{ data: PublishedIssueDetail | null; error: any }> {
+  return await apiClient.post<PublishedIssueDetail>('/editor/issues/', payload);
+}
+
+export async function updateJournalIssue(
+  issueId: string,
+  payload: MakeIssuePayload
+): Promise<{ data: PublishedIssueDetail | null; error: any }> {
+  return await apiClient.put<PublishedIssueDetail>(`/editor/issues/${issueId}/`, payload);
+}
+
 // ==========================================
 // ADMIN - USER MANAGEMENT
 // ==========================================
 
 export async function approveReviewer(userId: number): Promise<{ data: any; error: any }> {
-  return await apiClient.post(`/admin/users/${userId}/approve-reviewer/`, {});
+  return await apiClient.post(`/admin/users/${userId}/approve-reviewer`, {});
 }
 
 export async function approveEditor(userId: number): Promise<{ data: any; error: any }> {
-  return await apiClient.post(`/admin/users/${userId}/approve-editor/`, {});
+  return await apiClient.post(`/admin/users/${userId}/approve-editor`, {});
 }
 
 export async function rejectReviewer(
   userId: number,
   reason: string
 ): Promise<{ data: any; error: any }> {
-  return await apiClient.post(`/admin/users/${userId}/reject-reviewer/`, {
+  return await apiClient.post(`/admin/users/${userId}/reject-reviewer`, {
     reason,
   });
 }
@@ -397,7 +614,7 @@ export async function rejectEditor(
   userId: number,
   reason: string
 ): Promise<{ data: any; error: any }> {
-  return await apiClient.post(`/admin/users/${userId}/reject-editor/`, {
+  return await apiClient.post(`/admin/users/${userId}/reject-editor`, {
     reason,
   });
 }
@@ -426,10 +643,12 @@ export const getReviewAssignments = async (submissionId: string) => {
 };
 
 export const getAllReviewers = async (): Promise<any[]> => {
-  // This endpoint doesn't exist in the API spec
-  // Editors invite reviewers by email or user_id
-  console.warn('getAllReviewers: This endpoint is not available in the REST API');
-  return [];
+  const { data, error } = await apiClient.get<any[]>('/editor/reviewers');
+  if (error) {
+    console.error('Error fetching reviewers:', error);
+    return [];
+  }
+  return data || [];
 };
 
 export const getMyRole = async (): Promise<string | null> => {

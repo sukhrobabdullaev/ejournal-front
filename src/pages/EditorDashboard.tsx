@@ -1,31 +1,115 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { FileText, Users, CheckCircle, AlertCircle, Eye } from 'lucide-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { Submission, ReviewAssignment } from '../lib/api';
+import { AlertCircle, ArrowLeft, CheckCircle, Eye, FileText, Users } from 'lucide-react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { ReviewAssignment, Submission } from '../lib/api';
 import {
-  getMyRole,
+  deskReject,
+  getAllReviewers,
   getAllSubmissions,
+  getMyRole,
   getSubmissionByIdForEditor,
   inviteReviewer,
-  startScreening,
-  deskReject,
-  sendToReview,
-  moveToDecision,
   makeEditorialDecision,
+  moveToDecision,
   publishSubmission,
   remindReviewer,
+  sendToReview,
+  startScreening,
 } from '../lib/queries-api';
-import { EditorTab, SubmissionsList, SubmissionDetails } from '../features/editor/components';
+import {
+  EditorTab,
+  MakeJournalPanel,
+  SubmissionDetails,
+  SubmissionsList,
+} from '../features/editor/components';
 import { ApiError } from '../features/editor/utils';
 
-const API_BASE_URL =
-  (typeof import.meta !== 'undefined' &&
-    (import.meta as any).env &&
-    (import.meta as any).env.VITE_API_BASE_URL) ||
-  'https://api.uzfintex.uz/api';
+type TabType = 'new' | 'screening' | 'review' | 'decisions' | 'journal';
+type ApiMutationResult<T> = { data: T | null; error: any };
 
-type TabType = 'new' | 'screening' | 'review' | 'decisions';
+const sectionCardStyle: React.CSSProperties = {
+  border: '1px solid #D8E4F6',
+  borderRadius: '18px',
+  background: '#FFFFFF',
+  boxShadow: '0 12px 28px rgba(15, 23, 42, 0.08)',
+};
+
+const tabHeaderLabel: Record<TabType, string> = {
+  new: 'New Submissions',
+  screening: 'Screening',
+  review: 'Under Review',
+  decisions: 'Decisions',
+  journal: 'Make Journal',
+};
+
+const DECISION_STATUSES: Submission['status'][] = [
+  'decision_pending',
+  'revision_required',
+  'accepted',
+  'rejected',
+  'desk_rejected',
+  'published',
+];
+
+const getTabFromStatus = (status?: Submission['status']): TabType => {
+  if (!status) {
+    return 'new';
+  }
+
+  if (status === 'submitted') {
+    return 'new';
+  }
+
+  if (status === 'screening' || status === 'resubmitted') {
+    return 'screening';
+  }
+
+  if (status === 'under_review') {
+    return 'review';
+  }
+
+  if (DECISION_STATUSES.includes(status)) {
+    return 'decisions';
+  }
+
+  return 'new';
+};
+
+const extractApiErrorMessage = (error: any, fallback: string): string => {
+  if (!error) {
+    return fallback;
+  }
+
+  if (typeof error === 'string') {
+    return error;
+  }
+
+  if (typeof error?.detail === 'string') {
+    return error.detail;
+  }
+
+  if (Array.isArray(error?.detail) && error.detail.length > 0) {
+    return String(error.detail[0]);
+  }
+
+  if (typeof error?.message === 'string') {
+    return error.message;
+  }
+
+  return fallback;
+};
+
+const unwrapApiMutationResult = <T,>(
+  result: ApiMutationResult<T>,
+  fallbackMessage: string
+): T => {
+  if (result.error || !result.data) {
+    throw new Error(extractApiErrorMessage(result.error, fallbackMessage));
+  }
+
+  return result.data;
+};
 
 export function EditorDashboard() {
   const navigate = useNavigate();
@@ -40,6 +124,7 @@ export function EditorDashboard() {
   const [selectedReviewerIds, setSelectedReviewerIds] = useState<number[]>([]);
   const [decision, setDecision] = useState<'accept' | 'reject' | 'revision_required'>('accept');
   const [decisionLetter, setDecisionLetter] = useState('');
+
   const [showSendToReviewModal, setShowSendToReviewModal] = useState(false);
   const [showDeskRejectModal, setShowDeskRejectModal] = useState(false);
   const [deskRejectReason, setDeskRejectReason] = useState('');
@@ -52,125 +137,153 @@ export function EditorDashboard() {
 
   const authorized = role === 'editor' || role === 'admin';
 
-  const { data, isLoading: subsLoading } = useQuery<Submission[], Error, Submission[], string[]>({
+  const { data: submissionData, isLoading: submissionsLoading } = useQuery<
+    Submission[],
+    Error,
+    Submission[],
+    string[]
+  >({
     queryKey: ['editor-submissions'],
     queryFn: () => getAllSubmissions(),
     enabled: authorized,
   });
 
-  const allSubmissions: Submission[] = data ?? [];
-  console.log('allSubmissions', allSubmissions);
+  const allSubmissions = submissionData ?? [];
 
-  // Fetch reviewers for the invite dropdown
   const { data: reviewers = [], isLoading: isLoadingReviewers } = useQuery({
     queryKey: ['reviewers'],
-    queryFn: async () => {
-      const response = await fetch(`${API_BASE_URL}/editor/reviewers`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('ejournal_access_token')}`,
-        },
-      });
-      if (!response.ok) {
-        console.error('Failed to fetch reviewers');
-        return [];
-      }
-      return response.json();
-    },
+    queryFn: getAllReviewers,
     enabled: authorized,
   });
 
-  const newCount = allSubmissions.filter((s) => s.status === 'submitted').length;
-  const screeningCount = allSubmissions.filter((s) => s.status === 'screening').length;
-  const reviewCount = allSubmissions.filter((s) => s.status === 'under_review').length;
-  const decisionsCount = allSubmissions.filter((s) =>
-    ['decision_pending', 'revision_required', 'accepted', 'rejected', 'desk_rejected', 'published'].includes(
-      s.status
-    )
-  ).length;
+  const tabCounts = useMemo(
+    () => ({
+      new: allSubmissions.filter((submission) => submission.status === 'submitted').length,
+      screening: allSubmissions.filter((submission) =>
+        ['screening', 'resubmitted'].includes(submission.status)
+      ).length,
+      review: allSubmissions.filter((submission) => submission.status === 'under_review').length,
+      decisions: allSubmissions.filter((submission) => DECISION_STATUSES.includes(submission.status)).length,
+    }),
+    [allSubmissions]
+  );
 
-  const submissions = allSubmissions.filter((s) => {
-    switch (activeTab) {
-      case 'new':
-        return s.status === 'submitted';
-      case 'screening':
-        return s.status === 'screening';
-      case 'review':
-        return s.status === 'under_review';
-      case 'decisions':
-        return [
-          'decision_pending',
-          'revision_required',
-          'accepted',
-          'rejected',
-          'desk_rejected',
-          'published',
-        ].includes(s.status);
-      default:
-        return true;
-    }
-  });
+  const submissions = useMemo(() => {
+    const filtered = allSubmissions.filter((submission) => {
+      switch (activeTab) {
+        case 'new':
+          return submission.status === 'submitted';
+        case 'screening':
+          return ['screening', 'resubmitted'].includes(submission.status);
+        case 'review':
+          return submission.status === 'under_review';
+        case 'decisions':
+          return DECISION_STATUSES.includes(submission.status);
+        default:
+          return true;
+      }
+    });
 
-  const loading = roleLoading || (authorized && subsLoading);
+    return filtered.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
+  }, [activeTab, allSubmissions]);
 
   const loadSubmissionDetails = async (id: number) => {
     try {
       setError(null);
-      const data = await getSubmissionByIdForEditor(id.toString());
-      if (!data) {
-        setError('Submission not found or access denied');
+      const result = await getSubmissionByIdForEditor(id.toString());
+
+      if (!result) {
         setSelectedSubmission(null);
+        setError('Submission not found or access denied.');
         return;
       }
-      setSelectedSubmission(data);
-    } catch (err) {
-      setError((err as Error).message || 'Failed to load submission detail');
+
+      setSelectedSubmission(result);
+    } catch (requestError) {
+      setError((requestError as Error).message || 'Failed to load submission details.');
     }
   };
 
-  const refreshSelected = async () => {
-    if (!selectedSubmission) return;
-    const refreshed = await getSubmissionByIdForEditor(selectedSubmission.id.toString());
-    if (refreshed) setSelectedSubmission(refreshed);
-    queryClient.invalidateQueries({ queryKey: ['editor-submissions'] });
+  const refreshEditorSubmissions = async () => {
+    await queryClient.invalidateQueries({ queryKey: ['editor-submissions'] });
+    await queryClient.refetchQueries({ queryKey: ['editor-submissions'], type: 'active' });
+  };
+
+  const refreshSelectedSubmission = async (
+    submissionId: number | null | undefined,
+    fallbackStatus?: Submission['status']
+  ) => {
+    await refreshEditorSubmissions();
+
+    if (!submissionId) {
+      if (fallbackStatus) {
+        setActiveTab(getTabFromStatus(fallbackStatus));
+      }
+      return;
+    }
+
+    const refreshedSubmission = await getSubmissionByIdForEditor(submissionId.toString());
+    if (refreshedSubmission) {
+      setSelectedSubmission(refreshedSubmission);
+      setActiveTab(getTabFromStatus(refreshedSubmission.status));
+      return;
+    }
+
+    setSelectedSubmission(null);
+    if (fallbackStatus) {
+      setActiveTab(getTabFromStatus(fallbackStatus));
+    }
   };
 
   const screeningMutation = useMutation({
-    mutationFn: () => startScreening(selectedSubmission!.id.toString()),
-    onSuccess: async () => {
-      setSuccess('Submission moved to Screening.');
-      await refreshSelected();
+    mutationFn: async () => {
+      const result = await startScreening(selectedSubmission!.id.toString());
+      return unwrapApiMutationResult(result, 'Failed to move submission to screening.');
     },
-    onError: (err) => setError((err as Error).message || 'Failed to move submission to screening'),
+    onSuccess: async (updatedSubmission) => {
+      setSuccess('Submission moved to Screening.');
+      await refreshSelectedSubmission(updatedSubmission.id, updatedSubmission.status);
+    },
+    onError: (mutationError) => {
+      setError((mutationError as Error).message || 'Failed to move submission to screening.');
+    },
   });
 
   const deskRejectMutation = useMutation({
-    mutationFn: (reason: string) =>
-      deskReject(selectedSubmission!.id.toString(), reason),
-    onSuccess: async () => {
+    mutationFn: async (reason: string) => {
+      const result = await deskReject(selectedSubmission!.id.toString(), reason);
+      return unwrapApiMutationResult(result, 'Failed to desk reject submission.');
+    },
+    onSuccess: async (updatedSubmission) => {
       setSuccess('Submission desk rejected.');
       setShowDeskRejectModal(false);
       setDeskRejectReason('');
-      setSelectedSubmission(null);
-      queryClient.invalidateQueries({ queryKey: ['editor-submissions'] });
+      await refreshSelectedSubmission(updatedSubmission.id, updatedSubmission.status);
     },
-    onError: (err) => {
-      const apiError = err as ApiError;
-      setError(apiError.detail || apiError.message || 'Failed to desk reject submission');
+    onError: (mutationError) => {
+      const apiError = mutationError as ApiError;
+      setError(apiError.detail || apiError.message || 'Failed to desk reject submission.');
     },
   });
 
   const sendToReviewMutation = useMutation({
-    mutationFn: () => sendToReview(selectedSubmission!.id.toString()),
-    onSuccess: async () => {
-      setSuccess('Submission moved to Under Review.');
-      await refreshSelected();
+    mutationFn: async () => {
+      const result = await sendToReview(selectedSubmission!.id.toString());
+      return unwrapApiMutationResult(
+        result,
+        'Failed to move submission to review. Invite at least one reviewer first.'
+      );
     },
-    onError: (err) => {
-      const apiError = err as ApiError;
+    onSuccess: async (updatedSubmission) => {
+      setSuccess('Submission moved to Under Review.');
+      await refreshSelectedSubmission(updatedSubmission.id, updatedSubmission.status);
+    },
+    onError: (mutationError) => {
+      const apiError = mutationError as ApiError;
       setError(
         apiError.detail ||
-        apiError.message ||
-        'Failed to move submission to review. Make sure at least one reviewer is invited.'
+          apiError.message ||
+          'Failed to move submission to review. Invite at least one reviewer first.'
       );
     },
   });
@@ -179,140 +292,153 @@ export function EditorDashboard() {
     mutationFn: async (params: { submissionId: string; reviewerIds: number[]; dueDate: string }) => {
       const { submissionId, reviewerIds, dueDate } = params;
 
-      // Send invitations to all selected reviewers
       const results = await Promise.allSettled(
-        reviewerIds.map((reviewerId) =>
-          inviteReviewer(submissionId, {
+        reviewerIds.map(async (reviewerId) => {
+          const response = await inviteReviewer(submissionId, {
             reviewer_user_id: reviewerId,
             due_date: dueDate,
-          })
-        )
+          });
+
+          if (response.error) {
+            throw response.error;
+          }
+
+          return response.data;
+        })
       );
 
-      // Collect success and failure information
-      const successes = results.filter((r) => r.status === 'fulfilled');
-      const failures = results.filter((r) => r.status === 'rejected') as PromiseRejectedResult[];
+      const successes = results.filter((result) => result.status === 'fulfilled').length;
+      const failures = results.filter((result) => result.status === 'rejected') as PromiseRejectedResult[];
 
       return {
-        results,
-        successes: successes.length,
-        failures: failures.length,
-        failureReasons: failures.map(f => f.reason),
+        successes,
+        failures,
         reviewerIds,
+        failureReasons: failures.map((failure) => failure.reason),
       };
     },
-    onSuccess: async (data, variables) => {
-      const { successes, failures, failureReasons, reviewerIds } = data;
+    onSuccess: async (data) => {
+      const { successes, failures, reviewerIds, failureReasons } = data;
 
-      if (failures > 0) {
-        // Check if error is about already invited reviewers
-        const alreadyInvitedErrors = failureReasons.filter((reason: any) =>
-          reason?.detail?.includes('already invited') ||
-          reason?.message?.includes('already invited')
-        );
+      if (failures.length > 0) {
+        const alreadyInvitedErrors = failureReasons.filter((failureReason: any) => {
+          return (
+            failureReason?.detail?.includes('already invited') ||
+            failureReason?.message?.includes('already invited')
+          );
+        });
 
-        if (alreadyInvitedErrors.length === failures) {
-          // All failures are "already invited"
-          if (failures === reviewerIds.length) {
-            setError('All selected reviewers have already been invited to this submission.');
+        if (alreadyInvitedErrors.length === failures.length) {
+          if (failures.length === reviewerIds.length) {
+            setError('All selected reviewers have already been invited for this submission.');
           } else {
             setSuccess(
-              `${successes} reviewer${successes > 1 ? 's' : ''} invited successfully. ` +
-              `${failures} reviewer${failures > 1 ? 's were' : ' was'} already invited.`
+              `${successes} reviewer${successes > 1 ? 's' : ''} invited. ` +
+                `${failures.length} reviewer${failures.length > 1 ? 's were' : ' was'} already invited.`
             );
           }
-        } else {
-          // Mixed errors or other errors
+        } else if (successes > 0) {
           setError(
-            successes > 0
-              ? `${successes} reviewer${successes > 1 ? 's' : ''} invited, but ${failures} failed. Please check the reviewers.`
-              : `Failed to invite ${failures} reviewer${failures > 1 ? 's' : ''}.`
+            `${successes} reviewer${successes > 1 ? 's were' : ' was'} invited, ` +
+              `but ${failures.length} invitation${failures.length > 1 ? 's' : ''} failed.`
           );
+        } else {
+          setError(`Failed to invite ${failures.length} reviewer${failures.length > 1 ? 's' : ''}.`);
         }
       } else {
-        // All successful
         setSuccess(
-          `${successes} reviewer${successes > 1 ? 's' : ''} invited successfully. Invitation email${successes > 1 ? 's have' : ' has'} been sent.`
+          `${successes} reviewer${successes > 1 ? 's were' : ' was'} invited successfully and notified by email.`
         );
       }
 
       setSelectedReviewerIds([]);
       setInviteDueDate('');
-      await refreshSelected();
+      await refreshSelectedSubmission(selectedSubmission?.id, 'screening');
     },
-    onError: (err) => {
-      const apiError = err as ApiError;
-      setError(apiError.detail || apiError.message || 'Failed to invite reviewer(s)');
+    onError: (mutationError) => {
+      const apiError = mutationError as ApiError;
+      setError(apiError.detail || apiError.message || 'Failed to invite reviewers.');
     },
   });
 
   const remindMutation = useMutation({
     mutationFn: (assignment: ReviewAssignment) => remindReviewer(assignment.id.toString()),
-    onSuccess: () => setSuccess('Reminder sent to reviewer.'),
-    onError: (err) => {
-      const apiError = err as ApiError;
-      setError(apiError.detail || apiError.message || 'Failed to send reminder');
+    onSuccess: () => setSuccess('Reminder email sent to reviewer.'),
+    onError: (mutationError) => {
+      const apiError = mutationError as ApiError;
+      setError(apiError.detail || apiError.message || 'Failed to send reminder.');
     },
   });
 
   const moveToDecisionMutation = useMutation({
-    mutationFn: () => moveToDecision(selectedSubmission!.id.toString()),
-    onSuccess: async () => {
-      await refreshSelected();
-      setSuccess('Submission moved to Decision Pending.');
+    mutationFn: async () => {
+      const result = await moveToDecision(selectedSubmission!.id.toString());
+      return unwrapApiMutationResult(result, 'Failed to move submission to decision.');
     },
-    onError: (err) => {
-      const apiError = err as ApiError;
-      setError(apiError.detail || apiError.message || 'Failed to move submission to decision');
+    onSuccess: async (updatedSubmission) => {
+      setSuccess('Submission moved to Decision Pending.');
+      await refreshSelectedSubmission(updatedSubmission.id, updatedSubmission.status);
+    },
+    onError: (mutationError) => {
+      const apiError = mutationError as ApiError;
+      setError(apiError.detail || apiError.message || 'Failed to move submission to decision.');
     },
   });
 
   const makeDecisionMutation = useMutation({
-    mutationFn: () => {
-      if (!decisionLetter.trim()) throw new Error('Decision letter is required.');
-      return makeEditorialDecision(
+    mutationFn: async () => {
+      if (!decisionLetter.trim()) {
+        throw new Error('Decision letter is required.');
+      }
+
+      const result = await makeEditorialDecision(
         selectedSubmission!.id.toString(),
         decision,
         decisionLetter.trim()
       );
+      return unwrapApiMutationResult(result, 'Failed to save editorial decision.');
     },
-    onSuccess: async () => {
-      await refreshSelected();
+    onSuccess: async (updatedSubmission) => {
       setSuccess('Editorial decision recorded.');
+      await refreshSelectedSubmission(updatedSubmission.id, updatedSubmission.status);
     },
-    onError: (err) => {
-      const apiError = err as ApiError;
-      setError(apiError.detail || apiError.message || 'Failed to record decision');
+    onError: (mutationError) => {
+      const apiError = mutationError as ApiError;
+      setError(apiError.detail || apiError.message || 'Failed to save editorial decision.');
     },
   });
 
   const publishMutation = useMutation({
-    mutationFn: () => publishSubmission(selectedSubmission!.id.toString()),
-    onSuccess: async () => {
-      await refreshSelected();
-      setSuccess('Submission published.');
+    mutationFn: async () => {
+      const result = await publishSubmission(selectedSubmission!.id.toString());
+      return unwrapApiMutationResult(result, 'Failed to publish submission.');
     },
-    onError: (err) => {
-      const apiError = err as ApiError;
-      setError(apiError.detail || apiError.message || 'Failed to publish submission');
+    onSuccess: async (updatedSubmission) => {
+      setSuccess('Submission published successfully.');
+      await refreshSelectedSubmission(updatedSubmission.id, updatedSubmission.status);
+    },
+    onError: (mutationError) => {
+      const apiError = mutationError as ApiError;
+      setError(apiError.detail || apiError.message || 'Failed to publish submission.');
     },
   });
 
-  const inviting = inviteReviewerMutation.isPending;
-  const deciding = makeDecisionMutation.isPending;
-  const movingToDecision = moveToDecisionMutation.isPending;
-  const deskRejecting = deskRejectMutation.isPending;
-  const publishing = publishMutation.isPending;
+  const loading = roleLoading || (authorized && submissionsLoading);
 
-  const handleStartScreening = () => {
+  const handleActionStart = () => {
     setSuccess(null);
     setError(null);
+  };
+
+  const handleStartScreening = () => {
+    handleActionStart();
     screeningMutation.mutate();
   };
 
   const handleDeskReject = () => {
-    setDeskRejectReason('');
     setShowDeskRejectModal(true);
+    setDeskRejectReason('');
+    handleActionStart();
   };
 
   const confirmDeskReject = () => {
@@ -321,74 +447,75 @@ export function EditorDashboard() {
       setError('Please provide a reason for desk rejection.');
       return;
     }
-    setError(null);
-    setSuccess(null);
+
+    handleActionStart();
     deskRejectMutation.mutate(reason);
   };
 
   const handleSendToReview = () => {
     setShowSendToReviewModal(true);
+    handleActionStart();
   };
 
   const confirmSendToReview = () => {
-    setSuccess(null);
-    setError(null);
     setShowSendToReviewModal(false);
+    handleActionStart();
     sendToReviewMutation.mutate();
   };
 
   const handleInviteReviewer = () => {
-    if (!selectedSubmission) return;
-    if (selectedReviewerIds.length === 0) return;
+    if (!selectedSubmission) {
+      return;
+    }
 
-    setSuccess(null);
-    setError(null);
+    if (selectedReviewerIds.length === 0) {
+      setError('Please select at least one reviewer.');
+      return;
+    }
 
-    const dueDate = inviteDueDate || new Date().toISOString().slice(0, 10);
+    if (!inviteDueDate.trim()) {
+      setError('Review due date is required.');
+      return;
+    }
+
+    handleActionStart();
 
     inviteReviewerMutation.mutate({
       submissionId: selectedSubmission.id.toString(),
       reviewerIds: selectedReviewerIds,
-      dueDate,
+      dueDate: inviteDueDate,
     });
   };
 
   const handleRemindReviewer = (assignment: ReviewAssignment) => {
-    setSuccess(null);
-    setError(null);
+    handleActionStart();
     remindMutation.mutate(assignment);
   };
 
   const handleMoveToDecision = () => {
-    setSuccess(null);
-    setError(null);
+    handleActionStart();
     moveToDecisionMutation.mutate();
   };
 
   const handleMakeDecision = () => {
-    setSuccess(null);
-    setError(null);
+    handleActionStart();
     makeDecisionMutation.mutate();
   };
 
   const handlePublish = () => {
-    setSuccess(null);
-    setError(null);
+    handleActionStart();
     publishMutation.mutate();
   };
 
   if (loading) {
     return (
-      <div
-        style={{ backgroundColor: '#F8FAFC', minHeight: '100vh' }}
-        className="flex items-center justify-center"
-      >
+      <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC]">
         <div className="text-center">
           <div
-            className="mx-auto mb-4 h-16 w-16 animate-spin rounded-full border-4 border-t-transparent"
-            style={{ borderColor: '#2563EB', borderTopColor: 'transparent' }}
+            className="mx-auto mb-4 h-14 w-14 animate-spin rounded-full border-4 border-t-transparent"
+            style={{ borderColor: '#1D4ED8', borderTopColor: 'transparent' }}
           />
-          <p style={{ color: '#64748B' }}>Loading editor dashboard...</p>
+          <p className="text-sm text-slate-600">Loading editor dashboard...</p>
         </div>
       </div>
     );
@@ -396,33 +523,21 @@ export function EditorDashboard() {
 
   if (!authorized) {
     return (
-      <div
-        style={{ backgroundColor: '#F8FAFC', minHeight: '100vh' }}
-        className="flex items-center justify-center px-4"
-      >
+      <div className="flex min-h-screen items-center justify-center bg-[#F8FAFC] px-4">
         <div
-          className="w-full max-w-md bg-white text-center"
-          style={{
-            borderRadius: '16px',
-            padding: '40px',
-            boxShadow: '0 10px 30px rgba(11, 28, 77, 0.15)',
-            borderTop: '4px solid #EF4444',
-          }}
+          className="w-full max-w-md rounded-2xl border bg-white p-8 text-center"
+          style={{ borderColor: '#FCA5A5', boxShadow: '0 14px 30px rgba(185, 28, 28, 0.10)' }}
         >
-          <AlertCircle className="mx-auto mb-4 h-16 w-16" style={{ color: '#EF4444' }} />
-          <h1 className="mb-3 text-2xl font-bold" style={{ color: '#0B1C4D' }}>
-            Access Denied
-          </h1>
-          <p className="mb-6" style={{ color: '#64748B' }}>
-            You need editor permissions to access this page.
-          </p>
+          <AlertCircle className="mx-auto h-12 w-12 text-red-500" />
+          <h1 className="mt-3 text-2xl font-bold text-[#0B1C4D]">Access denied</h1>
+          <p className="mt-2 text-sm text-slate-600">You need editor permissions to open this page.</p>
           <button
             onClick={() => navigate('/dashboard')}
-            className="rounded-lg px-6 py-3 font-medium transition-all"
+            className="mt-5 rounded-xl border px-4 py-2.5 text-sm font-semibold text-white"
             style={{
-              background: 'linear-gradient(135deg, #0B1C4D 0%, #2563EB 100%)',
-              color: '#FFFFFF',
-              boxShadow: '0 4px 12px rgba(11, 28, 77, 0.2)',
+              backgroundColor: '#1D4ED8',
+              borderColor: '#1D4ED8',
+              transition: 'all 0.3s ease-in-out',
             }}
           >
             Back to Dashboard
@@ -433,199 +548,226 @@ export function EditorDashboard() {
   }
 
   return (
-    <div style={{ backgroundColor: '#F8FAFC', minHeight: '100vh' }}>
-      <div style={{ backgroundColor: '#0B1C4D', paddingTop: '60px', paddingBottom: '60px' }}>
-        <div className="mx-auto max-w-[1120px] px-4 sm:px-6 lg:px-8">
-          <h1 className="mb-3 text-4xl font-bold" style={{ color: '#FFFFFF' }}>
-            Editor Dashboard
-          </h1>
-          <p className="text-base" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-            Manage manuscript submissions and peer review
-          </p>
+    <div className="min-h-screen bg-gradient-to-b from-[#F7FAFF] to-[#EEF4FF] pt-4 md:pt-5">
+      <div className="mx-auto max-w-[1200px] px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mb-6 rounded-2xl border bg-white p-6 shadow-[0_14px_32px_rgba(15,23,42,0.08)]" style={{ borderColor: '#D8E4F6' }}>
+          <button
+            type="button"
+            onClick={() => navigate('/dashboard')}
+            className="mb-3 inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:text-blue-600"
+          >
+            <ArrowLeft size={16} />
+            Back
+          </button>
+          <h1 className="text-3xl font-bold text-[#0B1C4D]">Editor Dashboard</h1>
+          <p className="mt-1 text-sm text-slate-600">Manage submissions and editorial workflow in one place.</p>
         </div>
-      </div>
 
-      <div className="mx-auto max-w-[1120px] px-4 py-8 sm:px-6 lg:px-8">
         {success && (
-          <div className="mb-6 flex items-center gap-2 border border-green-300 bg-green-50 p-4 text-green-800">
-            <CheckCircle className="h-5 w-5" />
-            <span>{success}</span>
+          <div className="mb-4 flex items-center gap-2 rounded-xl border px-4 py-3 text-sm" style={{ borderColor: '#86EFAC', backgroundColor: '#F0FDF4', color: '#166534' }}>
+            <CheckCircle size={16} />
+            <span className="flex-1">{success}</span>
             <button
+              type="button"
               onClick={() => setSuccess(null)}
-              className="ml-auto text-green-600 hover:text-green-800"
+              className="rounded-md border px-2 py-0.5 text-xs font-semibold"
+              style={{ borderColor: '#86EFAC', transition: 'all 0.3s ease-in-out' }}
             >
-              ×
+              Close
             </button>
           </div>
         )}
 
         {error && (
-          <div className="mb-6 flex items-center gap-2 border border-red-300 bg-red-50 p-4 text-red-800">
-            <AlertCircle className="h-5 w-5" />
-            <span>{error}</span>
+          <div className="mb-4 flex items-center gap-2 rounded-xl border px-4 py-3 text-sm" style={{ borderColor: '#FCA5A5', backgroundColor: '#FEF2F2', color: '#991B1B' }}>
+            <AlertCircle size={16} />
+            <span className="flex-1">{error}</span>
             <button
+              type="button"
               onClick={() => setError(null)}
-              className="ml-auto text-red-600 hover:text-red-800"
+              className="rounded-md border px-2 py-0.5 text-xs font-semibold"
+              style={{ borderColor: '#FCA5A5', transition: 'all 0.3s ease-in-out' }}
             >
-              ×
+              Close
             </button>
           </div>
         )}
 
-        <div className="mb-6 border border-gray-300 bg-white">
-          <div className="flex border-b border-gray-300">
+      <div className="mb-5 overflow-hidden" style={sectionCardStyle}>
+        <div className="flex flex-wrap border-b" style={{ borderColor: '#E2E8F0' }}>
             <EditorTab
               active={activeTab === 'new'}
               onClick={() => setActiveTab('new')}
-              icon={<FileText className="mr-2 inline h-4 w-4" />}
-              label={`New Submissions (${newCount})`}
+              icon={<FileText size={15} />}
+              label={`New Submissions (${tabCounts.new})`}
             />
             <EditorTab
               active={activeTab === 'screening'}
               onClick={() => setActiveTab('screening')}
-              icon={<Eye className="mr-2 inline h-4 w-4" />}
-              label={`Screening (${screeningCount})`}
+              icon={<Eye size={15} />}
+              label={`Screening (${tabCounts.screening})`}
             />
             <EditorTab
               active={activeTab === 'review'}
               onClick={() => setActiveTab('review')}
-              icon={<Users className="mr-2 inline h-4 w-4" />}
-              label={`Under Review (${reviewCount})`}
+              icon={<Users size={15} />}
+              label={`Under Review (${tabCounts.review})`}
             />
             <EditorTab
               active={activeTab === 'decisions'}
               onClick={() => setActiveTab('decisions')}
-              icon={<CheckCircle className="mr-2 inline h-4 w-4" />}
-              label={`Decisions (${decisionsCount})`}
+              icon={<CheckCircle size={15} />}
+              label={`Decisions (${tabCounts.decisions})`}
+            />
+            <EditorTab
+              active={activeTab === 'journal'}
+              onClick={() => setActiveTab('journal')}
+              icon={<FileText size={15} />}
+              label="Make Journal"
             />
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-          <div className="border border-gray-300 bg-white">
-            <div className="border-b border-gray-300 p-4">
-              <h2 className="font-semibold text-gray-900">
-                {activeTab === 'new' && 'New Submissions'}
-                {activeTab === 'screening' && 'Screening'}
-                {activeTab === 'review' && 'Under Review'}
-                {activeTab === 'decisions' && 'Decisions'}
-              </h2>
+        {activeTab === 'journal' ? (
+          <div style={sectionCardStyle} className="p-5">
+            <MakeJournalPanel />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+            <div style={sectionCardStyle} className="overflow-hidden">
+              <div className="flex items-center justify-between border-b bg-[#F8FBFF] px-4 py-3" style={{ borderColor: '#E2E8F0' }}>
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-600">{tabHeaderLabel[activeTab]}</h2>
+                <span className="inline-flex items-center rounded-full border border-[#C9DCF6] bg-white px-3 py-1.5 text-xs font-semibold leading-none text-[#0B1C4D]">
+                  {submissions.length}
+                </span>
+              </div>
+
+              <SubmissionsList
+                submissions={submissions}
+                selectedId={selectedSubmission?.id}
+                onSelect={loadSubmissionDetails}
+              />
             </div>
-            <SubmissionsList
-              submissions={submissions}
-              selectedId={selectedSubmission?.id}
-              onSelect={loadSubmissionDetails}
-            />
-          </div>
 
-          <div className="border border-gray-300 bg-white">
-            <SubmissionDetails
-              submission={selectedSubmission}
-              reviewers={reviewers}
-              isLoadingReviewers={isLoadingReviewers}
-              inviteDueDate={inviteDueDate}
-              selectedReviewerIds={selectedReviewerIds}
-              decision={decision}
-              decisionLetter={decisionLetter}
-              onReviewerIdsSelect={setSelectedReviewerIds}
-              onInviteDueDateChange={setInviteDueDate}
-              onInviteReviewer={handleInviteReviewer}
-              onRemindReviewer={handleRemindReviewer}
-              onDecisionChange={setDecision}
-              onDecisionLetterChange={setDecisionLetter}
-              onMakeDecision={handleMakeDecision}
-              onStartScreening={handleStartScreening}
-              onDeskReject={handleDeskReject}
-              onSendToReview={handleSendToReview}
-              onMoveToDecision={handleMoveToDecision}
-              onPublish={handlePublish}
-              inviting={inviting}
-              deciding={deciding}
-              movingToDecision={movingToDecision}
-              deskRejecting={deskRejecting}
-              publishing={publishing}
-            />
+            <div style={sectionCardStyle}>
+              <SubmissionDetails
+                submission={selectedSubmission}
+                reviewers={reviewers}
+                isLoadingReviewers={isLoadingReviewers}
+                inviteDueDate={inviteDueDate}
+                selectedReviewerIds={selectedReviewerIds}
+                decision={decision}
+                decisionLetter={decisionLetter}
+                onReviewerIdsSelect={setSelectedReviewerIds}
+                onInviteDueDateChange={setInviteDueDate}
+                onInviteReviewer={handleInviteReviewer}
+                onRemindReviewer={handleRemindReviewer}
+                onDecisionChange={setDecision}
+                onDecisionLetterChange={setDecisionLetter}
+                onMakeDecision={handleMakeDecision}
+                onStartScreening={handleStartScreening}
+                onDeskReject={handleDeskReject}
+                onSendToReview={handleSendToReview}
+                onMoveToDecision={handleMoveToDecision}
+                onPublish={handlePublish}
+                inviting={inviteReviewerMutation.isPending}
+                deciding={makeDecisionMutation.isPending}
+                movingToDecision={moveToDecisionMutation.isPending}
+                deskRejecting={deskRejectMutation.isPending}
+                publishing={publishMutation.isPending}
+              />
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
-      {/* Desk Reject Modal */}
       {showDeskRejectModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
-          <div className="m-4 w-full max-w-md rounded-lg bg-white shadow-xl">
-            <div className="border-b border-gray-200 px-6 py-4">
-              <h3 className="text-lg font-semibold text-gray-900">Desk Reject Submission</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm">
+          <div className="saas-fade-menu w-full max-w-lg rounded-2xl border bg-white shadow-[0_24px_52px_rgba(15,23,42,0.22)]" style={{ borderColor: '#D8E4F6', transition: 'all 0.3s ease-in-out' }}>
+            <div className="border-b px-5 py-4" style={{ borderColor: '#E2E8F0' }}>
+              <h3 className="text-base font-semibold text-[#0B1C4D]">Desk Reject Submission</h3>
             </div>
-            <div className="px-6 py-4">
-              <p className="mb-3 text-sm text-gray-700">
-                Provide a reason for desk rejection. This will be recorded and the submission will move to the Decisions list.
+
+            <div className="space-y-3 px-5 py-4">
+              <p className="text-sm text-slate-600">
+                Provide a clear reason for desk rejection. This message is saved with the submission.
               </p>
               <textarea
                 value={deskRejectReason}
-                onChange={(e) => setDeskRejectReason(e.target.value)}
-                placeholder="e.g. Out of scope for our journal."
-                rows={4}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-red-500 focus:ring-1 focus:ring-red-500"
+                onChange={(event) => setDeskRejectReason(event.target.value)}
+                rows={5}
+                placeholder="Example: Out of scope for the journal"
+                className="w-full rounded-xl border bg-white px-3 py-2 text-sm text-slate-700 outline-none"
+                style={{ borderColor: '#C9DCF6', transition: 'all 0.3s ease-in-out' }}
               />
             </div>
-            <div className="flex justify-end gap-3 border-t border-gray-200 px-6 py-4">
+
+            <div className="flex justify-end gap-2 border-t px-5 py-4" style={{ borderColor: '#E2E8F0' }}>
               <button
                 type="button"
                 onClick={() => {
                   setShowDeskRejectModal(false);
                   setDeskRejectReason('');
-                  setError(null);
                 }}
-                className="rounded bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
+                className="rounded-lg border px-4 py-2 text-sm font-semibold"
+                style={{ borderColor: '#C9DCF6', color: '#0B1C4D', transition: 'all 0.3s ease-in-out' }}
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={confirmDeskReject}
-                disabled={deskRejecting || !deskRejectReason.trim()}
+                disabled={deskRejectMutation.isPending || deskRejectReason.trim().length === 0}
+                className="rounded-lg border px-4 py-2 text-sm font-semibold text-white"
                 style={{
-                  backgroundColor: deskRejecting ? '#9ca3af' : '#ef4444',
-                  color: 'white',
-                  padding: '0.5rem 1rem',
-                  fontSize: '0.875rem',
-                  fontWeight: '500',
-                  borderRadius: '0.25rem',
-                  border: 'none',
+                  borderColor: '#DC2626',
+                  backgroundColor: '#DC2626',
+                  transition: 'all 0.3s ease-in-out',
+                  opacity: deskRejectMutation.isPending || deskRejectReason.trim().length === 0 ? 0.65 : 1,
+                  cursor:
+                    deskRejectMutation.isPending || deskRejectReason.trim().length === 0
+                      ? 'not-allowed'
+                      : 'pointer',
                 }}
               >
-                {deskRejecting ? 'Rejecting...' : 'Desk Reject'}
+                {deskRejectMutation.isPending ? 'Rejecting...' : 'Desk Reject'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Send to Review Confirmation Modal */}
       {showSendToReviewModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 backdrop-blur-sm">
-          <div className="m-4 w-full max-w-md rounded-lg bg-white shadow-xl">
-            <div className="border-b border-gray-200 px-6 py-4">
-              <h3 className="text-lg font-semibold text-gray-900">Confirm Send to Review</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm">
+          <div className="saas-fade-menu w-full max-w-lg rounded-2xl border bg-white shadow-[0_24px_52px_rgba(15,23,42,0.22)]" style={{ borderColor: '#D8E4F6', transition: 'all 0.3s ease-in-out' }}>
+            <div className="border-b px-5 py-4" style={{ borderColor: '#E2E8F0' }}>
+              <h3 className="text-base font-semibold text-[#0B1C4D]">Confirm Send To Review</h3>
             </div>
-            <div className="px-6 py-4">
-              <p className="text-sm text-gray-700">
-                Once you send this submission to review, you will no longer be able to assign additional reviewers.
-                Are you sure you want to proceed?
+
+            <div className="px-5 py-4">
+              <p className="text-sm text-slate-600">
+                After sending to review, reviewer assignment is locked for this stage. Continue?
               </p>
             </div>
-            <div className="flex justify-end gap-3 border-t border-gray-200 px-6 py-4">
+
+            <div className="flex justify-end gap-2 border-t px-5 py-4" style={{ borderColor: '#E2E8F0' }}>
               <button
                 type="button"
                 onClick={() => setShowSendToReviewModal(false)}
-                className="rounded bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-200"
+                className="rounded-lg border px-4 py-2 text-sm font-semibold"
+                style={{ borderColor: '#C9DCF6', color: '#0B1C4D', transition: 'all 0.3s ease-in-out' }}
               >
                 Cancel
               </button>
               <button
                 type="button"
                 onClick={confirmSendToReview}
-                className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                className="rounded-lg border px-4 py-2 text-sm font-semibold text-white"
+                style={{
+                  borderColor: '#1D4ED8',
+                  backgroundColor: '#1D4ED8',
+                  transition: 'all 0.3s ease-in-out',
+                }}
               >
                 Send to Review
               </button>

@@ -1,13 +1,14 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router';
-import { AlertCircle, ArrowLeft, FileText, Save, Send, Trash2, X } from 'lucide-react';
+import { AlertCircle, ArrowLeft, FileText, Send, X } from 'lucide-react';
 import type { Submission, TopicArea } from '../../lib/api';
 import {
   createSubmission,
-  deleteSubmission,
+  getApprovedRolesFromUser,
+  getCurrentUser,
+  getStoredActiveRole,
   getSubmissionById,
   getTopicAreas,
-  isAuthenticated,
   submitSubmission,
   updateSubmission,
   uploadSubmissionFile,
@@ -60,7 +61,6 @@ export function SubmitPaperForm({
   const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [deleting, setDeleting] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -102,9 +102,17 @@ export function SubmitPaperForm({
         setLoading(true);
         setError(null);
 
-        const ok = await isAuthenticated();
-        if (!ok) {
+        const user = await getCurrentUser();
+        if (!user) {
           navigate('/login');
+          return;
+        }
+        const approvedRoles = getApprovedRolesFromUser(user);
+        const hasAuthorRole = approvedRoles.includes('author');
+        const activeRole = getStoredActiveRole();
+        const activeRoleNotAuthor = Boolean(activeRole && activeRole !== 'author');
+        if (!hasAuthorRole || activeRoleNotAuthor) {
+          navigate('/dashboard');
           return;
         }
 
@@ -163,7 +171,7 @@ export function SubmitPaperForm({
   const queuedSupplementaryLabel = (file: File) =>
     `${file.name} (${Math.round(file.size / 1024)} KB)`;
 
-  const saveDraft = async (): Promise<Submission | null> => {
+  const saveSubmissionData = async (): Promise<Submission | null> => {
     if (!allPoliciesAccepted(policies)) {
       setError('Please accept all policy agreements');
       return null;
@@ -191,39 +199,39 @@ export function SubmitPaperForm({
         copyright_agreement: policies.copyright,
       };
 
-      // Create or update draft metadata
+      // Create or update submission metadata
       if (!submission) {
         const { data, error } = await createSubmission(payload);
         if (error || !data) {
-          setError((error && (error.detail || error.message)) || 'Failed to create draft');
+          setError((error && (error.detail || error.message)) || 'Failed to create submission');
           return null;
         }
         setSubmission(data);
         navigate(`/submit/${data.id}#files`);
-        setSuccess('Draft created.');
+        setSuccess('Submission created.');
         return data;
       }
 
       const { data, error } = await updateSubmission(submission.id.toString(), payload);
       if (error) {
-        setError(error.detail || error.message || 'Failed to update draft');
+        setError(error.detail || error.message || 'Failed to update submission');
         return null;
       }
 
       const updated = data ?? (await getSubmissionById(submission.id.toString()));
       if (updated) setSubmission(updated);
-      setSuccess('Draft saved.');
+      setSuccess('Submission saved.');
       return updated ?? submission;
     } catch (err: any) {
-      console.error('Error saving draft:', err);
-      setError(err.message || 'Failed to save draft');
+      console.error('Error saving submission:', err);
+      setError(err.message || 'Failed to save submission');
       return null;
     } finally {
       setSaving(false);
     }
   };
 
-  const uploadQueuedFiles = async (draft: Submission): Promise<boolean> => {
+  const uploadQueuedFiles = async (record: Submission): Promise<boolean> => {
     if (!manuscriptFile && supplementaryFiles.length === 0) return true;
 
     try {
@@ -231,7 +239,7 @@ export function SubmitPaperForm({
       setError(null);
       setSuccess(null);
 
-      const id = draft.id.toString();
+      const id = record.id.toString();
 
       if (manuscriptFile) {
         const { error } = await uploadSubmissionFile(id, manuscriptFile, 'manuscript');
@@ -265,53 +273,18 @@ export function SubmitPaperForm({
     }
   };
 
-  const handleSaveDraftAndUploads = async () => {
-    const draft = await saveDraft();
-    if (!draft) return;
-    await uploadQueuedFiles(draft);
-  };
-
-  const canSubmit = submission?.status === 'draft' && Boolean(submission?.manuscript_pdf?.trim());
-  const isDraftSaved = Boolean(submission?.id);
-
-  const handleDeleteDraft = async () => {
-    if (!submission?.id || submission.status !== 'draft') return;
-    if (!window.confirm('Delete this draft? This cannot be undone.')) return;
-
-    try {
-      setDeleting(true);
-      setError(null);
-      const { error } = await deleteSubmission(submission.id.toString());
-      if (error) {
-        setError(typeof error === 'object' && error?.detail ? String(error.detail) : 'Only drafts can be deleted.');
-        return;
-      }
-      setSubmission(null);
-      setForm({ title: '', abstract: '', keywords: [], topic_area_id: null });
-      setKeywordDraft('');
-      setPolicies({ originality: false, plagiarism: false, ethics: false, copyright: false });
-      setManuscriptFile(null);
-      setSupplementaryFiles([]);
-      setSuccess('Draft deleted.');
-      navigate('/submit');
-    } catch (err: any) {
-      setError(err.message || 'Failed to delete draft');
-    } finally {
-      setDeleting(false);
-    }
-  };
+  const canSubmit = Boolean(submission?.manuscript_pdf?.trim());
+  const isSubmissionCreated = Boolean(submission?.id);
 
   const handleSubmit = async () => {
-    if (!submission) return;
-
-    // Ensure latest draft saved & queued files uploaded before submit
-    const draft = await saveDraft();
-    if (!draft) return;
-    const uploadsOk = await uploadQueuedFiles(draft);
+    // Ensure latest metadata is saved and queued files are uploaded before finalize
+    const saved = await saveSubmissionData();
+    if (!saved) return;
+    const uploadsOk = await uploadQueuedFiles(saved);
     if (!uploadsOk) return;
 
-    const refreshed = await getSubmissionById(draft.id.toString());
-    const effective = refreshed ?? draft;
+    const refreshed = await getSubmissionById(saved.id.toString());
+    const effective = refreshed ?? saved;
     if (!effective.manuscript_pdf?.trim()) {
       setError('Please upload the manuscript PDF before submitting.');
       return;
@@ -351,10 +324,10 @@ export function SubmitPaperForm({
     );
   }
 
-  const statusLabel = submission ? getStatusLabel(submission.status) : 'Draft (not created yet)';
+  const statusLabel = submission ? getStatusLabel(submission.status) : 'Submitted (not created yet)';
   const statusClass = submission
     ? getStatusChipClasses(submission.status)
-    : getStatusChipClasses('draft');
+    : getStatusChipClasses('submitted');
 
   return (
     <div className="min-h-screen bg-white">
@@ -373,7 +346,7 @@ export function SubmitPaperForm({
             <div className="flex-1">
               <h1 className="text-3xl font-bold text-gray-900">Submit Your Manuscript</h1>
               <p className="mt-1 text-sm text-gray-600">
-                Fill everything on one page. We’ll create a draft, upload files, then submit.
+                                Fill everything on one page. We will create, upload, and finalize in one flow.
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -431,7 +404,7 @@ export function SubmitPaperForm({
             onChange={(v) => setPolicies((p) => ({ ...p, copyright: v }))}
             title="Copyright Agreement"
           >
-            I agree to the journal’s copyright and publication terms upon acceptance.
+            I agree to the journalвЂ™s copyright and publication terms upon acceptance.
           </PolicyCheckbox>
         </section>
 
@@ -460,7 +433,7 @@ export function SubmitPaperForm({
 
           <div>
             <label className="mb-2 block text-sm font-medium text-gray-700">
-              Keywords * (3–10)
+              Keywords * (3-10)
             </label>
             <div className="flex gap-2">
               <input
@@ -631,51 +604,28 @@ export function SubmitPaperForm({
         {/* Actions */}
         <section className="border border-gray-300 bg-white p-6">
           <div className="flex flex-col gap-3 sm:flex-row sm:justify-end sm:items-center">
-            {!isDraftSaved && (
-              <button
-                type="button"
-                onClick={handleSaveDraftAndUploads}
-                disabled={saving || uploading || submitting}
-                className="inline-flex items-center justify-center gap-2 bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
-              >
-                <Save className="h-4 w-4" />
-                {saving || uploading ? 'Saving...' : 'Save Draft'}
-              </button>
-            )}
-
-            {isDraftSaved && (
-              <>
-                <button
-                  type="button"
-                  onClick={handleSubmit}
-                  disabled={!canSubmit || saving || uploading || submitting}
-                  className="inline-flex items-center justify-center gap-2 bg-green-600 px-5 py-3 text-sm font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-400"
-                >
-                  <Send className="h-4 w-4" />
-                  {submitting ? 'Submitting...' : 'Submit'}
-                </button>
-                {submission?.status === 'draft' && (
-                  <button
-                    type="button"
-                    onClick={handleDeleteDraft}
-                    disabled={deleting || saving || submitting}
-                    className="inline-flex items-center justify-center gap-2 border border-red-300 bg-white px-5 py-3 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                    {deleting ? 'Deleting...' : 'Delete draft'}
-                  </button>
-                )}
-              </>
-            )}
+            <button
+              type="button"
+              onClick={handleSubmit}
+              disabled={saving || uploading || submitting}
+              className="inline-flex items-center justify-center gap-2 bg-green-600 px-5 py-3 text-sm font-semibold text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+            >
+              <Send className="h-4 w-4" />
+              {submitting || saving || uploading
+                ? 'Processing...'
+                : isSubmissionCreated
+                  ? 'Save & Submit'
+                  : 'Create & Submit'}
+            </button>
           </div>
-          {isDraftSaved && !canSubmit && (
+          {isSubmissionCreated && !canSubmit && (
             <p className="mt-3 text-xs text-gray-500">
               Upload the manuscript PDF to submit.
             </p>
           )}
-          {!isDraftSaved && (
+          {!isSubmissionCreated && (
             <p className="mt-3 text-xs text-gray-500">
-              Save draft first, then upload files and submit.
+              Filling all required fields and clicking submit will create and finalize immediately.
             </p>
           )}
         </section>

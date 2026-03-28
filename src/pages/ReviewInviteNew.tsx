@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import {
   getAssignmentByToken,
-  getSubmissionFiles,
   acceptReviewInvitation,
   declineReviewInvitation,
   getCurrentUser,
@@ -26,11 +25,16 @@ export function ReviewInviteNew() {
     retry: false,
   });
 
-  const { data: files = [] } = useQuery({
-    queryKey: ['submission-files', assignment?.submission],
-    queryFn: () => getSubmissionFiles(String(assignment!.submission)),
-    enabled: !!assignment && assignment.status === 'accepted' && !!assignment.submission,
-  });
+  const files = assignment?.manuscript_url
+    ? [
+        {
+          id: `manuscript-${assignment.id}`,
+          original_filename: `${assignment.submission_title || 'Manuscript'}.pdf`,
+          file_type: 'manuscript_pdf',
+          url: assignment.manuscript_url,
+        },
+      ]
+    : [];
 
   const responseMutation = useMutation({
     mutationFn: async (accepted: boolean) => {

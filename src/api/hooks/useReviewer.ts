@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tantml:react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiClient, type ReviewAssignment } from '../../lib/api';
 import { API_ENDPOINTS } from '../endpoints';
 

@@ -1,11 +1,11 @@
 import React from 'react';
-import { FileText } from 'lucide-react';
-import type { Submission, ReviewAssignment, Reviewer } from '../../../lib/api';
-import { getStatusLabel, getStatusChipClasses } from '../utils';
-import { ReviewerInviteForm } from './ReviewerInviteForm';
+import { CalendarDays, FileText, Mail } from 'lucide-react';
+import type { ReviewAssignment, Reviewer, Submission } from '../../../lib/api';
+import { getStatusChipClasses, getStatusLabel } from '../utils';
 import { EditorialDecisionForm } from './EditorialDecisionForm';
-import { WorkflowActions } from './WorkflowActions';
 import { ReviewDetailsModal } from './ReviewDetailsModal';
+import { ReviewerInviteForm } from './ReviewerInviteForm';
+import { WorkflowActions } from './WorkflowActions';
 
 interface SubmissionDetailsProps {
   submission: Submission | null;
@@ -33,6 +33,25 @@ interface SubmissionDetailsProps {
   deskRejecting: boolean;
   publishing: boolean;
 }
+
+const formatDate = (value?: string): string => {
+  if (!value) {
+    return 'N/A';
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return 'N/A';
+  }
+
+  return parsed.toLocaleString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+};
 
 export const SubmissionDetails: React.FC<SubmissionDetailsProps> = ({
   submission,
@@ -62,79 +81,77 @@ export const SubmissionDetails: React.FC<SubmissionDetailsProps> = ({
 }) => {
   const [selectedAssignment, setSelectedAssignment] = React.useState<ReviewAssignment | null>(null);
 
-  const deskRejectReason = submission
-    ? submission.desk_reject_reason || submission.reason || ''
-    : '';
-
   if (!submission) {
     return (
-      <div className="p-8 text-center text-gray-500">
-        <FileText className="mx-auto mb-3 h-12 w-12 text-gray-300" />
-        <p>Select a submission to view details</p>
+      <div className="flex h-full flex-col items-center justify-center p-8 text-center">
+        <FileText size={42} style={{ color: '#CBD5E1' }} />
+        <h3 className="mt-3 text-base font-semibold text-[#0B1C4D]">Submission details</h3>
+        <p className="mt-1 text-sm text-slate-600">Select a submission from the list to review details.</p>
       </div>
     );
   }
 
+  const deskRejectReason = submission.desk_reject_reason || submission.reason || '';
+  const reviewAssignments = submission.review_assignments || [];
+
   return (
-    <div className="max-h-[600px] space-y-4 overflow-y-auto p-4">
-      {/* Title + meta */}
-      <div>
-        <h3 className="mb-1 text-lg font-semibold text-gray-900">
+    <div className="max-h-[calc(100vh-220px)] space-y-7 overflow-y-auto p-8 lg:p-9">
+      <section className="rounded-xl border bg-white p-8 shadow-[0_6px_16px_rgba(15,23,42,0.06)]" style={{ borderColor: '#D8E4F6' }}>
+        <h3 className="pr-2 text-xl font-semibold leading-snug text-[#0B1C4D]">
           {submission.title || 'Untitled Submission'}
         </h3>
-        <p className="mb-1 text-xs text-gray-500">
-          ID:{' '}
-          <span className="font-mono">
-            {submission.id.toString().substring(0, 8).toUpperCase()}
-          </span>
-        </p>
-        <span className={getStatusChipClasses(submission.status)}>
-          {getStatusLabel(submission.status)}
-        </span>
-      </div>
 
-      {/* Abstract */}
-      <div>
-        <h4 className="mb-1 text-sm font-semibold text-gray-700">Abstract</h4>
-        <p className="text-sm leading-relaxed text-gray-600">
+        <div className="mt-5 flex flex-wrap items-center gap-3.5">
+          <span className={getStatusChipClasses(submission.status)}>{getStatusLabel(submission.status)}</span>
+          <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-4 py-2 text-sm leading-none text-slate-600" style={{ borderColor: '#CBD5E1' }}>
+            <CalendarDays size={12} />
+            {formatDate(submission.created_at)}
+          </span>
+        </div>
+      </section>
+
+      <section className="rounded-xl border bg-white p-6 shadow-[0_4px_12px_rgba(15,23,42,0.05)]" style={{ borderColor: '#D8E4F6' }}>
+        <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Abstract</h4>
+        <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
           {submission.abstract || 'No abstract provided.'}
         </p>
-      </div>
 
-      {/* Keywords */}
-      {submission.keywords && submission.keywords.length > 0 && (
-        <div>
-          <h4 className="mb-1 text-sm font-semibold text-gray-700">Keywords</h4>
-          <div className="flex flex-wrap gap-2">
-            {submission.keywords.map((keyword, idx) => (
-              <span key={idx} className="bg-gray-100 px-2 py-1 text-xs text-gray-700">
+        {submission.keywords && submission.keywords.length > 0 && (
+          <div className="mt-5 flex flex-wrap gap-3.5">
+            {submission.keywords.map((keyword, index) => (
+              <span
+                key={`${keyword}-${index}`}
+                className="inline-flex items-center rounded-full border bg-[#F8FBFF] px-4 py-2 text-sm font-medium leading-none text-[#0B1C4D]"
+                style={{ borderColor: '#D8E4F6' }}
+              >
                 {keyword}
               </span>
             ))}
           </div>
-        </div>
-      )}
+        )}
+      </section>
 
-      {/* Files */}
-      <div>
-        <h4 className="mb-2 text-sm font-semibold text-gray-700">Files</h4>
+      <section className="rounded-xl border bg-white p-6 shadow-[0_4px_12px_rgba(15,23,42,0.05)]" style={{ borderColor: '#D8E4F6' }}>
+        <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Files</h4>
+
         {(!submission.manuscript_pdf || submission.manuscript_pdf.trim().length === 0) &&
-          (!submission.supplementary_files || submission.supplementary_files.length === 0) ? (
-          <p className="text-sm text-gray-500">No files uploaded</p>
+        (!submission.supplementary_files || submission.supplementary_files.length === 0) ? (
+          <p className="mt-2 text-sm text-slate-600">No files uploaded.</p>
         ) : (
-          <div className="space-y-2">
+          <div className="mt-4 space-y-3">
             {submission.manuscript_pdf && submission.manuscript_pdf.trim().length > 0 && (
               <a
                 href={submission.manuscript_pdf}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between border border-blue-200 bg-blue-50 p-2 text-sm transition-colors hover:bg-blue-100"
+                className="flex items-center justify-between rounded-xl border bg-[#F8FBFF] p-3"
+                style={{ borderColor: '#C9DCF6', transition: 'all 0.3s ease-in-out' }}
               >
-                <div className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-blue-600" />
-                  <span className="font-medium text-blue-900">Manuscript PDF</span>
-                </div>
-                <span className="text-xs font-semibold text-blue-700 uppercase">View</span>
+                <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#0B1C4D]">
+                  <FileText size={15} />
+                  Manuscript PDF
+                </span>
+                <span className="text-xs font-semibold text-[#1D4ED8]">Open</span>
               </a>
             )}
 
@@ -144,54 +161,60 @@ export const SubmissionDetails: React.FC<SubmissionDetailsProps> = ({
                 href={file.file}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between border border-gray-200 bg-gray-50 p-2 text-sm transition-colors hover:bg-gray-100"
+                className="flex items-center justify-between rounded-xl border bg-white p-3"
+                style={{ borderColor: '#E2E8F0', transition: 'all 0.3s ease-in-out' }}
               >
-                <div className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-gray-500" />
-                  <span className="font-medium text-gray-900">{file.name}</span>
-                </div>
-                <span className="text-xs font-semibold text-gray-700 uppercase">Open</span>
+                <span className="inline-flex items-center gap-2 text-sm text-slate-700">
+                  <FileText size={15} />
+                  {file.name}
+                </span>
+                <span className="text-xs font-semibold text-slate-500">Open</span>
               </a>
             ))}
           </div>
         )}
-      </div>
+      </section>
 
-      {/* Review assignments */}
-      <div>
-        <h4 className="mb-2 text-sm font-semibold text-gray-700">Review Assignments</h4>
-        {(!submission.review_assignments || submission.review_assignments.length === 0) && (
-          <p className="text-sm text-gray-500">No reviewers assigned yet.</p>
-        )}
-        {submission.review_assignments && submission.review_assignments.length > 0 && (
-          <div className="space-y-2">
-            {submission.review_assignments.map((assignment) => (
-              <div
-                key={assignment.id}
-                className="flex items-center justify-between border border-gray-200 bg-gray-50 p-2 text-xs"
-              >
-                <div className="flex-1">
+      <section className="rounded-xl border bg-white p-6 shadow-[0_4px_12px_rgba(15,23,42,0.05)]" style={{ borderColor: '#D8E4F6' }}>
+        <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Review Assignments</h4>
+
+        {reviewAssignments.length === 0 ? (
+          <p className="mt-2 text-sm text-slate-600">No reviewers assigned yet.</p>
+        ) : (
+          <div className="mt-4 space-y-3">
+            {reviewAssignments.map((assignment) => (
+              <div key={assignment.id} className="rounded-xl border bg-[#F8FBFF] p-4" style={{ borderColor: '#D8E4F6' }}>
+                <div className="flex flex-wrap items-start justify-between gap-2">
                   <button
                     type="button"
                     onClick={() => setSelectedAssignment(assignment)}
-                    className="font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                    className="inline-flex items-center gap-1 text-sm font-semibold text-[#1D4ED8]"
+                    style={{ transition: 'all 0.3s ease-in-out' }}
                   >
+                    <Mail size={14} />
                     {assignment.reviewer_email}
                   </button>
-                  <p className="text-gray-500 capitalize">
-                    Status: {assignment.status.replace('_', ' ')}
-                  </p>
-                  {assignment.due_date && (
-                    <p className="text-gray-500">
-                      Due: {new Date(assignment.due_date).toLocaleDateString('en-US')}
-                    </p>
-                  )}
+
+                  <span className="rounded-full border border-[#C9DCF6] bg-white px-2.5 py-1 text-xs font-semibold capitalize text-slate-700">
+                    {assignment.status.replace('_', ' ')}
+                  </span>
                 </div>
+
+                <p className="mt-1 text-xs text-slate-500">
+                  Due: {assignment.due_date ? new Date(assignment.due_date).toLocaleDateString('en-US') : 'N/A'}
+                </p>
+
                 {assignment.status === 'invited' && (
                   <button
                     type="button"
                     onClick={() => onRemindReviewer(assignment)}
-                    className="rounded bg-blue-100 px-3 py-1.5 text-xs font-medium text-blue-700 hover:bg-blue-200 transition-colors"
+                    className="mt-2 rounded-lg border px-3 py-1.5 text-xs font-semibold"
+                    style={{
+                      borderColor: '#93C5FD',
+                      color: '#1D4ED8',
+                      backgroundColor: '#EFF6FF',
+                      transition: 'all 0.3s ease-in-out',
+                    }}
                   >
                     Send Reminder
                   </button>
@@ -200,62 +223,56 @@ export const SubmissionDetails: React.FC<SubmissionDetailsProps> = ({
             ))}
           </div>
         )}
-      </div>
+      </section>
 
-      {/* Editorial outcome / desk reject */}
       {(deskRejectReason || submission.editorial_decision || submission.decision_letter) && (
-        <div>
-          <h4 className="mb-2 text-sm font-semibold text-gray-700">Editorial Outcome</h4>
+        <section className="rounded-xl border bg-white p-6 shadow-[0_4px_12px_rgba(15,23,42,0.05)]" style={{ borderColor: '#D8E4F6' }}>
+          <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Editorial Outcome</h4>
 
           {submission.status === 'desk_rejected' && (
-            <span className="mb-2 inline-flex items-center rounded-full bg-red-50 px-3 py-1 text-xs font-medium text-red-700">
+            <span className="mt-2 inline-flex rounded-full border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">
               Desk Rejected
             </span>
           )}
 
           {deskRejectReason && (
-            <div className="mt-2 rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-800">
-              <span className="font-semibold">Desk Reject Reason:</span>{' '}
-              <span>{deskRejectReason}</span>
-            </div>
+            <p className="mt-2 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-800">
+              <span className="font-semibold">Desk Reject Reason:</span> {deskRejectReason}
+            </p>
           )}
 
           {submission.editorial_decision && (
-            <p className="mt-3 text-sm text-gray-700">
+            <p className="mt-2 text-sm text-slate-700">
               <span className="font-semibold">Decision:</span>{' '}
               <span className="capitalize">{submission.editorial_decision.replace('_', ' ')}</span>
             </p>
           )}
 
           {submission.decision_letter && (
-            <div className="mt-3 rounded-md border border-gray-200 bg-gray-50 p-3">
-              <p className="mb-1 text-xs font-semibold text-gray-500">Decision Letter</p>
-              <p className="whitespace-pre-wrap text-sm text-gray-700">
-                {submission.decision_letter}
-              </p>
+            <div className="mt-2 rounded-xl border bg-[#F8FBFF] p-3" style={{ borderColor: '#D8E4F6' }}>
+              <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">Decision Letter</p>
+              <p className="whitespace-pre-wrap text-sm text-slate-700">{submission.decision_letter}</p>
             </div>
           )}
-        </div>
+        </section>
       )}
 
-      {/* Reviewer invite form */}
       {submission.status === 'screening' && (
         <ReviewerInviteForm
           reviewers={reviewers}
           isLoadingReviewers={isLoadingReviewers}
           dueDate={inviteDueDate}
           selectedReviewerIds={selectedReviewerIds}
-          alreadyInvitedEmails={
-            submission.review_assignments?.map((a) => a.reviewer_email?.toLowerCase()) || []
-          }
+          alreadyInvitedEmails={reviewAssignments.map((assignment) => assignment.reviewer_email?.toLowerCase())}
           onReviewerIdsSelect={onReviewerIdsSelect}
           onDueDateChange={onInviteDueDateChange}
           onSubmit={onInviteReviewer}
+          onDeskReject={onDeskReject}
           isLoading={inviting}
+          deskRejecting={deskRejecting}
         />
       )}
 
-      {/* Editorial decision form */}
       {submission.status === 'decision_pending' && (
         <EditorialDecisionForm
           decision={decision}
@@ -267,24 +284,17 @@ export const SubmissionDetails: React.FC<SubmissionDetailsProps> = ({
         />
       )}
 
-      {/* Workflow actions */}
       <WorkflowActions
         submission={submission}
         onStartScreening={onStartScreening}
-        onDeskReject={onDeskReject}
         onSendToReview={onSendToReview}
         onMoveToDecision={onMoveToDecision}
         onPublish={onPublish}
         movingToDecision={movingToDecision}
-        deskRejecting={deskRejecting}
         publishing={publishing}
       />
 
-      {/* Review Details Modal */}
-      <ReviewDetailsModal
-        assignment={selectedAssignment}
-        onClose={() => setSelectedAssignment(null)}
-      />
+      <ReviewDetailsModal assignment={selectedAssignment} onClose={() => setSelectedAssignment(null)} />
     </div>
   );
 };

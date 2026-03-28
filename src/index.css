@@ -2474,3 +2474,25 @@ a:hover {
     opacity: 0.5;
   }
 }
+
+/* SaaS micro-interactions */
+.saas-fade-menu {
+  transform-origin: top right;
+  will-change: transform, opacity;
+}
+
+.saas-stagger-item {
+  opacity: 0;
+  animation: saasFadeUp 0.45s ease forwards;
+}
+
+@keyframes saasFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

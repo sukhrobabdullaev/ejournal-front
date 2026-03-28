@@ -1,38 +1,36 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate, useParams } from 'react-router';
 import type { Submission } from '../lib/api';
-import { deleteSubmission, getSubmissionById, submitSubmission } from '../lib/queries-api';
-import { FileText, ArrowLeft, Trash2 } from 'lucide-react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { getSubmissionById } from '../lib/queries-api';
+import { FileText, ArrowLeft } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import dateFormat from 'dateformat';
 
 const STATUS_CHIP_CLASS_MAP: Partial<Record<Submission['status'], string>> = {
-  draft:
-    'inline-flex px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700 border border-gray-300',
   submitted:
-    'inline-flex px-3 py-1 text-xs font-medium rounded-full bg-blue-50 text-blue-700 border border-blue-300',
+    'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium w-auto h-auto bg-blue-50 text-blue-700 border border-blue-300',
   under_review:
-    'inline-flex px-3 py-1 text-xs font-medium rounded-full bg-yellow-50 text-yellow-700 border border-yellow-300',
+    'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium w-auto h-auto bg-yellow-50 text-yellow-700 border border-yellow-300',
   screening:
-    'inline-flex px-3 py-1 text-xs font-medium rounded-full bg-yellow-50 text-yellow-700 border border-yellow-300',
+    'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium w-auto h-auto bg-yellow-50 text-yellow-700 border border-yellow-300',
   decision_pending:
-    'inline-flex px-3 py-1 text-xs font-medium rounded-full bg-yellow-50 text-yellow-700 border border-yellow-300',
+    'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium w-auto h-auto bg-yellow-50 text-yellow-700 border border-yellow-300',
   revision_required:
-    'inline-flex px-3 py-1 text-xs font-medium rounded-full bg-orange-50 text-orange-700 border border-orange-300',
+    'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium w-auto h-auto bg-orange-50 text-orange-700 border border-orange-300',
   resubmitted:
-    'inline-flex px-3 py-1 text-xs font-medium rounded-full bg-orange-50 text-orange-700 border border-orange-300',
+    'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium w-auto h-auto bg-orange-50 text-orange-700 border border-orange-300',
   accepted:
-    'inline-flex px-3 py-1 text-xs font-medium rounded-full bg-green-50 text-green-700 border border-green-300',
+    'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium w-auto h-auto bg-green-50 text-green-700 border border-green-300',
   rejected:
-    'inline-flex px-3 py-1 text-xs font-medium rounded-full bg-red-50 text-red-700 border border-red-300',
+    'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium w-auto h-auto bg-red-50 text-red-700 border border-red-300',
   desk_rejected:
-    'inline-flex px-3 py-1 text-xs font-medium rounded-full bg-red-50 text-red-700 border border-red-300',
+    'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium w-auto h-auto bg-red-50 text-red-700 border border-red-300',
   published:
-    'inline-flex px-3 py-1 text-xs font-medium rounded-full bg-purple-50 text-purple-700 border border-purple-300',
+    'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium w-auto h-auto bg-purple-50 text-purple-700 border border-purple-300',
 };
 
 const DEFAULT_STATUS_CHIP_CLASS =
-  'inline-flex px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-700 border border-gray-300';
+  'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium w-auto h-auto bg-gray-100 text-gray-700 border border-gray-300';
 
 const formatDisplayDate = (value?: string | null): string => {
   if (!value) return 'N/A';
@@ -43,29 +41,11 @@ const formatDisplayDate = (value?: string | null): string => {
 
 const hasNonEmptyUrl = (value?: string | null): boolean => Boolean(value && value.trim().length > 0);
 
-type SubmitResponse = Awaited<ReturnType<typeof submitSubmission>>;
-type DeleteResponse = Awaited<ReturnType<typeof deleteSubmission>>;
-
-const getErrorMessage = (error: unknown, fallback: string): string => {
-  if (!error) return fallback;
-  if (typeof error === 'string') return error;
-  if (typeof error === 'object') {
-    const maybeError = error as { detail?: unknown; message?: unknown };
-    if (typeof maybeError.detail === 'string') return maybeError.detail;
-    if (typeof maybeError.message === 'string') return maybeError.message;
-  }
-  return fallback;
-};
-
 type SubmissionHeaderProps = {
   submission: Submission;
   statusClass: string;
   statusLabel: string;
   onBack: () => void;
-  onSubmit: () => void;
-  onDelete: () => void;
-  isSubmitting: boolean;
-  isDeleting: boolean;
 };
 
 function LoadingState() {
@@ -100,10 +80,6 @@ function SubmissionHeader({
   statusClass,
   statusLabel,
   onBack,
-  onSubmit,
-  onDelete,
-  isSubmitting,
-  isDeleting,
 }: SubmissionHeaderProps) {
   return (
     <div className="border-b border-gray-300 bg-white">
@@ -126,25 +102,6 @@ function SubmissionHeader({
           </div>
           <div className="flex items-center gap-3">
             <span className={statusClass}>{statusLabel}</span>
-            {submission.status === 'draft' && (
-              <>
-                <button
-                  onClick={onSubmit}
-                  disabled={isSubmitting}
-                  className="bg-blue-600 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-400"
-                >
-                  {isSubmitting ? 'Submitting...' : 'Submit Manuscript'}
-                </button>
-                <button
-                  onClick={onDelete}
-                  disabled={isDeleting}
-                  className="inline-flex items-center gap-1 border border-red-300 bg-white px-4 py-2 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <Trash2 className="h-3.5 w-3.5" />
-                  {isDeleting ? 'Deleting...' : 'Delete draft'}
-                </button>
-              </>
-            )}
           </div>
         </div>
       </div>
@@ -318,8 +275,6 @@ function EditorialOutcomeSection({
 export function SubmissionDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
-  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const {
     data: submission,
@@ -329,34 +284,6 @@ export function SubmissionDetail() {
     queryKey: ['submission', id],
     queryFn: () => getSubmissionById(id!),
     enabled: !!id,
-  });
-
-  const submitMutation = useMutation({
-    mutationFn: () => submitSubmission(submission!.id.toString()),
-    onSuccess: ({ error }: SubmitResponse) => {
-      if (error) {
-        const message = getErrorMessage(error, 'Failed to submit manuscript');
-        console.error('Submit error:', message);
-        return;
-      }
-      queryClient.invalidateQueries({ queryKey: ['submission', id] });
-    },
-    onError: (err: unknown) => console.error('Error submitting manuscript:', err),
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: () => deleteSubmission(submission!.id.toString()),
-    onSuccess: ({ error }: DeleteResponse) => {
-      if (error) {
-        const msg = getErrorMessage(error, 'Only drafts can be deleted.');
-        setDeleteError(msg);
-        return;
-      }
-      queryClient.invalidateQueries({ queryKey: ['submissions'] });
-      queryClient.invalidateQueries({ queryKey: ['my-submissions'] });
-      navigate('/submit');
-    },
-    onError: (err: unknown) => setDeleteError(getErrorMessage(err, 'Failed to delete draft')),
   });
 
   if (loading) {
@@ -374,11 +301,6 @@ export function SubmissionDetail() {
   const deskRejectReason = currentSubmission.desk_reject_reason || currentSubmission.reason || '';
   const hasManuscriptPdf = hasNonEmptyUrl(currentSubmission.manuscript_pdf);
   const hasSupplementaryFiles = Boolean(currentSubmission.supplementary_files?.length);
-  const handleDeleteDraft = () => {
-    if (window.confirm('Delete this draft? This cannot be undone.')) {
-      deleteMutation.mutate();
-    }
-  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -387,26 +309,10 @@ export function SubmissionDetail() {
         statusClass={statusClass}
         statusLabel={statusLabel}
         onBack={() => navigate('/dashboard')}
-        onSubmit={() => submitMutation.mutate()}
-        onDelete={handleDeleteDraft}
-        isSubmitting={submitMutation.isPending}
-        isDeleting={deleteMutation.isPending}
       />
 
       {/* Body */}
       <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-        {deleteError && (
-          <div className="mb-4 border border-red-300 bg-red-50 p-3 text-sm text-red-800">
-            {deleteError}
-            <button
-              type="button"
-              onClick={() => setDeleteError(null)}
-              className="ml-2 font-medium underline"
-            >
-              Dismiss
-            </button>
-          </div>
-        )}
         <ManuscriptDetailsSection submission={currentSubmission} statusLabel={statusLabel} />
         <AbstractSection submission={currentSubmission} />
         <FilesSection

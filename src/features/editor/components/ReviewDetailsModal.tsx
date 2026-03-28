@@ -1,229 +1,138 @@
 import React from 'react';
-import { X, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
-import type { ReviewAssignment } from '../../../lib/api';
 
 interface ReviewDetailsModalProps {
-  assignment: ReviewAssignment | null;
+  assignment: any;
+  isOpen?: boolean;
   onClose: () => void;
 }
 
-export const ReviewDetailsModal: React.FC<ReviewDetailsModalProps> = ({ assignment, onClose }) => {
-  if (!assignment) return null;
+const recommendationStyleMap: Record<string, React.CSSProperties> = {
+  accept: {
+    backgroundColor: '#DCFCE7',
+    color: '#166534',
+    borderColor: '#86EFAC',
+  },
+  reject: {
+    backgroundColor: '#FEE2E2',
+    color: '#991B1B',
+    borderColor: '#FCA5A5',
+  },
+};
 
-  const getRecommendationBadge = (recommendation: string) => {
-    switch (recommendation) {
-      case 'accept':
-        return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-800">
-            <CheckCircle className="h-4 w-4" />
-            Accept
-          </span>
-        );
-      case 'reject':
-        return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-3 py-1 text-sm font-medium text-red-800">
-            <XCircle className="h-4 w-4" />
-            Reject
-          </span>
-        );
-      case 'minor_revision':
-        return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-yellow-100 px-3 py-1 text-sm font-medium text-yellow-800">
-            <AlertCircle className="h-4 w-4" />
-            Minor Revision
-          </span>
-        );
-      case 'major_revision':
-        return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-3 py-1 text-sm font-medium text-orange-800">
-            <AlertCircle className="h-4 w-4" />
-            Major Revision
-          </span>
-        );
-      default:
-        return (
-          <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-800">
-            {recommendation}
-          </span>
-        );
-    }
-  };
+const defaultRecommendationStyle: React.CSSProperties = {
+  backgroundColor: '#FEF3C7',
+  color: '#92400E',
+  borderColor: '#FCD34D',
+};
 
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case 'invited':
-        return 'Invited';
-      case 'accepted':
-        return 'Accepted';
-      case 'declined':
-        return 'Declined';
-      case 'review_submitted':
-        return 'Review Submitted';
-      case 'completed':
-        return 'Completed';
-      default:
-        return status;
-    }
-  };
+export const ReviewDetailsModal: React.FC<ReviewDetailsModalProps> = ({ assignment, isOpen, onClose }) => {
+  const open = typeof isOpen === 'boolean' ? isOpen : Boolean(assignment);
+
+  if (!open || !assignment) {
+    return null;
+  }
+
+  const { review, status, due_date: dueDate, reviewer_email: reviewerEmail } = assignment;
+  const recommendation = review?.recommendation || '';
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black bg-opacity-50 p-4"
-      onClick={onClose}
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm" onClick={onClose}>
       <div
-        className="relative max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-lg bg-white shadow-xl"
-        onClick={(e) => e.stopPropagation()}
+        className="saas-fade-menu flex max-h-[90vh] w-full max-w-3xl flex-col rounded-2xl border bg-white shadow-[0_24px_52px_rgba(15,23,42,0.24)]"
+        style={{ borderColor: '#D8E4F6', transition: 'all 0.3s ease-in-out' }}
+        onClick={(event) => event.stopPropagation()}
       >
-        {/* Header */}
-        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-gray-200 bg-white px-6 py-4">
-          <div>
-            <h2 className="text-xl font-semibold text-gray-900">Review Details</h2>
-            <p className="mt-1 text-sm text-gray-600">{assignment.reviewer_email}</p>
-          </div>
+        <div className="flex items-center justify-between border-b px-6 py-4" style={{ borderColor: '#E2E8F0' }}>
+          <h2 className="text-lg font-semibold text-[#0B1C4D]">Review Details</h2>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+            className="inline-flex h-8 w-8 items-center justify-center rounded-md border"
+            style={{ borderColor: '#C9DCF6', transition: 'all 0.3s ease-in-out' }}
           >
-            <X className="h-5 w-5" />
+            <span className="text-lg leading-none text-slate-600">x</span>
           </button>
         </div>
 
-        {/* Content */}
-        <div className="space-y-6 p-6">
-          {/* Assignment Info */}
-          <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-            <h3 className="mb-3 text-sm font-semibold text-gray-700">Assignment Information</h3>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="font-medium text-gray-600">Status:</span>
-                <span className="ml-2 capitalize text-gray-900">{getStatusLabel(assignment.status)}</span>
-              </div>
-              <div>
-                <span className="font-medium text-gray-600">Due Date:</span>
-                <span className="ml-2 text-gray-900">
-                  {assignment.due_date
-                    ? new Date(assignment.due_date).toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric',
-                      })
-                    : 'Not set'}
-                </span>
-              </div>
-              <div>
-                <span className="font-medium text-gray-600">Invited At:</span>
-                <span className="ml-2 text-gray-900">
-                  {new Date(assignment.invited_at).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                  })}
-                </span>
-              </div>
-              {assignment.responded_at && (
-                <div>
-                  <span className="font-medium text-gray-600">Responded At:</span>
-                  <span className="ml-2 text-gray-900">
-                    {new Date(assignment.responded_at).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
-                  </span>
-                </div>
-              )}
+        <div className="flex-1 space-y-5 overflow-y-auto px-6 py-5">
+          <div className="grid grid-cols-1 gap-3 rounded-xl border bg-[#F8FBFF] p-4 text-sm sm:grid-cols-3" style={{ borderColor: '#D8E4F6' }}>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Reviewer</p>
+              <p className="mt-1 break-all text-sm font-semibold text-[#0B1C4D]">{reviewerEmail}</p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Status</p>
+              <p className="mt-1 text-sm font-semibold capitalize text-[#0B1C4D]">{String(status).replace('_', ' ')}</p>
+            </div>
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Due Date</p>
+              <p className="mt-1 text-sm font-semibold text-[#0B1C4D]">{dueDate || 'N/A'}</p>
             </div>
           </div>
 
-          {/* Review Content */}
-          {assignment.review ? (
-            <div className="space-y-4">
-              {/* Recommendation */}
-              <div>
-                <h3 className="mb-2 text-sm font-semibold text-gray-700">Recommendation</h3>
-                <div>{getRecommendationBadge(assignment.review.recommendation)}</div>
-              </div>
-
-              {/* Summary */}
-              <div>
-                <h3 className="mb-2 text-sm font-semibold text-gray-700">Summary</h3>
-                <div className="rounded-lg border border-gray-200 bg-white p-4">
-                  <p className="whitespace-pre-wrap text-sm text-gray-800">
-                    {assignment.review.summary || 'No summary provided'}
-                  </p>
-                </div>
-              </div>
-
-              {/* Strengths */}
-              <div>
-                <h3 className="mb-2 text-sm font-semibold text-gray-700">Strengths</h3>
-                <div className="rounded-lg border border-green-200 bg-green-50 p-4">
-                  <p className="whitespace-pre-wrap text-sm text-gray-800">
-                    {assignment.review.strengths || 'No strengths provided'}
-                  </p>
-                </div>
-              </div>
-
-              {/* Weaknesses */}
-              <div>
-                <h3 className="mb-2 text-sm font-semibold text-gray-700">Weaknesses</h3>
-                <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-                  <p className="whitespace-pre-wrap text-sm text-gray-800">
-                    {assignment.review.weaknesses || 'No weaknesses provided'}
-                  </p>
-                </div>
-              </div>
-
-              {/* Confidential Comments */}
-              <div>
-                <h3 className="mb-2 text-sm font-semibold text-gray-700">
-                  Confidential Comments to Editor
-                </h3>
-                <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-                  <p className="whitespace-pre-wrap text-sm text-gray-800">
-                    {assignment.review.confidential_to_editor || 'No confidential comments'}
-                  </p>
-                </div>
-              </div>
-
-              {/* Submitted At */}
-              {assignment.review.submitted_at && (
-                <div className="text-right text-sm text-gray-500">
-                  Submitted on{' '}
-                  {new Date(assignment.review.submitted_at).toLocaleDateString('en-US', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </div>
-              )}
+          {!review ? (
+            <div className="rounded-xl border border-dashed border-[#C9DCF6] bg-[#F8FBFF] px-4 py-8 text-center text-sm text-slate-600">
+              {status === 'invited' && 'Reviewer has been invited but has not responded yet.'}
+              {status === 'accepted' && 'Review is currently in progress.'}
+              {status === 'declined' && 'Reviewer declined the invitation.'}
+              {status === 'expired' && 'Review assignment has expired.'}
+              {!['invited', 'accepted', 'declined', 'expired'].includes(status) &&
+                'No review submitted yet.'}
             </div>
           ) : (
-            <div className="rounded-lg border border-gray-200 bg-gray-50 p-8 text-center">
-              <AlertCircle className="mx-auto mb-3 h-12 w-12 text-gray-400" />
-              <p className="text-gray-600">
-                {assignment.status === 'invited'
-                  ? 'Reviewer has not yet responded to the invitation.'
-                  : assignment.status === 'accepted'
-                    ? 'Review is in progress. No review has been submitted yet.'
-                    : assignment.status === 'declined'
-                      ? 'Reviewer declined the invitation.'
-                      : 'No review available.'}
-              </p>
-            </div>
+            <>
+              <section>
+                <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Recommendation</h3>
+                <span
+                  className="mt-2 inline-flex rounded-full border px-3 py-1 text-xs font-semibold uppercase"
+                  style={{
+                    ...(recommendationStyleMap[recommendation] || defaultRecommendationStyle),
+                    transition: 'all 0.3s ease-in-out',
+                  }}
+                >
+                  {recommendation.replace('_', ' ')}
+                </span>
+              </section>
+
+              <section>
+                <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">Summary</h3>
+                <p className="whitespace-pre-wrap rounded-xl border bg-white p-3 text-sm text-slate-700" style={{ borderColor: '#E2E8F0' }}>
+                  {review.summary || 'N/A'}
+                </p>
+              </section>
+
+              <section>
+                <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">Strengths</h3>
+                <p className="whitespace-pre-wrap rounded-xl border bg-white p-3 text-sm text-slate-700" style={{ borderColor: '#E2E8F0' }}>
+                  {review.strengths || 'N/A'}
+                </p>
+              </section>
+
+              <section>
+                <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">Weaknesses</h3>
+                <p className="whitespace-pre-wrap rounded-xl border bg-white p-3 text-sm text-slate-700" style={{ borderColor: '#E2E8F0' }}>
+                  {review.weaknesses || 'N/A'}
+                </p>
+              </section>
+
+              {review.confidential_to_editor && (
+                <section className="rounded-xl border bg-amber-50 p-3" style={{ borderColor: '#FCD34D' }}>
+                  <h3 className="mb-2 text-sm font-semibold uppercase tracking-wide text-amber-800">
+                    Confidential To Editor
+                  </h3>
+                  <p className="whitespace-pre-wrap text-sm text-amber-900">{review.confidential_to_editor}</p>
+                </section>
+              )}
+            </>
           )}
         </div>
 
-        {/* Footer */}
-        <div className="sticky bottom-0 border-t border-gray-200 bg-gray-50 px-6 py-4">
+        <div className="flex justify-end border-t px-6 py-4" style={{ borderColor: '#E2E8F0' }}>
           <button
             type="button"
             onClick={onClose}
-            className="w-full rounded-lg bg-gray-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-700"
+            className="rounded-lg border px-4 py-2 text-sm font-semibold"
+            style={{ borderColor: '#C9DCF6', color: '#0B1C4D', transition: 'all 0.3s ease-in-out' }}
           >
             Close
           </button>
