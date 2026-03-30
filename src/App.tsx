@@ -76,7 +76,7 @@ export default function App() {
       <Router>
         <div className="flex min-h-screen flex-col bg-white">
           <Header />
-          <main className="grow pt-2 md:pt-3">
+          <main className="grow pt-2 pb-8 md:pt-3 md:pb-10">
             <ReactSuspense
               fallback={
                 <div className="flex min-h-[50vh] items-center justify-center">
