@@ -1,12 +1,14 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
-import { BookOpen, CalendarDays, ChevronDown, Download, Search, SlidersHorizontal } from 'lucide-react';
+import { BookOpen, CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Download, Search, SlidersHorizontal } from 'lucide-react';
 import { getPublishedIssues } from '../lib/queries-api';
 
 export function PublishedIssues() {
   const [query, setQuery] = useState('');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest');
+  const [page, setPage] = useState(1);
+  const ITEMS_PER_PAGE = 5;
 
   const { data: issues = [], isLoading, isError } = useQuery({
     queryKey: ['published-issues'],
@@ -46,12 +48,26 @@ export function PublishedIssues() {
     return sorted;
   }, [issues, query, sortBy]);
 
-  const currentIssue = filteredIssues[0] || null;
-  const archiveIssues = filteredIssues.slice(1);
+  const totalPages = Math.max(1, Math.ceil(filteredIssues.length / ITEMS_PER_PAGE));
+
+  useEffect(() => {
+    setPage(1);
+  }, [query, sortBy]);
+
+  useEffect(() => {
+    if (page > totalPages) {
+      setPage(totalPages);
+    }
+  }, [page, totalPages]);
+
+  const paginatedIssues = useMemo(() => {
+    const start = (page - 1) * ITEMS_PER_PAGE;
+    return filteredIssues.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredIssues, page]);
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[60vh] items-center justify-center bg-[#F7FAFF]">
+      <div className="flex min-h-[60vh] items-center justify-center bg-white">
         <div className="text-center">
           <div className="mx-auto mb-3 h-10 w-10 animate-spin rounded-full border-4 border-[#1D4ED8] border-t-transparent" />
           <p className="text-sm text-slate-600">Loading published issues...</p>
@@ -62,154 +78,168 @@ export function PublishedIssues() {
 
   if (isError) {
     return (
-      <div className="flex min-h-[50vh] items-center justify-center bg-[#F7FAFF] px-4 text-center">
+      <div className="flex min-h-[50vh] items-center justify-center bg-white px-4 text-center">
         <p className="text-sm text-red-600">Failed to load published issues.</p>
       </div>
     );
   }
 
   return (
-    <div className="bg-[#F5F8FE] pb-16 pt-6 md:pt-8">
-      <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
-        <div className="rounded-2xl border border-[#D9E5FA] bg-white p-5 shadow-[0_10px_28px_rgba(15,23,42,0.06)] sm:p-6 md:p-8">
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h1 className="break-words text-2xl font-bold text-[#0B1C4D] sm:text-3xl md:text-4xl">Published Journals</h1>
-              <p className="mt-2 text-sm leading-6 text-slate-600 md:text-base">
-                Browse published issues, open table of contents, and access full PDFs.
+    <div
+      className="relative overflow-hidden pb-18 pt-8 md:pt-10"
+      style={{
+        background: '#F8FAFC',
+        fontFamily: 'Geist, Inter, Segoe UI, sans-serif',
+      }}
+    >
+      <div className="relative mx-auto max-w-5xl px-4 sm:px-6">
+        <section className="rounded-xl border border-slate-200 bg-white px-5 py-6 shadow-sm md:px-6 md:py-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div className="max-w-3xl space-y-2.5">
+              <p className="inline-flex rounded-xl border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-700">
+                Academic Archive
               </p>
-            </div>
-            <div className="inline-flex items-center gap-2 rounded-xl border border-[#CFE0FF] bg-[#F3F8FF] px-3 py-2 text-sm font-semibold text-[#1D4ED8]">
-              <BookOpen size={16} />
-              {filteredIssues.length} issues
+              <div className="flex flex-wrap items-center gap-2.5">
+                <h1 className="text-3xl font-bold leading-tight text-slate-800 md:text-4xl">
+                  Published Issues
+                </h1>
+                <span className="inline-flex h-7 items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-2.5 text-[11px] font-semibold text-slate-700 shadow-sm">
+                  <BookOpen size={13} className="text-slate-600" />
+                  {filteredIssues.length} ta son
+                </span>
+              </div>
+              <p className="text-base leading-7 text-gray-600">
+                Sonlarni tez toping, TOC ko‘ring va to‘liq PDFni yuklab oling.
+              </p>
             </div>
           </div>
 
-          <div className="mt-8 grid gap-4 md:grid-cols-[1fr_210px]">
-            <label className="flex h-14 items-center gap-3 rounded-xl border border-[#D8E4F6] bg-white px-4 transition-colors focus-within:border-[#93C5FD]">
-              <Search size={17} className="shrink-0 text-slate-400" />
+          <div className="mt-5 flex w-full flex-row items-center gap-3">
+            <label className="flex h-[52px] min-w-0 flex-1 items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 shadow-sm transition-all focus-within:border-blue-300 focus-within:ring-2 focus-within:ring-blue-100 focus-within:shadow-[0_8px_22px_rgba(37,99,235,0.14)]">
+              <Search size={18} strokeWidth={2.2} className="shrink-0 text-slate-500" />
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search by title, volume, issue, year"
+                placeholder="Sarlavha, volume, issue yoki yil bo‘yicha qidiring"
                 className="w-full bg-transparent text-sm leading-none text-slate-700 outline-none placeholder:text-slate-400"
               />
             </label>
 
-            <label className="relative flex h-14 items-center gap-3 rounded-xl border border-[#D8E4F6] bg-white px-4 transition-colors focus-within:border-[#93C5FD]">
-              <SlidersHorizontal size={16} className="shrink-0 text-slate-400" />
+            <label className="relative flex h-[52px] w-[220px] min-w-[200px] items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 shadow-sm transition-all focus-within:border-blue-300 focus-within:ring-2 focus-within:ring-blue-100 focus-within:shadow-[0_8px_22px_rgba(37,99,235,0.14)]">
+              <SlidersHorizontal size={18} strokeWidth={2.2} className="shrink-0 text-slate-500" />
               <select
                 value={sortBy}
                 onChange={(event) => setSortBy(event.target.value as 'newest' | 'oldest')}
-                className="w-full appearance-none bg-transparent pr-8 text-sm leading-none text-slate-700 outline-none"
+                className="w-full appearance-none bg-transparent pr-7 text-sm leading-none text-slate-700 outline-none"
               >
                 <option value="newest">Newest first</option>
                 <option value="oldest">Oldest first</option>
               </select>
-              <ChevronDown size={17} className="pointer-events-none absolute right-4 text-slate-500" />
+              <ChevronDown size={16} className="pointer-events-none absolute right-3 text-slate-500" />
             </label>
           </div>
-        </div>
+        </section>
 
         {filteredIssues.length === 0 ? (
-          <div className="mt-8 rounded-xl border border-dashed border-[#C9DCF6] bg-white p-10 text-center text-sm text-slate-500">
-            No matching issues found.
-          </div>
+          <section className="mt-6 rounded-xl border border-dashed border-slate-300 bg-white p-10 text-center text-sm text-slate-500">
+            Qidiruv bo‘yicha mos sonlar topilmadi.
+          </section>
         ) : (
-          <div className="mt-8 space-y-6">
-            {currentIssue && (
-              <section className="rounded-2xl border border-[#D8E4F6] bg-white p-5 shadow-[0_10px_28px_rgba(15,23,42,0.06)] sm:p-6 md:p-8">
-                <div className="flex flex-wrap items-start justify-between gap-4">
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-[#1D4ED8]">Current Issue</p>
-                    <h2 className="mt-2 break-words text-xl font-bold leading-tight text-[#0B1C4D] sm:text-2xl md:text-3xl [overflow-wrap:anywhere]">
-                      {currentIssue.title || `Volume ${currentIssue.volume}, Issue ${currentIssue.issue_number}`}
-                    </h2>
-                    <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2.5 text-sm text-slate-600">
-                      <span className="inline-flex items-center rounded-md bg-[#F5F9FF] px-2.5 py-1.5 font-semibold text-slate-700">
-                        Vol. {currentIssue.volume} No. {currentIssue.issue_number}
-                      </span>
-                      <span className="inline-flex items-center gap-1.5 rounded-md bg-[#F5F9FF] px-2.5 py-1.5">
-                        <CalendarDays size={14} />
-                        {currentIssue.publication_date || currentIssue.publication_year}
-                      </span>
-                    </div>
-                  </div>
-                  <BookOpen size={22} className="text-[#1D4ED8]" />
-                </div>
+          <section className="mt-6 space-y-3">
+            {paginatedIssues.map((issue, index) => {
+              const displayIndex = (page - 1) * ITEMS_PER_PAGE + index + 1;
+              return (
+                <article
+                  key={issue.id}
+                  className="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm transition-colors duration-200 hover:border-blue-200"
+                >
+                  <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <p className="flex flex-wrap items-center gap-1.5 text-xs font-medium tracking-tight text-slate-500">
+                        <span>Vol {issue.volume}</span>
+                        <span className="text-slate-400">•</span>
+                        <span>Issue {issue.issue_number}</span>
+                        <span className="text-slate-400">•</span>
+                        <span>{issue.publication_year}</span>
+                      </p>
 
-                <div className="mt-5 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3.5">
-                  <Link
-                    to={`/published/${currentIssue.id}`}
-                    className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#1D4ED8] px-4 py-2.5 text-sm font-semibold text-[#1D4ED8] transition-all duration-300 hover:bg-[#EFF6FF] sm:w-auto"
-                  >
-                    Open Table of Contents
-                  </Link>
-                  {currentIssue.full_issue_pdf_url && (
-                    <a
-                      href={currentIssue.full_issue_pdf_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#1D4ED8] px-4 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:shadow-md sm:w-auto"
-                    >
-                      <Download size={14} />
-                      Download Full PDF
-                    </a>
-                  )}
-                </div>
-              </section>
-            )}
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <h2 className="min-w-0 break-words text-lg font-semibold leading-tight text-slate-800 [overflow-wrap:anywhere]">
+                          {displayIndex}. {issue.title || `Volume ${issue.volume}, Issue ${issue.issue_number}`}
+                        </h2>
 
-            <section className="overflow-hidden rounded-2xl border border-[#D8E4F6] bg-white shadow-[0_10px_28px_rgba(15,23,42,0.06)]">
-              <div className="border-b border-[#E3ECFB] px-5 py-4 sm:px-6 md:px-7">
-                <h3 className="text-lg font-semibold text-[#0B1C4D]">Archive</h3>
-              </div>
-
-              <div className="divide-y divide-[#EEF3FC]">
-                {archiveIssues.length === 0 ? (
-                  <div className="px-6 py-8 text-sm text-slate-500">No additional archive issues.</div>
-                ) : (
-                  archiveIssues.map((issue) => (
-                    <article key={issue.id} className="px-5 py-5 transition-colors hover:bg-[#FAFCFF] sm:px-6 md:px-7">
-                      <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-center">
-                        <div className="min-w-0">
-                          <p className="text-xs font-semibold uppercase tracking-wide text-[#1D4ED8]">
-                            Volume {issue.volume} | Issue {issue.issue_number}
-                          </p>
-                          <h4 className="mt-1 break-words text-base font-semibold text-[#0B1C4D] sm:text-lg [overflow-wrap:anywhere]">
-                            {issue.title || `Volume ${issue.volume}, Issue ${issue.issue_number}`}
-                          </h4>
-                          <p className="mt-1 text-sm text-slate-600">
-                            {issue.publication_date || issue.publication_year}
-                          </p>
-                        </div>
-
-                        <div className="flex flex-wrap items-center gap-2.5 md:justify-end">
+                        <div className="flex shrink-0 items-center gap-1">
                           <Link
                             to={`/published/${issue.id}`}
-                            className="inline-flex items-center gap-1.5 rounded-lg border border-[#1D4ED8] px-3 py-2 text-xs font-semibold text-[#1D4ED8] transition-colors hover:bg-[#EFF6FF]"
+                            className="inline-flex h-8 items-center justify-center rounded-xl px-2.5 text-xs font-semibold text-[#1E3A8A] transition-colors hover:bg-blue-50 hover:text-blue-700"
                           >
-                            Open
+                            View TOC
                           </Link>
-                          {issue.full_issue_pdf_url && (
+                          {issue.full_issue_pdf_url ? (
                             <a
                               href={issue.full_issue_pdf_url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1.5 rounded-lg bg-[#1D4ED8] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#1E40AF]"
+                              className="inline-flex h-8 items-center justify-center gap-1 rounded-xl px-2.5 text-xs font-semibold text-[#1E3A8A] transition-colors hover:bg-blue-50 hover:text-blue-700"
                             >
                               <Download size={12} />
-                              PDF
+                              Full PDF
                             </a>
+                          ) : (
+                            <span className="inline-flex h-8 items-center justify-center rounded-xl px-2.5 text-[11px] font-medium text-slate-400">
+                              PDF unavailable
+                            </span>
                           )}
                         </div>
                       </div>
-                    </article>
-                  ))
-                )}
+
+                      <div className="inline-flex items-center gap-1.5 text-xs text-slate-500">
+                        <CalendarDays size={12} className="text-slate-500" />
+                        {issue.publication_date || issue.publication_year}
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+
+            {totalPages > 1 && (
+              <div className="flex flex-wrap items-center justify-center gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                  disabled={page === 1}
+                  className="inline-flex h-10 items-center gap-1 rounded-xl border border-[#C7D6FA] bg-white px-3 text-xs font-medium text-[#1D3A8F] transition-all duration-300 hover:bg-[#EEF4FF] disabled:cursor-not-allowed disabled:opacity-45"
+                >
+                  <ChevronLeft size={16} /> Prev
+                </button>
+
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setPage(p)}
+                    className={`inline-flex h-10 min-w-10 items-center justify-center rounded-xl border px-3 text-xs font-semibold transition-all duration-300 ${
+                      page === p
+                        ? 'border-[#4F46E5] bg-gradient-to-r from-[#2563EB] to-[#4F46E5] text-white shadow-[0_8px_16px_rgba(79,70,229,0.3)]'
+                        : 'border-[#C7D6FA] bg-white text-[#1D3A8F] hover:bg-[#EEF4FF]'
+                    }`}
+                  >
+                    {p}
+                  </button>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+                  disabled={page === totalPages}
+                  className="inline-flex h-10 items-center gap-1 rounded-xl border border-[#C7D6FA] bg-white px-3 text-xs font-medium text-[#1D3A8F] transition-all duration-300 hover:bg-[#EEF4FF] disabled:cursor-not-allowed disabled:opacity-45"
+                >
+                  Next <ChevronRight size={16} />
+                </button>
               </div>
-            </section>
-          </div>
+            )}
+          </section>
         )}
       </div>
     </div>

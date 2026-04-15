@@ -7,7 +7,8 @@ import {
   deskReject,
   getAllReviewers,
   getAllSubmissions,
-  getMyRole,
+  getApprovedRolesFromUser,
+  getCurrentUser,
   getSubmissionByIdForEditor,
   inviteReviewer,
   makeEditorialDecision,
@@ -29,10 +30,10 @@ type TabType = 'new' | 'screening' | 'review' | 'decisions' | 'journal';
 type ApiMutationResult<T> = { data: T | null; error: any };
 
 const sectionCardStyle: React.CSSProperties = {
-  border: '1px solid #D8E4F6',
-  borderRadius: '18px',
+  border: '1px solid #CED9F0',
+  borderRadius: '12px',
   background: '#FFFFFF',
-  boxShadow: '0 12px 28px rgba(15, 23, 42, 0.08)',
+  boxShadow: '0 4px 12px rgba(15, 23, 42, 0.06)',
 };
 
 const tabHeaderLabel: Record<TabType, string> = {
@@ -129,13 +130,17 @@ export function EditorDashboard() {
   const [showDeskRejectModal, setShowDeskRejectModal] = useState(false);
   const [deskRejectReason, setDeskRejectReason] = useState('');
 
-  const { data: role, isLoading: roleLoading } = useQuery({
-    queryKey: ['my-role'],
-    queryFn: getMyRole,
+  const { data: currentUser, isLoading: roleLoading } = useQuery({
+    queryKey: ['me'],
+    queryFn: getCurrentUser,
     retry: false,
   });
 
-  const authorized = role === 'editor' || role === 'admin';
+  const approvedRoles = useMemo(
+    () => getApprovedRolesFromUser(currentUser || null),
+    [currentUser]
+  );
+  const authorized = approvedRoles.includes('editor') || approvedRoles.includes('admin');
 
   const { data: submissionData, isLoading: submissionsLoading } = useQuery<
     Submission[],
@@ -550,7 +555,10 @@ export function EditorDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#F7FAFF] to-[#EEF4FF] pt-4 md:pt-5">
       <div className="mx-auto max-w-[1200px] px-4 py-6 sm:px-6 lg:px-8">
-        <div className="mb-6 rounded-2xl border bg-white p-6 shadow-[0_14px_32px_rgba(15,23,42,0.08)]" style={{ borderColor: '#D8E4F6' }}>
+        <div
+          className="mb-6 rounded-xl border bg-white p-6 shadow-[0_4px_12px_rgba(15,23,42,0.06)]"
+          style={{ borderColor: '#CED9F0' }}
+        >
           <button
             type="button"
             onClick={() => navigate('/dashboard')}
@@ -594,7 +602,7 @@ export function EditorDashboard() {
         )}
 
       <div className="mb-5 overflow-hidden" style={sectionCardStyle}>
-        <div className="flex flex-wrap border-b" style={{ borderColor: '#E2E8F0' }}>
+        <div className="flex flex-wrap border-b" style={{ borderColor: '#EAECF0' }}>
             <EditorTab
               active={activeTab === 'new'}
               onClick={() => setActiveTab('new')}
@@ -635,7 +643,7 @@ export function EditorDashboard() {
         ) : (
           <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
             <div style={sectionCardStyle} className="overflow-hidden">
-              <div className="flex items-center justify-between border-b bg-[#F8FBFF] px-4 py-3" style={{ borderColor: '#E2E8F0' }}>
+              <div className="flex items-center justify-between border-b bg-[#F8FBFF] px-4 py-3" style={{ borderColor: '#EAECF0' }}>
                 <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-600">{tabHeaderLabel[activeTab]}</h2>
                 <span className="inline-flex items-center rounded-full border border-[#C9DCF6] bg-white px-3 py-1.5 text-xs font-semibold leading-none text-[#0B1C4D]">
                   {submissions.length}
@@ -683,8 +691,8 @@ export function EditorDashboard() {
 
       {showDeskRejectModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm">
-          <div className="saas-fade-menu w-full max-w-lg rounded-2xl border bg-white shadow-[0_24px_52px_rgba(15,23,42,0.22)]" style={{ borderColor: '#D8E4F6', transition: 'all 0.3s ease-in-out' }}>
-            <div className="border-b px-5 py-4" style={{ borderColor: '#E2E8F0' }}>
+          <div className="saas-fade-menu w-full max-w-lg rounded-lg border bg-white shadow-[0_24px_52px_rgba(15,23,42,0.22)]" style={{ borderColor: '#CED9F0', transition: 'all 0.3s ease-in-out' }}>
+            <div className="border-b px-5 py-4" style={{ borderColor: '#EAECF0' }}>
               <h3 className="text-base font-semibold text-[#0B1C4D]">Desk Reject Submission</h3>
             </div>
 
@@ -697,12 +705,12 @@ export function EditorDashboard() {
                 onChange={(event) => setDeskRejectReason(event.target.value)}
                 rows={5}
                 placeholder="Example: Out of scope for the journal"
-                className="w-full rounded-xl border bg-white px-3 py-2 text-sm text-slate-700 outline-none"
-                style={{ borderColor: '#C9DCF6', transition: 'all 0.3s ease-in-out' }}
+                className="w-full rounded-lg border bg-white px-3 py-2 text-sm text-slate-700 outline-none"
+                style={{ borderColor: '#D9E0FF', transition: 'all 0.3s ease-in-out' }}
               />
             </div>
 
-            <div className="flex justify-end gap-2 border-t px-5 py-4" style={{ borderColor: '#E2E8F0' }}>
+            <div className="flex justify-end gap-2 border-t px-5 py-4" style={{ borderColor: '#EAECF0' }}>
               <button
                 type="button"
                 onClick={() => {
@@ -710,7 +718,7 @@ export function EditorDashboard() {
                   setDeskRejectReason('');
                 }}
                 className="rounded-lg border px-4 py-2 text-sm font-semibold"
-                style={{ borderColor: '#C9DCF6', color: '#0B1C4D', transition: 'all 0.3s ease-in-out' }}
+                style={{ borderColor: '#D9E0FF', color: '#0B1C4D', transition: 'all 0.3s ease-in-out' }}
               >
                 Cancel
               </button>
@@ -739,8 +747,8 @@ export function EditorDashboard() {
 
       {showSendToReviewModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4 backdrop-blur-sm">
-          <div className="saas-fade-menu w-full max-w-lg rounded-2xl border bg-white shadow-[0_24px_52px_rgba(15,23,42,0.22)]" style={{ borderColor: '#D8E4F6', transition: 'all 0.3s ease-in-out' }}>
-            <div className="border-b px-5 py-4" style={{ borderColor: '#E2E8F0' }}>
+          <div className="saas-fade-menu w-full max-w-lg rounded-lg border bg-white shadow-[0_24px_52px_rgba(15,23,42,0.22)]" style={{ borderColor: '#CED9F0', transition: 'all 0.3s ease-in-out' }}>
+            <div className="border-b px-5 py-4" style={{ borderColor: '#EAECF0' }}>
               <h3 className="text-base font-semibold text-[#0B1C4D]">Confirm Send To Review</h3>
             </div>
 
@@ -750,12 +758,12 @@ export function EditorDashboard() {
               </p>
             </div>
 
-            <div className="flex justify-end gap-2 border-t px-5 py-4" style={{ borderColor: '#E2E8F0' }}>
+            <div className="flex justify-end gap-2 border-t px-5 py-4" style={{ borderColor: '#EAECF0' }}>
               <button
                 type="button"
                 onClick={() => setShowSendToReviewModal(false)}
                 className="rounded-lg border px-4 py-2 text-sm font-semibold"
-                style={{ borderColor: '#C9DCF6', color: '#0B1C4D', transition: 'all 0.3s ease-in-out' }}
+                style={{ borderColor: '#D9E0FF', color: '#0B1C4D', transition: 'all 0.3s ease-in-out' }}
               >
                 Cancel
               </button>

@@ -96,33 +96,33 @@ export const SubmissionDetails: React.FC<SubmissionDetailsProps> = ({
 
   return (
     <div className="max-h-[calc(100vh-220px)] space-y-7 overflow-y-auto p-8 lg:p-9">
-      <section className="rounded-xl border bg-white p-8 shadow-[0_6px_16px_rgba(15,23,42,0.06)]" style={{ borderColor: '#D8E4F6' }}>
+      <section className="rounded-xl border bg-white p-8 shadow-[0_6px_16px_rgba(15,23,42,0.06)]" style={{ borderColor: '#CED9F0' }}>
         <h3 className="pr-2 text-xl font-semibold leading-snug text-[#0B1C4D]">
           {submission.title || 'Untitled Submission'}
         </h3>
 
         <div className="mt-5 flex flex-wrap items-center gap-3.5">
           <span className={getStatusChipClasses(submission.status)}>{getStatusLabel(submission.status)}</span>
-          <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-4 py-2 text-sm leading-none text-slate-600" style={{ borderColor: '#CBD5E1' }}>
+          <span className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg border px-3 py-1.5 text-xs font-semibold leading-none text-slate-600" style={{ borderColor: '#D9E0FF' }}>
             <CalendarDays size={12} />
             {formatDate(submission.created_at)}
           </span>
         </div>
       </section>
 
-      <section className="rounded-xl border bg-white p-6 shadow-[0_4px_12px_rgba(15,23,42,0.05)]" style={{ borderColor: '#D8E4F6' }}>
+      <section className="rounded-lg border bg-white p-6 shadow-[0_2px_8px_rgba(15,23,42,0.04)]" style={{ borderColor: '#CED9F0' }}>
         <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Abstract</h4>
         <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-slate-700">
           {submission.abstract || 'No abstract provided.'}
         </p>
 
         {submission.keywords && submission.keywords.length > 0 && (
-          <div className="mt-5 flex flex-wrap gap-3.5">
+          <div className="mt-5 flex flex-wrap gap-2">
             {submission.keywords.map((keyword, index) => (
               <span
                 key={`${keyword}-${index}`}
-                className="inline-flex items-center rounded-full border bg-[#F8FBFF] px-4 py-2 text-sm font-medium leading-none text-[#0B1C4D]"
-                style={{ borderColor: '#D8E4F6' }}
+                className="inline-flex items-center rounded-md border bg-[#F8FBFF] px-3 py-1.5 text-xs font-semibold leading-none text-slate-700"
+                style={{ borderColor: '#D9E0FF' }}
               >
                 {keyword}
               </span>
@@ -131,7 +131,7 @@ export const SubmissionDetails: React.FC<SubmissionDetailsProps> = ({
         )}
       </section>
 
-      <section className="rounded-xl border bg-white p-6 shadow-[0_4px_12px_rgba(15,23,42,0.05)]" style={{ borderColor: '#D8E4F6' }}>
+      <section className="rounded-lg border bg-white p-6 shadow-[0_2px_8px_rgba(15,23,42,0.04)]" style={{ borderColor: '#CED9F0' }}>
         <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Files</h4>
 
         {(!submission.manuscript_pdf || submission.manuscript_pdf.trim().length === 0) &&
@@ -144,8 +144,8 @@ export const SubmissionDetails: React.FC<SubmissionDetailsProps> = ({
                 href={submission.manuscript_pdf}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between rounded-xl border bg-[#F8FBFF] p-3"
-                style={{ borderColor: '#C9DCF6', transition: 'all 0.3s ease-in-out' }}
+                className="flex items-center justify-between rounded-lg border bg-[#F8FBFF] p-3"
+                style={{ borderColor: '#D9E0FF', transition: 'all 0.3s ease-in-out' }}
               >
                 <span className="inline-flex items-center gap-2 text-sm font-semibold text-[#0B1C4D]">
                   <FileText size={15} />
@@ -161,8 +161,8 @@ export const SubmissionDetails: React.FC<SubmissionDetailsProps> = ({
                 href={file.file}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between rounded-xl border bg-white p-3"
-                style={{ borderColor: '#E2E8F0', transition: 'all 0.3s ease-in-out' }}
+                className="flex items-center justify-between rounded-lg border bg-white p-3"
+                style={{ borderColor: '#EAECF0', transition: 'all 0.3s ease-in-out' }}
               >
                 <span className="inline-flex items-center gap-2 text-sm text-slate-700">
                   <FileText size={15} />
@@ -175,7 +175,7 @@ export const SubmissionDetails: React.FC<SubmissionDetailsProps> = ({
         )}
       </section>
 
-      <section className="rounded-xl border bg-white p-6 shadow-[0_4px_12px_rgba(15,23,42,0.05)]" style={{ borderColor: '#D8E4F6' }}>
+      <section className="rounded-lg border bg-white p-6 shadow-[0_2px_8px_rgba(15,23,42,0.04)]" style={{ borderColor: '#CED9F0' }}>
         <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Review Assignments</h4>
 
         {reviewAssignments.length === 0 ? (
@@ -183,7 +183,7 @@ export const SubmissionDetails: React.FC<SubmissionDetailsProps> = ({
         ) : (
           <div className="mt-4 space-y-3">
             {reviewAssignments.map((assignment) => (
-              <div key={assignment.id} className="rounded-xl border bg-[#F8FBFF] p-4" style={{ borderColor: '#D8E4F6' }}>
+              <div key={assignment.id} className="rounded-lg border bg-[#F8FBFF] p-4" style={{ borderColor: '#CED9F0' }}>
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <button
                     type="button"
@@ -195,7 +195,7 @@ export const SubmissionDetails: React.FC<SubmissionDetailsProps> = ({
                     {assignment.reviewer_email}
                   </button>
 
-                  <span className="rounded-full border border-[#C9DCF6] bg-white px-2.5 py-1 text-xs font-semibold capitalize text-slate-700">
+                  <span className="rounded-md border border-[#D9E0FF] bg-white px-2.5 py-1 text-xs font-semibold capitalize text-slate-700">
                     {assignment.status.replace('_', ' ')}
                   </span>
                 </div>

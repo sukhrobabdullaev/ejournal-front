@@ -1,11 +1,34 @@
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import { checkPermissions } from '../utils/auth.utils';
+import { useAuth } from '../contexts/AuthContext';
 
 interface ProtectedRouteProps {
   requiredRole?: 'admin' | 'editor' | 'reviewer' | 'author';
 }
+
+const checkPermissions = (
+  user: { roles?: string[]; editor_status?: string | null; reviewer_status?: string | null } | null,
+  requiredRole: 'admin' | 'editor' | 'reviewer' | 'author'
+) => {
+  if (!user) {
+    return false;
+  }
+
+  const roles = user.roles || [];
+  if (requiredRole === 'admin') {
+    return roles.includes('admin');
+  }
+
+  if (requiredRole === 'editor') {
+    return roles.includes('editor') && user.editor_status === 'approved';
+  }
+
+  if (requiredRole === 'reviewer') {
+    return roles.includes('reviewer') && user.reviewer_status === 'approved';
+  }
+
+  return roles.includes('author');
+};
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requiredRole }) => {
   const { user, isAuthenticated, loading } = useAuth();

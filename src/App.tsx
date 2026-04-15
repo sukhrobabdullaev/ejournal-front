@@ -74,7 +74,7 @@ export default function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="flex min-h-screen flex-col bg-white">
+        <div className="flex min-h-screen flex-col bg-[#EEF5FF]">
           <Header />
           <main className="grow pt-2 pb-8 md:pt-3 md:pb-10">
             <ReactSuspense

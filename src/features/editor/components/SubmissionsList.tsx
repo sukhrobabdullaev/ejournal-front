@@ -26,17 +26,17 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const STATUS_STYLES: Record<string, { background: string; color: string; border: string }> = {
-  submitted: { background: '#EFF6FF', color: '#1E40AF', border: '#BFDBFE' },
+  submitted: { background: '#EFF6FF', color: '#0C4A6E', border: '#BFDBFE' },
   screening: { background: '#EEF2FF', color: '#3730A3', border: '#C7D2FE' },
-  desk_rejected: { background: '#FEF2F2', color: '#B91C1C', border: '#FECACA' },
-  under_review: { background: '#F0F9FF', color: '#0C4A6E', border: '#BAE6FD' },
-  revision_required: { background: '#FFF7ED', color: '#9A3412', border: '#FED7AA' },
-  resubmitted: { background: '#F5F3FF', color: '#5B21B6', border: '#DDD6FE' },
-  decision_pending: { background: '#FFFBEB', color: '#92400E', border: '#FDE68A' },
-  accepted: { background: '#F0FDF4', color: '#166534', border: '#BBF7D0' },
-  rejected: { background: '#FEF2F2', color: '#B91C1C', border: '#FECACA' },
-  published: { background: '#ECFEFF', color: '#155E75', border: '#A5F3FC' },
-  withdrawn: { background: '#F8FAFC', color: '#475569', border: '#CBD5E1' },
+  desk_rejected: { background: '#FEF2F2', color: '#7F1D1D', border: '#FED7AA' },
+  under_review: { background: '#FFFBEB', color: '#92400E', border: '#FDE68A' },
+  revision_required: { background: '#FFF7ED', color: '#9A3412', border: '#FEDBA8' },
+  resubmitted: { background: '#F5F3FF', color: '#5B21B6', border: '#E9D5FF' },
+  decision_pending: { background: '#FFFBEB', color: '#78350F', border: '#FEE3C3' },
+  accepted: { background: '#F0FDF4', color: '#166534', border: '#DCFCE7' },
+  rejected: { background: '#FEF2F2', color: '#7F1D1D', border: '#FED7AA' },
+  published: { background: '#ECFEFF', color: '#155E75', border: '#CFFAFE' },
+  withdrawn: { background: '#F8FAFC', color: '#475569', border: '#E2E8F0' },
 };
 
 const formatCreatedAt = (value?: string): string => {
@@ -136,7 +136,7 @@ export const SubmissionsList: React.FC<SubmissionsListProps> = ({
     <div className="flex h-full flex-col">
       <div
         className="border-b bg-white px-4 py-4"
-        style={{ borderColor: '#E2E8F0' }}
+        style={{ borderColor: '#EAECF0' }}
       >
         <div className="grid grid-cols-1 gap-3 md:grid-cols-[1fr_220px]">
           <div className="relative">
@@ -150,8 +150,8 @@ export const SubmissionsList: React.FC<SubmissionsListProps> = ({
               value={searchTerm}
               onChange={(event) => setSearchTerm(event.target.value)}
               placeholder="Search by article title or author"
-              className="w-full rounded-xl border bg-[#F8FBFF] py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none"
-              style={{ borderColor: '#C9DCF6', transition: 'all 0.3s ease-in-out' }}
+              className="w-full rounded-lg border bg-[#F8FBFF] py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none"
+              style={{ borderColor: '#D9E0FF', transition: 'all 0.3s ease-in-out' }}
             />
           </div>
 
@@ -164,8 +164,8 @@ export const SubmissionsList: React.FC<SubmissionsListProps> = ({
             <select
               value={statusFilter}
               onChange={(event) => setStatusFilter(event.target.value)}
-              className="w-full rounded-xl border bg-[#F8FBFF] py-2.5 pl-10 pr-10 text-sm text-slate-700 outline-none"
-              style={{ borderColor: '#C9DCF6', transition: 'all 0.3s ease-in-out' }}
+              className="w-full rounded-lg border bg-[#F8FBFF] py-2.5 pl-10 pr-10 text-sm text-slate-700 outline-none"
+              style={{ borderColor: '#D9E0FF', transition: 'all 0.3s ease-in-out' }}
             >
               <option value="all">All statuses</option>
               {availableStatuses.map((status) => (
@@ -200,12 +200,11 @@ export const SubmissionsList: React.FC<SubmissionsListProps> = ({
 
               return (
                 <button
-                  key={submission.id}
-                  type="button"
-                  onClick={() => onSelect(submission.id)}
-                  className="saas-stagger-item w-full rounded-lg border bg-white p-4 text-left shadow-sm"
-                  style={{
-                    borderColor: isActive ? '#93C5FD' : '#D8E4F6',
+                    type="button"
+                    onClick={() => onSelect(submission.id)}
+                    className="saas-stagger-item w-full rounded-lg border bg-white p-4 text-left shadow-sm"
+                    style={{
+                      borderColor: isActive ? '#93C5FD' : '#CED9F0',
                     background: isActive ? '#F4F9FF' : '#FFFFFF',
                     boxShadow: isActive
                       ? '0 12px 24px rgba(37,99,235,0.14)'
@@ -220,7 +219,7 @@ export const SubmissionsList: React.FC<SubmissionsListProps> = ({
                       {submission.title || 'Untitled Submission'}
                     </h3>
                     <span
-                      className="inline-flex items-center shrink-0 rounded-full border px-3 py-1 text-sm font-medium w-auto h-auto"
+                      className="inline-flex items-center shrink-0 rounded-xl border px-2 py-0.5 text-sm font-medium w-auto h-auto"
                       style={{
                         backgroundColor: statusStyle.background,
                         borderColor: statusStyle.border,
@@ -249,7 +248,7 @@ export const SubmissionsList: React.FC<SubmissionsListProps> = ({
           {totalPages > 1 && (
             <div
               className="flex flex-wrap items-center justify-between gap-3 border-t bg-white px-4 py-3"
-              style={{ borderColor: '#E2E8F0' }}
+              style={{ borderColor: '#EAECF0' }}
             >
               <p className="text-xs text-slate-500">
                 Page {currentPage} of {totalPages}
@@ -262,7 +261,7 @@ export const SubmissionsList: React.FC<SubmissionsListProps> = ({
                   disabled={currentPage === 1}
                   className="inline-flex h-8 w-8 items-center justify-center rounded-md border bg-white"
                   style={{
-                    borderColor: '#C9DCF6',
+                    borderColor: '#D9E0FF',
                     color: currentPage === 1 ? '#94A3B8' : '#0B1C4D',
                     cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
                     transition: 'all 0.3s ease-in-out',
@@ -279,7 +278,7 @@ export const SubmissionsList: React.FC<SubmissionsListProps> = ({
                     aria-current={page === currentPage ? 'page' : undefined}
                     className="inline-flex h-8 min-w-8 items-center justify-center rounded-md border px-2 text-xs font-semibold"
                     style={{
-                      borderColor: page === currentPage ? '#1D4ED8' : '#C9DCF6',
+                      borderColor: page === currentPage ? '#1D4ED8' : '#D9E0FF',
                       backgroundColor: page === currentPage ? '#1D4ED8' : '#FFFFFF',
                       color: page === currentPage ? '#FFFFFF' : '#0B1C4D',
                       transition: 'all 0.3s ease-in-out',
@@ -295,7 +294,7 @@ export const SubmissionsList: React.FC<SubmissionsListProps> = ({
                   disabled={currentPage === totalPages}
                   className="inline-flex h-8 w-8 items-center justify-center rounded-md border bg-white"
                   style={{
-                    borderColor: '#C9DCF6',
+                    borderColor: '#D9E0FF',
                     color: currentPage === totalPages ? '#94A3B8' : '#0B1C4D',
                     cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
                     transition: 'all 0.3s ease-in-out',

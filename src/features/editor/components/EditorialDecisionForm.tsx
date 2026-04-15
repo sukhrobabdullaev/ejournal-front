@@ -25,12 +25,12 @@ export const EditorialDecisionForm: React.FC<EditorialDecisionFormProps> = ({
 }) => {
   return (
     <section
-      className="rounded-xl border bg-[#F8FBFF] p-4"
-      style={{ borderColor: '#D8E4F6' }}
+      className="rounded-lg border bg-[#F8FBFF] p-4"
+      style={{ borderColor: '#CED9F0' }}
     >
-      <h4 className="text-sm font-semibold text-[#0B1C4D]">Editorial Decision</h4>
+      <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-500">Editorial Decision</h4>
 
-      <div className="mt-3 flex flex-wrap gap-2">
+      <div className="mt-3 flex flex-wrap gap-1.5">
         {options.map((option) => {
           const isSelected = decision === option.value;
           return (
@@ -38,12 +38,12 @@ export const EditorialDecisionForm: React.FC<EditorialDecisionFormProps> = ({
               key={option.value}
               type="button"
               onClick={() => onDecisionChange(option.value)}
-              className="rounded-lg border px-3 py-2 text-sm font-medium"
+              className="rounded-md border px-3 py-1.5 text-xs font-medium transition-all duration-200"
               style={{
-                borderColor: isSelected ? '#1D4ED8' : '#C9DCF6',
-                backgroundColor: isSelected ? '#EAF3FF' : '#FFFFFF',
-                color: isSelected ? '#0B1C4D' : '#334155',
-                transition: 'all 0.3s ease-in-out',
+                borderColor: isSelected ? '#1D4ED8' : '#CBD5E1',
+                backgroundColor: isSelected ? '#1D4ED8' : '#FFFFFF',
+                color: isSelected ? '#FFFFFF' : '#475569',
+                cursor: 'pointer',
               }}
             >
               {option.label}
@@ -53,11 +53,11 @@ export const EditorialDecisionForm: React.FC<EditorialDecisionFormProps> = ({
       </div>
 
       <textarea
-        rows={5}
+        rows={4}
         value={decisionLetter}
         onChange={(event) => onLetterChange(event.target.value)}
-        className="mt-3 w-full rounded-xl border bg-white px-3 py-2 text-sm text-slate-700 outline-none"
-        style={{ borderColor: '#C9DCF6', transition: 'all 0.3s ease-in-out' }}
+        className="mt-3 w-full rounded-lg border bg-white px-3 py-2 text-sm text-slate-700 outline-none placeholder-slate-400 transition-colors duration-200"
+        style={{ borderColor: '#D9E0FF' }}
         placeholder="Write a clear decision letter for the author"
       />
 
@@ -65,16 +65,22 @@ export const EditorialDecisionForm: React.FC<EditorialDecisionFormProps> = ({
         type="button"
         onClick={onSubmit}
         disabled={isLoading}
-        className="mt-3 inline-flex w-full items-center justify-center rounded-xl border px-4 py-2.5 text-sm font-semibold text-white"
+        className="group mt-3 inline-flex w-full items-center justify-center rounded-lg border px-3.5 py-2 text-sm font-semibold text-white transition-all duration-250 ease-out hover:shadow-md active:scale-[0.98] disabled:cursor-not-allowed"
         style={{
           borderColor: '#1D4ED8',
           backgroundColor: '#1D4ED8',
-          transition: 'all 0.3s ease-in-out',
-          opacity: isLoading ? 0.65 : 1,
-          cursor: isLoading ? 'not-allowed' : 'pointer',
+          opacity: isLoading ? 0.6 : 1,
+        }}
+        onMouseEnter={(e) => {
+          if (!isLoading) {
+            (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)';
+          }
+        }}
+        onMouseLeave={(e) => {
+          (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)';
         }}
       >
-        {isLoading ? 'Saving Decision...' : 'Save Decision'}
+        {isLoading ? 'Saving...' : 'Save Decision'}
       </button>
     </section>
   );

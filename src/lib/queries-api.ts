@@ -151,6 +151,7 @@ export async function updateMyProfile(updates: {
   affiliation?: string;
   country?: string;
   orcid_id?: string;
+  google_scholar_url?: string;
 }): Promise<{ data: User | null; error: any }> {
   return await apiClient.patch<User>('/me', updates);
 }
@@ -652,8 +653,30 @@ export const getAllReviewers = async (): Promise<any[]> => {
 };
 
 export const getMyRole = async (): Promise<string | null> => {
-  const roles = await getMyRoles();
-  return roles.length > 0 ? roles[0] : null;
+  const roles = await getMyApprovedRoles();
+  const storedRole = getStoredActiveRole();
+
+  if (storedRole && roles.includes(storedRole)) {
+    return storedRole;
+  }
+
+  if (roles.includes('editor')) {
+    return 'editor';
+  }
+
+  if (roles.includes('reviewer')) {
+    return 'reviewer';
+  }
+
+  if (roles.includes('author')) {
+    return 'author';
+  }
+
+  if (roles.includes('admin')) {
+    return 'admin';
+  }
+
+  return null;
 };
 
 export const getMyRoleRequests = async (): Promise<any[]> => {

@@ -18,8 +18,8 @@ export function Login() {
   const [resendingEmail, setResendingEmail] = useState(false);
 
   useEffect(() => {
-    // Check if user is already logged in by token presence only (no API call)
-    if (TokenManager.getAccessToken()) {
+    // Only auto-redirect when both tokens exist; prevents stale-token redirect loops.
+    if (TokenManager.getAccessToken() && TokenManager.getRefreshToken()) {
       const nextUrl = searchParams.get('next') || sessionStorage.getItem('returnUrl');
       if (nextUrl) {
         sessionStorage.removeItem('returnUrl');

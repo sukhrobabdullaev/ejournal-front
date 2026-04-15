@@ -13,10 +13,13 @@ interface WorkflowActionsProps {
 }
 
 const primaryButtonStyle: React.CSSProperties = {
-  transition: 'all 0.3s ease-in-out',
+  transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
   backgroundColor: '#1D4ED8',
   color: '#FFFFFF',
   borderColor: '#1D4ED8',
+  fontSize: '13px',
+  fontWeight: 600,
+  letterSpacing: '0.25px',
 };
 
 const WorkflowButton = ({
@@ -36,16 +39,23 @@ const WorkflowButton = ({
     type="button"
     onClick={onClick}
     disabled={disabled}
-    className="inline-flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-semibold"
+    className="group inline-flex w-full items-center justify-center gap-2 rounded-lg border px-3.5 py-2 transition-all duration-250 ease-out hover:shadow-md active:scale-[0.98] disabled:cursor-not-allowed"
     style={{
       ...primaryButtonStyle,
       ...style,
-      opacity: disabled ? 0.65 : 1,
-      cursor: disabled ? 'not-allowed' : 'pointer',
+      opacity: disabled ? 0.6 : 1,
+    }}
+    onMouseEnter={(e) => {
+      if (!disabled) {
+        (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-1px)';
+      }
+    }}
+    onMouseLeave={(e) => {
+      (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)';
     }}
   >
     {icon}
-    {label}
+    <span className="leading-tight">{label}</span>
   </button>
 );
 
@@ -59,21 +69,21 @@ export const WorkflowActions: React.FC<WorkflowActionsProps> = ({
   publishing,
 }) => {
   return (
-    <div className="space-y-3 border-t pt-4" style={{ borderColor: '#E2E8F0' }}>
+    <div className="space-y-2 border-t pt-3" style={{ borderColor: '#E2E8F0' }}>
       {submission.status === 'submitted' && (
         <WorkflowButton
           onClick={onStartScreening}
-          icon={<Eye size={16} />}
+          icon={<Eye size={15} />}
           label="Move to Screening"
         />
       )}
 
       {submission.status === 'screening' && (
-        <div className="grid grid-cols-1 gap-2">
+        <div className="space-y-2">
           {submission.review_assignments && submission.review_assignments.length > 0 && (
             <WorkflowButton
               onClick={onSendToReview}
-              icon={<Send size={16} />}
+              icon={<Send size={15} />}
               label="Send to Review"
               style={{ backgroundColor: '#0F766E', borderColor: '#0F766E' }}
             />
@@ -85,7 +95,7 @@ export const WorkflowActions: React.FC<WorkflowActionsProps> = ({
         <WorkflowButton
           onClick={onMoveToDecision}
           disabled={movingToDecision}
-          icon={<CheckCircle2 size={16} />}
+          icon={<CheckCircle2 size={15} />}
           label={movingToDecision ? 'Moving to Decision...' : 'Move to Decision'}
           style={{ backgroundColor: '#4338CA', borderColor: '#4338CA' }}
         />
@@ -95,7 +105,7 @@ export const WorkflowActions: React.FC<WorkflowActionsProps> = ({
         <WorkflowButton
           onClick={onPublish}
           disabled={publishing}
-          icon={<CheckCircle2 size={16} />}
+          icon={<CheckCircle2 size={15} />}
           label={publishing ? 'Publishing...' : 'Publish Submission'}
           style={{ backgroundColor: '#15803D', borderColor: '#15803D' }}
         />

@@ -29,6 +29,21 @@ import {
   Search,
   Filter,
 } from 'lucide-react';
+import {
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  Cell,
+} from 'recharts';
 
 const AUTHOR_STATUS_OPTIONS: Array<{ value: string; label: string }> = [
   { value: 'all', label: 'All statuses' },
@@ -75,6 +90,8 @@ export function DashboardNew() {
 
   const [authorSearchTerm, setAuthorSearchTerm] = useState('');
   const [authorStatusFilter, setAuthorStatusFilter] = useState<string>('all');
+  const [authorCurrentPage, setAuthorCurrentPage] = useState(1);
+  const authorItemsPerPage = 5;
 
   const filteredAuthorSubmissions = useMemo(() => {
     const query = authorSearchTerm.trim().toLowerCase();
@@ -104,6 +121,18 @@ export function DashboardNew() {
       })
       .sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
   }, [submissions, authorSearchTerm, authorStatusFilter]);
+
+  // Author pagination
+  const authorTotalPages = Math.max(1, Math.ceil(filteredAuthorSubmissions.length / authorItemsPerPage));
+  const authorSafePage = Math.min(authorCurrentPage, authorTotalPages);
+  const currentAuthorSubmissions = filteredAuthorSubmissions.slice(
+    (authorSafePage - 1) * authorItemsPerPage,
+    authorSafePage * authorItemsPerPage
+  );
+
+  useEffect(() => {
+    setAuthorCurrentPage(1);
+  }, [authorSearchTerm, authorStatusFilter]);
 
   // Initialize active role based on approved roles and login-time selection requirement.
   useEffect(() => {
@@ -174,26 +203,26 @@ export function DashboardNew() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'submitted':
-        return 'bg-blue-50 text-blue-700 border-blue-300';
+        return 'bg-blue-50 text-blue-600 border-blue-200';
       case 'screening':
-        return 'bg-indigo-50 text-indigo-700 border-indigo-300';
+        return 'bg-indigo-50 text-indigo-600 border-indigo-200';
       case 'under_review':
       case 'decision_pending':
-        return 'bg-yellow-50 text-yellow-700 border-yellow-300';
+        return 'bg-amber-50 text-amber-600 border-amber-200';
       case 'revision_required':
       case 'resubmitted':
-        return 'bg-orange-50 text-orange-700 border-orange-300';
+        return 'bg-orange-50 text-orange-600 border-orange-200';
       case 'accepted':
-        return 'bg-green-50 text-green-700 border-green-300';
+        return 'bg-emerald-50 text-emerald-600 border-emerald-200';
       case 'desk_rejected':
       case 'rejected':
-        return 'bg-red-50 text-red-700 border-red-300';
+        return 'bg-rose-50 text-rose-600 border-rose-200';
       case 'published':
-        return 'bg-purple-50 text-purple-700 border-purple-300';
+        return 'bg-violet-50 text-violet-600 border-violet-200';
       case 'withdrawn':
-        return 'bg-slate-100 text-slate-700 border-slate-300';
+        return 'bg-slate-100 text-slate-600 border-slate-200';
       default:
-        return 'bg-gray-100 text-gray-700 border-gray-300';
+        return 'bg-slate-100 text-slate-600 border-slate-200';
     }
   };
 
@@ -336,6 +365,9 @@ export function DashboardNew() {
               </Link>
             </div>
 
+            {/* Statistics Section */}
+            {submissions.length > 0 && <AuthorStatistics submissions={submissions} />}
+
             {/* Submissions List */}
             <div className="rounded-xl border bg-white p-6 shadow-[0_12px_30px_rgba(15,23,42,0.06)]" style={{ borderColor: '#CBD5E1' }}>
               <h3 className="mb-4 text-xl font-semibold text-[#0B1C4D]">My Submissions</h3>
@@ -384,70 +416,71 @@ export function DashboardNew() {
                   <p className="text-sm text-slate-600">No submissions matched your search/filter.</p>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {filteredAuthorSubmissions.map((submission, index) => (
-                    <div
-                      key={submission.id}
-                      className="saas-stagger-item rounded-lg border bg-white p-4 shadow-sm transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:shadow-md"
-                      style={{ borderColor: '#CBD5E1', animationDelay: `${index * 70}ms` }}
-                    >
-                      <div className="mb-2 flex items-start justify-between">
-                        <div className="flex-1">
-                          <h4 className="mb-1 text-lg font-medium text-[#0B1C4D]">
-                            {submission.title || 'Untitled Submission'}
-                          </h4>
-                          <p className="text-sm text-slate-600">
-                            Submitted:{' '}
-                            {submission.created_at
-                              ? new Date(submission.created_at).toLocaleDateString('en-US', {
-                                  year: 'numeric',
-                                  month: 'long',
-                                  day: 'numeric',
-                                })
-                              : 'N/A'}
-                          </p>
-                        </div>
-                        <span className={`inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium w-auto h-auto ${getStatusColor(submission.status)}`}>
-                          {getStatusLabel(submission.status)}
-                        </span>
-                      </div>
-                      {submission.abstract && (
-                        <p className="mb-3 line-clamp-2 text-sm text-slate-700">
-                          {submission.abstract}
-                        </p>
-                      )}
-                      <Link
-                        to={`/submission/${submission.id}`}
-                        className="inline-flex items-center text-sm font-medium text-[#0B1C4D] transition-all duration-300 ease-in-out hover:text-[#12327A]"
+                <>
+                  <div className="space-y-4">
+                    {currentAuthorSubmissions.map((submission, index) => (
+                      <div
+                        key={submission.id}
+                        className="saas-stagger-item rounded-lg border bg-white p-4 shadow-sm transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:shadow-md"
+                        style={{ borderColor: '#CBD5E1', animationDelay: `${index * 70}ms` }}
                       >
-                        <FileText size={16} className="mr-1" />
-                        View Details
-                      </Link>
-
-                      {submission.certificates && submission.certificates.length > 0 && (
-                        <div className="mt-4 rounded-xl border border-[#D8E4F6] bg-[#F8FBFF] p-3">
-                          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#1E3A8A]">
-                            Reviewer Recognition Certificate
+                        <div className="mb-2 flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="mb-1 text-lg font-medium text-[#0B1C4D]">
+                              {submission.title || 'Untitled Submission'}
+                            </h4>
+                            <p className="text-sm text-slate-600">
+                              Submitted:{' '}
+                              {submission.created_at
+                                ? new Date(submission.created_at).toLocaleDateString('en-US', {
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric',
+                                  })
+                                : 'N/A'}
+                            </p>
+                          </div>
+                          <span className={`inline-flex items-center rounded-lg border px-3 !py-0 text-sm font-medium !leading-none w-auto h-auto ${getStatusColor(submission.status)}`}>
+                            {getStatusLabel(submission.status)}
+                          </span>
+                        </div>
+                        {submission.abstract && (
+                          <p className="mb-3 line-clamp-2 text-sm text-slate-700">
+                            {submission.abstract}
                           </p>
-                          <div className="space-y-2">
-                            {submission.certificates.map((certificate) => (
-                              <div
-                                key={certificate.id}
-                                className="flex flex-col gap-2 rounded-xl border border-[#D8E4F6] bg-white p-3 transition-all duration-300 ease-in-out hover:shadow-[0_8px_18px_rgba(37,99,235,0.10)] md:flex-row md:items-center md:justify-between"
-                              >
-                                <div>
-                                  <p className="text-sm font-semibold text-[#0B1C4D]">
-                                    Reviewer: {certificate.reviewer_name}
-                                  </p>
-                                  <p className="text-xs text-slate-600">
-                                    Issued:{' '}
-                                    {new Date(certificate.issued_at).toLocaleDateString('en-US', {
-                                      year: 'numeric',
-                                      month: 'long',
-                                      day: 'numeric',
-                                    })}
-                                  </p>
-                                </div>
+                        )}
+                        <Link
+                          to={`/submission/${submission.id}`}
+                          className="inline-flex items-center text-sm font-medium text-[#0B1C4D] transition-all duration-300 ease-in-out hover:text-[#12327A]"
+                        >
+                          <FileText size={16} className="mr-1" />
+                          View Details
+                        </Link>
+
+                        {submission.certificates && submission.certificates.length > 0 && (
+                          <div className="mt-4 rounded-xl border border-[#D8E4F6] bg-[#F8FBFF] p-3">
+                            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#1E3A8A]">
+                              Reviewer Recognition Certificate
+                            </p>
+                            <div className="space-y-2">
+                              {submission.certificates.map((certificate) => (
+                                <div
+                                  key={certificate.id}
+                                  className="flex flex-col gap-2 rounded-xl border border-[#D8E4F6] bg-white p-3 transition-all duration-300 ease-in-out hover:shadow-[0_8px_18px_rgba(37,99,235,0.10)] md:flex-row md:items-center md:justify-between"
+                                >
+                                  <div>
+                                    <p className="text-sm font-semibold text-[#0B1C4D]">
+                                      Reviewer: {certificate.reviewer_name}
+                                    </p>
+                                    <p className="text-xs text-slate-600">
+                                      Issued:{' '}
+                                      {new Date(certificate.issued_at).toLocaleDateString('en-US', {
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric',
+                                      })}
+                                    </p>
+                                  </div>
                                 <div className="flex flex-wrap items-center gap-2">
                                   <Link
                                     to={`/certificate/${certificate.verification_code}`}
@@ -566,7 +599,28 @@ export function DashboardNew() {
                     </div>
                   ))}
                 </div>
-              )}
+
+                {authorTotalPages > 1 && (
+                  <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+                    {Array.from({ length: authorTotalPages }, (_, i) => i + 1).map((page) => (
+                      <button
+                        key={page}
+                        onClick={() => setAuthorCurrentPage(page)}
+                        aria-current={page === authorSafePage ? 'page' : undefined}
+                        className="inline-flex h-9 min-w-9 items-center justify-center rounded-md border px-3 text-sm font-semibold transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-[#EFF6FF]"
+                        style={
+                          page === authorSafePage
+                            ? { backgroundColor: '#1D4ED8', borderColor: '#1D4ED8', color: '#FFFFFF' }
+                            : { backgroundColor: '#FFFFFF', borderColor: '#C9DCF6', color: '#0B1C4D' }
+                        }
+                      >
+                        {page}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
             </div>
           </div>
         )}
@@ -670,6 +724,9 @@ function ReviewerSection() {
         </div>
       </div>
 
+      {/* Statistics Section */}
+      {reviewAssignments.length > 0 && <ReviewerStatistics assignments={reviewAssignments} />}
+
       <div className="rounded-xl border border-[#D8E4F6] bg-white p-6 shadow-[0_12px_30px_rgba(15,23,42,0.06)]">
         <h3 className="mb-4 text-xl font-semibold text-[#0B1C4D]">My Review Assignments</h3>
         <div className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-[1fr_220px]">
@@ -749,16 +806,16 @@ function ReviewerSection() {
                     )}
                   </div>
                   <span
-                    className={`inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium w-auto h-auto capitalize ${
+                    className={`inline-flex items-center rounded-lg border px-3 !py-0 text-sm font-medium !leading-none w-auto h-auto capitalize ${
                       assignment.status === 'invited'
-                        ? 'border-yellow-300 bg-yellow-50 text-yellow-700'
+                        ? 'border-amber-200 bg-amber-50 text-amber-600'
                         : assignment.status === 'accepted'
-                          ? 'border-blue-300 bg-blue-50 text-blue-700'
+                          ? 'border-emerald-200 bg-emerald-50 text-emerald-600'
                           : assignment.status === 'declined'
-                            ? 'border-red-300 bg-red-50 text-red-700'
+                            ? 'border-rose-200 bg-rose-50 text-rose-600'
                             : assignment.status === 'review_submitted'
-                              ? 'border-green-300 bg-green-50 text-green-700'
-                              : 'border-gray-300 bg-gray-100 text-gray-700'
+                              ? 'border-emerald-200 bg-emerald-50 text-emerald-600'
+                              : 'border-slate-200 bg-slate-100 text-slate-600'
                     }`}
                   >
                     {assignment.status.replace('_', ' ')}
@@ -907,6 +964,9 @@ function EditorAdminSection({
           </div>
         </div>
 
+        {/* Statistics Section */}
+        {allSubmissions.length > 0 && <EditorStatistics submissions={allSubmissions} />}
+
         <div
           className="rounded-xl border bg-white p-6 shadow-[0_12px_30px_rgba(15,23,42,0.06)]"
           style={{ borderColor: '#D8E4F6' }}
@@ -967,7 +1027,7 @@ function EditorAdminSection({
                           Submitted: {formatCreatedAt(submission.created_at)}
                         </p>
                       </div>
-                      <span className={`inline-flex items-center shrink-0 rounded-full border px-3 py-1 text-sm font-medium w-auto h-auto ${getStatusColor(submission.status)}`}>
+                      <span className={`inline-flex items-center shrink-0 rounded-lg border px-3 !py-0 text-sm font-medium !leading-none w-auto h-auto ${getStatusColor(submission.status)}`}>
                         {getStatusLabel(submission.status)}
                       </span>
                     </div>
@@ -1091,6 +1151,9 @@ function EditorAdminSection({
         </div>
       </div>
 
+      {/* Statistics Section */}
+      {allSubmissions.length > 0 && <AdminStatistics submissions={allSubmissions} />}
+
       <div className="rounded-xl border border-[#D8E4F6] bg-white p-6 shadow-[0_12px_30px_rgba(15,23,42,0.06)]">
         <h3 className="mb-4 text-xl font-semibold text-[#0B1C4D]">Recent Submissions</h3>
         {allSubmissions.length === 0 ? (
@@ -1115,7 +1178,7 @@ function EditorAdminSection({
                         : 'N/A'}
                     </p>
                   </div>
-                  <span className={`inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium w-auto h-auto ${getStatusColor(submission.status)}`}>
+                  <span className={`inline-flex items-center rounded-lg border px-3 !py-0 text-sm font-medium !leading-none w-auto h-auto ${getStatusColor(submission.status)}`}>
                     {getStatusLabel(submission.status)}
                   </span>
                 </div>
@@ -1128,4 +1191,322 @@ function EditorAdminSection({
   );
 }
 
+// ─── Statistics Components ───────────────────────────────────────────────────
 
+// Author Statistics Component
+function AuthorStatistics({ submissions }: { submissions: any[] }) {
+  const COLORS = ['#0B1C4D', '#1D4ED8', '#3B82F6', '#60A5FA', '#93C5FD', '#DBEAFE'];
+
+  const statusData = useMemo(() => {
+    const counts: Record<string, number> = {};
+    submissions.forEach((s) => {
+      counts[s.status] = (counts[s.status] || 0) + 1;
+    });
+    return Object.entries(counts).map(([name, value]) => ({
+      name: name.replace(/_/g, ' '),
+      value,
+    }));
+  }, [submissions]);
+
+  const monthlyData = useMemo(() => {
+    const monthCounts: Record<string, number> = {};
+    submissions.forEach((s) => {
+      if (s.created_at) {
+        const date = new Date(s.created_at);
+        const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        monthCounts[month] = (monthCounts[month] || 0) + 1;
+      }
+    });
+    return Object.entries(monthCounts)
+      .sort()
+      .slice(-6)
+      .map(([month, count]) => ({
+        month,
+        submissions: count,
+      }));
+  }, [submissions]);
+
+  return (
+    <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="rounded-xl border border-[#D8E4F6] bg-white p-6 shadow-[0_8px_20px_rgba(15,23,42,0.06)]">
+        <h3 className="mb-4 text-lg font-semibold text-[#0B1C4D]">Status Distribution</h3>
+        <ResponsiveContainer width="100%" height={250}>
+          <PieChart>
+            <Pie dataKey="value" data={statusData} cx="50%" cy="50%" outerRadius={80} label>
+              {statusData.map((_, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip />
+            <Legend />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="rounded-xl border border-[#D8E4F6] bg-white p-6 shadow-[0_8px_20px_rgba(15,23,42,0.06)] lg:col-span-2">
+        <h3 className="mb-4 text-lg font-semibold text-[#0B1C4D]">Submission Timeline</h3>
+        <ResponsiveContainer width="100%" height={250}>
+          <LineChart data={monthlyData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="month" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Line type="monotone" dataKey="submissions" stroke="#1D4ED8" strokeWidth={2} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
+// Reviewer Statistics Component
+function ReviewerStatistics({ assignments }: { assignments: any[] }) {
+  const COLORS = ['#0B1C4D', '#1D4ED8', '#3B82F6', '#60A5FA', '#93C5FD', '#DBEAFE'];
+
+  const statusData = useMemo(() => {
+    const counts: Record<string, number> = {};
+    assignments.forEach((a) => {
+      counts[a.status] = (counts[a.status] || 0) + 1;
+    });
+    return Object.entries(counts).map(([name, value]) => ({
+      name: name.replace(/_/g, ' '),
+      value,
+    }));
+  }, [assignments]);
+
+  const monthlyData = useMemo(() => {
+    const monthCounts: Record<string, number> = {};
+    assignments.forEach((a) => {
+      if (a.invited_at) {
+        const date = new Date(a.invited_at);
+        const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        monthCounts[month] = (monthCounts[month] || 0) + 1;
+      }
+    });
+    return Object.entries(monthCounts)
+      .sort()
+      .slice(-6)
+      .map(([month, count]) => ({
+        month,
+        reviews: count,
+      }));
+  }, [assignments]);
+
+  return (
+    <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="rounded-xl border border-[#D8E4F6] bg-white p-6 shadow-[0_8px_20px_rgba(15,23,42,0.06)]">
+        <h3 className="mb-4 text-lg font-semibold text-[#0B1C4D]">Assignment Status</h3>
+        <ResponsiveContainer width="100%" height={250}>
+          <PieChart>
+            <Pie dataKey="value" data={statusData} cx="50%" cy="50%" outerRadius={80} label>
+              {statusData.map((_, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip />
+            <Legend />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="rounded-xl border border-[#D8E4F6] bg-white p-6 shadow-[0_8px_20px_rgba(15,23,42,0.06)] lg:col-span-2">
+        <h3 className="mb-4 text-lg font-semibold text-[#0B1C4D]">Review Invitations Timeline</h3>
+        <ResponsiveContainer width="100%" height={250}>
+          <LineChart data={monthlyData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="month" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Line type="monotone" dataKey="reviews" stroke="#1D4ED8" strokeWidth={2} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
+// Editor Statistics Component
+function EditorStatistics({ submissions }: { submissions: any[] }) {
+  const COLORS = ['#0B1C4D', '#1D4ED8', '#3B82F6', '#60A5FA', '#93C5FA', '#DBEAFE'];
+
+  const statusData = useMemo(() => {
+    const counts: Record<string, number> = {};
+    submissions.forEach((s) => {
+      counts[s.status] = (counts[s.status] || 0) + 1;
+    });
+    return Object.entries(counts)
+      .map(([name, value]) => ({
+        name: name.replace(/_/g, ' '),
+        value,
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [submissions]);
+
+  const monthlyData = useMemo(() => {
+    const monthCounts: Record<string, number> = {};
+    submissions.forEach((s) => {
+      if (s.created_at) {
+        const date = new Date(s.created_at);
+        const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        monthCounts[month] = (monthCounts[month] || 0) + 1;
+      }
+    });
+    return Object.entries(monthCounts)
+      .sort()
+      .slice(-6)
+      .map(([month, count]) => ({
+        month,
+        submissions: count,
+      }));
+  }, [submissions]);
+
+  return (
+    <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="rounded-xl border border-[#D8E4F6] bg-white p-6 shadow-[0_8px_20px_rgba(15,23,42,0.06)]">
+        <h3 className="mb-4 text-lg font-semibold text-[#0B1C4D]">Status Breakdown</h3>
+        <ResponsiveContainer width="100%" height={250}>
+          <BarChart data={statusData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
+            <YAxis />
+            <Tooltip />
+            <Bar dataKey="value" fill="#1D4ED8" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="rounded-xl border border-[#D8E4F6] bg-white p-6 shadow-[0_8px_20px_rgba(15,23,42,0.06)]">
+        <h3 className="mb-4 text-lg font-semibold text-[#0B1C4D]">Workflow Status</h3>
+        <ResponsiveContainer width="100%" height={250}>
+          <PieChart>
+            <Pie dataKey="value" data={statusData} cx="50%" cy="50%" outerRadius={80} label>
+              {statusData.map((_, index) => (
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="rounded-xl border border-[#D8E4F6] bg-white p-6 shadow-[0_8px_20px_rgba(15,23,42,0.06)]">
+        <h3 className="mb-4 text-lg font-semibold text-[#0B1C4D]">Submission Trend</h3>
+        <ResponsiveContainer width="100%" height={250}>
+          <LineChart data={monthlyData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="month" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Line type="monotone" dataKey="submissions" stroke="#1D4ED8" strokeWidth={2} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
+// Admin Statistics Component
+function AdminStatistics({ submissions }: { submissions: any[] }) {
+  const COLORS = ['#0B1C4D', '#1D4ED8', '#3B82F6', '#60A5FA', '#93C5FD', '#DBEAFE'];
+
+  const statusData = useMemo(() => {
+    const counts: Record<string, number> = {};
+    submissions.forEach((s) => {
+      counts[s.status] = (counts[s.status] || 0) + 1;
+    });
+    return Object.entries(counts)
+      .map(([name, value]) => ({
+        name: name.replace(/_/g, ' '),
+        value,
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [submissions]);
+
+  const monthlyData = useMemo(() => {
+    const monthCounts: Record<string, number> = {};
+    submissions.forEach((s) => {
+      if (s.created_at) {
+        const date = new Date(s.created_at);
+        const month = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        monthCounts[month] = (monthCounts[month] || 0) + 1;
+      }
+    });
+    return Object.entries(monthCounts)
+      .sort()
+      .slice(-6)
+      .map(([month, count]) => ({
+        month,
+        total: count,
+      }));
+  }, [submissions]);
+
+  const systemHealth = useMemo(() => {
+    const now = new Date();
+    const dayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    return [
+      {
+        period: 'Last 24h',
+        count: submissions.filter((s) => new Date(s.created_at) > dayAgo).length,
+      },
+      {
+        period: 'Last 7d',
+        count: submissions.filter((s) => new Date(s.created_at) > weekAgo).length,
+      },
+      {
+        period: 'Last 30d',
+        count: submissions.filter((s) => new Date(s.created_at) > monthAgo).length,
+      },
+    ];
+  }, [submissions]);
+
+  return (
+    <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
+      <div className="rounded-xl border border-[#D8E4F6] bg-white p-6 shadow-[0_8px_20px_rgba(15,23,42,0.06)]">
+        <h3 className="mb-4 text-lg font-semibold text-[#0B1C4D]">Status Overview</h3>
+        <ResponsiveContainer width="100%" height={250}>
+          <BarChart data={statusData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
+            <YAxis />
+            <Tooltip />
+            <Bar dataKey="value" fill="#1D4ED8" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="rounded-xl border border-[#D8E4F6] bg-white p-6 shadow-[0_8px_20px_rgba(15,23,42,0.06)]">
+        <h3 className="mb-4 text-lg font-semibold text-[#0B1C4D]">System Activity</h3>
+        <ResponsiveContainer width="100%" height={250}>
+          <BarChart data={systemHealth}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="period" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Bar dataKey="count" fill="#22C55E" />
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+
+      <div className="rounded-xl border border-[#D8E4F6] bg-white p-6 shadow-[0_8px_20px_rgba(15,23,42,0.06)]">
+        <h3 className="mb-4 text-lg font-semibold text-[#0B1C4D]">Submission Growth</h3>
+        <ResponsiveContainer width="100%" height={250}>
+          <LineChart data={monthlyData}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="month" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Line type="monotone" dataKey="total" stroke="#1D4ED8" strokeWidth={2} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}

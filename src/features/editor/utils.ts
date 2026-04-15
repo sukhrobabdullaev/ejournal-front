@@ -8,28 +8,28 @@ export const getStatusLabel = (status: Submission['status']): string =>
 
 export const getStatusChipClasses = (status: Submission['status']): string => {
   const baseClass =
-    'inline-flex items-center whitespace-nowrap rounded-full border px-4 py-1.5 text-sm font-medium leading-none w-auto h-auto';
+    'inline-flex items-center whitespace-nowrap rounded-lg border px-3 !py-0 text-sm font-medium !leading-none w-auto h-auto';
 
   switch (status) {
     case 'submitted':
-      return `${baseClass} bg-blue-50 text-blue-700 border border-blue-300`;
+      return `${baseClass} bg-blue-50 text-blue-600 border-blue-200`;
     case 'screening':
-      return `${baseClass} bg-indigo-50 text-indigo-700 border border-indigo-300`;
+      return `${baseClass} bg-indigo-50 text-indigo-600 border-indigo-200`;
     case 'under_review':
     case 'decision_pending':
-      return `${baseClass} bg-yellow-50 text-yellow-700 border border-yellow-300`;
+      return `${baseClass} bg-amber-50 text-amber-600 border-amber-200`;
     case 'revision_required':
     case 'resubmitted':
-      return `${baseClass} bg-orange-50 text-orange-700 border border-orange-300`;
+      return `${baseClass} bg-orange-50 text-orange-600 border-orange-200`;
     case 'accepted':
-      return `${baseClass} bg-green-50 text-green-700 border border-green-300`;
+      return `${baseClass} bg-emerald-50 text-emerald-600 border-emerald-200`;
     case 'rejected':
     case 'desk_rejected':
-      return `${baseClass} bg-red-50 text-red-700 border border-red-300`;
+      return `${baseClass} bg-rose-50 text-rose-600 border-rose-200`;
     case 'published':
-      return `${baseClass} bg-purple-50 text-purple-700 border border-purple-300`;
+      return `${baseClass} bg-violet-50 text-violet-600 border-violet-200`;
     default:
-      return `${baseClass} bg-gray-100 text-gray-700 border border-gray-300`;
+      return `${baseClass} bg-slate-100 text-slate-600 border-slate-200`;
   }
 };
 

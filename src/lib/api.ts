@@ -44,6 +44,13 @@ export class APIClient {
   private baseURL: string;
   private isRefreshing = false;
   private refreshSubscribers: Array<(token: string) => void> = [];
+  private publicEndpointPrefixes = [
+    '/published/',
+    '/articles',
+    '/editorial-board/',
+    '/certificates/public/',
+    '/certificates/journal/public/',
+  ];
 
   constructor(baseURL: string = API_BASE_URL) {
     this.baseURL = baseURL;
@@ -59,10 +66,15 @@ export class APIClient {
     this.refreshSubscribers = [];
   }
 
+  private isPublicEndpoint(endpoint: string): boolean {
+    return this.publicEndpointPrefixes.some((prefix) => endpoint.startsWith(prefix));
+  }
+
   // Refresh access token
   private async refreshAccessToken(): Promise<string | null> {
     const refreshToken = TokenManager.getRefreshToken();
     if (!refreshToken) {
+      TokenManager.clearTokens();
       return null;
     }
 
@@ -96,6 +108,7 @@ export class APIClient {
   ): Promise<{ data: T | null; error: any }> {
     const url = `${this.baseURL}${endpoint}`;
     const accessToken = TokenManager.getAccessToken();
+    const isPublicEndpoint = this.isPublicEndpoint(endpoint);
 
     console.log(`[API Request] ${options.method || 'GET'} ${url}`);
 
@@ -104,7 +117,7 @@ export class APIClient {
     };
 
     // Add Authorization header if token exists
-    if (accessToken) {
+    if (accessToken && !isPublicEndpoint) {
       headers['Authorization'] = `Bearer ${accessToken}`;
     }
 
@@ -119,7 +132,7 @@ export class APIClient {
       console.log(`[API Response] ${response.status} ${response.statusText}`);
 
       // Handle 401 - try to refresh token
-      if (response.status === 401 && accessToken) {
+      if (response.status === 401 && accessToken && !isPublicEndpoint) {
         if (!this.isRefreshing) {
           this.isRefreshing = true;
           const newToken = await this.refreshAccessToken();
@@ -131,9 +144,11 @@ export class APIClient {
             headers['Authorization'] = `Bearer ${newToken}`;
             response = await fetch(url, { ...options, headers });
           } else {
-            // Redirect to login
-            window.location.href = '/login';
-            return { data: null, error: { detail: 'Session expired' } };
+            TokenManager.clearTokens();
+            return {
+              data: null,
+              error: { detail: 'Session expired. Please log in again.', code: 'SESSION_EXPIRED' },
+            };
           }
         } else {
           // Wait for token refresh
@@ -269,6 +284,7 @@ export interface User {
   affiliation: string;
   country: string;
   orcid_id: string;
+  google_scholar_url?: string;
   is_email_verified: boolean;
   roles: string[];
   reviewer_status: ApprovalStatus;
