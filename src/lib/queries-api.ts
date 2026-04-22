@@ -345,7 +345,11 @@ export async function getMyAssignments(): Promise<ReviewAssignment[]> {
   const { data, error } = await apiClient.get<ReviewAssignment[]>('/reviewer/assignments/');
   if (error) {
     console.error('Error fetching review assignments:', error);
-    return [];
+    const detail =
+      typeof error?.detail === 'string'
+        ? error.detail
+        : 'Failed to load reviewer assignments.';
+    throw new Error(detail);
   }
   return data || [];
 }
@@ -510,6 +514,15 @@ export async function publishSubmission(
   id: string
 ): Promise<{ data: Submission | null; error: any }> {
   return await apiClient.post<Submission>(`/editor/submissions/${id}/publish/`, {});
+}
+
+export async function generateSubmissionDoi(
+  id: string
+): Promise<{ data: { id: number; doi: string; doi_status: string } | null; error: any }> {
+  return await apiClient.post<{ id: number; doi: string; doi_status: string }>(
+    `/editor/submissions/${id}/generate-doi/`,
+    {}
+  );
 }
 
 export async function remindReviewer(assignmentId: string): Promise<{ data: any; error: any }> {

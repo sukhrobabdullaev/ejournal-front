@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /dashboard
+Disallow: /editor
+Disallow: /submission
+
+Sitemap: https://devmastery.uz/sitemap.xml
+Sitemap: https://devmastery.uz/api/scholar/sitemap.xml

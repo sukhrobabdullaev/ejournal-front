@@ -121,7 +121,7 @@ export function useUpdateProfile() {
 
   return useMutation({
     mutationFn: async (
-      updates: Partial<Pick<User, 'full_name' | 'affiliation' | 'country' | 'orcid_id'>>
+      updates: Partial<Pick<User, 'full_name' | 'affiliation' | 'country' | 'orcid_id' | 'google_scholar_url'>>
     ) => {
       return await apiClient.patch<User>(API_ENDPOINTS.auth.me, updates);
     },

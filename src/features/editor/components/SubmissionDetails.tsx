@@ -27,11 +27,13 @@ interface SubmissionDetailsProps {
   onSendToReview: () => void;
   onMoveToDecision: () => void;
   onPublish: () => void;
+  onGenerateDoi: () => void;
   inviting: boolean;
   deciding: boolean;
   movingToDecision: boolean;
   deskRejecting: boolean;
   publishing: boolean;
+  generatingDoi: boolean;
 }
 
 const formatDate = (value?: string): string => {
@@ -73,11 +75,13 @@ export const SubmissionDetails: React.FC<SubmissionDetailsProps> = ({
   onSendToReview,
   onMoveToDecision,
   onPublish,
+  onGenerateDoi,
   inviting,
   deciding,
   movingToDecision,
   deskRejecting,
   publishing,
+  generatingDoi,
 }) => {
   const [selectedAssignment, setSelectedAssignment] = React.useState<ReviewAssignment | null>(null);
 
@@ -129,6 +133,54 @@ export const SubmissionDetails: React.FC<SubmissionDetailsProps> = ({
             ))}
           </div>
         )}
+      </section>
+
+      <section className="rounded-lg border bg-white p-6 shadow-[0_2px_8px_rgba(15,23,42,0.04)]" style={{ borderColor: '#CED9F0' }}>
+        <h4 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Author Identity & DOI</h4>
+
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <div className="rounded-lg border bg-[#F8FBFF] p-3" style={{ borderColor: '#D9E0FF' }}>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">ORCID</p>
+            {submission.author_orcid_id ? (
+              <a
+                href={`https://orcid.org/${submission.author_orcid_id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-1 inline-flex items-center text-sm font-semibold text-[#1D4ED8] hover:underline"
+              >
+                {submission.author_orcid_id}
+              </a>
+            ) : (
+              <p className="mt-1 text-sm font-medium text-rose-700">Missing ORCID iD</p>
+            )}
+          </div>
+
+          <div className="rounded-lg border bg-[#F8FBFF] p-3" style={{ borderColor: '#D9E0FF' }}>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Google Scholar</p>
+            {submission.author_google_scholar_url ? (
+              <a
+                href={submission.author_google_scholar_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-1 inline-flex items-center text-sm font-semibold text-[#1D4ED8] hover:underline"
+              >
+                Open Scholar Profile
+              </a>
+            ) : (
+              <p className="mt-1 text-sm font-medium text-amber-700">Scholar URL not set</p>
+            )}
+          </div>
+        </div>
+
+        <div className="mt-3 rounded-lg border bg-[#F8FBFF] p-3" style={{ borderColor: '#D9E0FF' }}>
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">DOI</p>
+          <p className="mt-1 text-sm font-semibold text-slate-700">
+            {submission.doi || 'Not generated yet'}
+          </p>
+          {submission.doi_status && (
+            <p className="mt-1 text-xs text-slate-500">Status: {submission.doi_status}</p>
+          )}
+        </div>
       </section>
 
       <section className="rounded-lg border bg-white p-6 shadow-[0_2px_8px_rgba(15,23,42,0.04)]" style={{ borderColor: '#CED9F0' }}>
@@ -290,8 +342,10 @@ export const SubmissionDetails: React.FC<SubmissionDetailsProps> = ({
         onSendToReview={onSendToReview}
         onMoveToDecision={onMoveToDecision}
         onPublish={onPublish}
+        onGenerateDoi={onGenerateDoi}
         movingToDecision={movingToDecision}
         publishing={publishing}
+        generatingDoi={generatingDoi}
       />
 
       <ReviewDetailsModal assignment={selectedAssignment} onClose={() => setSelectedAssignment(null)} />

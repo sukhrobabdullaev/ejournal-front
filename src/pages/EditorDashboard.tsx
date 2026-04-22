@@ -10,6 +10,7 @@ import {
   getApprovedRolesFromUser,
   getCurrentUser,
   getSubmissionByIdForEditor,
+  generateSubmissionDoi,
   inviteReviewer,
   makeEditorialDecision,
   moveToDecision,
@@ -428,6 +429,24 @@ export function EditorDashboard() {
     },
   });
 
+  const generateDoiMutation = useMutation({
+    mutationFn: async () => {
+      const result = await generateSubmissionDoi(selectedSubmission!.id.toString());
+      if (result.error || !result.data) {
+        throw new Error(extractApiErrorMessage(result.error, 'Failed to generate DOI.'));
+      }
+      return result.data;
+    },
+    onSuccess: async (payload) => {
+      setSuccess(`DOI ready: ${payload.doi}`);
+      await refreshSelectedSubmission(selectedSubmission?.id, selectedSubmission?.status);
+    },
+    onError: (mutationError) => {
+      const apiError = mutationError as ApiError;
+      setError(apiError.detail || apiError.message || 'Failed to generate DOI.');
+    },
+  });
+
   const loading = roleLoading || (authorized && submissionsLoading);
 
   const handleActionStart = () => {
@@ -510,6 +529,11 @@ export function EditorDashboard() {
   const handlePublish = () => {
     handleActionStart();
     publishMutation.mutate();
+  };
+
+  const handleGenerateDoi = () => {
+    handleActionStart();
+    generateDoiMutation.mutate();
   };
 
   if (loading) {
@@ -678,11 +702,13 @@ export function EditorDashboard() {
                 onSendToReview={handleSendToReview}
                 onMoveToDecision={handleMoveToDecision}
                 onPublish={handlePublish}
+                onGenerateDoi={handleGenerateDoi}
                 inviting={inviteReviewerMutation.isPending}
                 deciding={makeDecisionMutation.isPending}
                 movingToDecision={moveToDecisionMutation.isPending}
                 deskRejecting={deskRejectMutation.isPending}
                 publishing={publishMutation.isPending}
+                generatingDoi={generateDoiMutation.isPending}
               />
             </div>
           </div>

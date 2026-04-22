@@ -100,6 +100,16 @@ export function PublishedIssueDetail() {
                       <p className="mt-1 text-sm font-medium text-slate-700">
                         {pagesLabel(article.page_start, article.page_end)}
                       </p>
+                      {article.doi && (
+                        <a
+                          href={`https://doi.org/${article.doi}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-1 inline-flex text-sm font-semibold text-[#2563EB] hover:underline"
+                        >
+                          DOI: {article.doi}
+                        </a>
+                      )}
                     </div>
 
                     <div className="flex flex-wrap items-center gap-2 md:justify-end">

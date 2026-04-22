@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
-import { Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, ShieldCheck } from 'lucide-react';
 import { login, resendVerificationEmail } from '../lib/queries-api';
 import { TokenManager } from '../lib/api';
 import { useQueryClient } from '@tanstack/react-query';
@@ -98,30 +98,39 @@ export function Login() {
   return (
     <div
       style={{
-        backgroundColor: '#F8FAFC',
+        background:
+          'radial-gradient(1000px 500px at 10% -10%, rgba(191, 219, 254, 0.65) 0%, rgba(248, 250, 252, 0) 55%), radial-gradient(900px 420px at 100% 10%, rgba(199, 210, 254, 0.45) 0%, rgba(248, 250, 252, 0) 58%), #F8FAFC',
         minHeight: '100vh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '2rem 1rem',
+        padding: '2.5rem 1rem',
+        fontFamily: 'Montserrat, Inter, Segoe UI, sans-serif',
       }}
     >
-      <div style={{ maxWidth: '480px', width: '100%' }}>
+      <div style={{ maxWidth: '560px', width: '100%' }}>
         <div
           className="bg-white transition-all"
           style={{
-            borderRadius: '16px',
-            padding: '40px',
-            boxShadow: '0 10px 30px rgba(11, 28, 77, 0.15)',
-            borderTop: '4px solid #2563EB',
+            borderRadius: '24px',
+            padding: '40px 34px',
+            boxShadow: '0 24px 56px rgba(15, 23, 42, 0.12), 0 8px 22px rgba(37, 99, 235, 0.12)',
+            border: '1px solid rgba(191, 219, 254, 0.95)',
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.98) 0%, rgba(248,251,255,0.96) 100%)',
+            backdropFilter: 'blur(12px)',
+            WebkitBackdropFilter: 'blur(12px)',
           }}
         >
-          <div className="mb-8 text-center">
-            <h1 className="mb-3 text-3xl font-bold" style={{ color: '#0B1C4D' }}>
+          <div className="mb-9 text-center">
+            <h1 className="mb-1.5 text-4xl font-black" style={{ color: '#0B1C4D', letterSpacing: '-0.035em' }}>
               Sign In
             </h1>
-            <p className="text-sm" style={{ color: '#64748B' }}>
+            <p className="text-[17px] font-medium" style={{ color: '#475569' }}>
               Sign in to access your author dashboard
+            </p>
+            <p className="mt-3 inline-flex items-center gap-1.5 text-[12px] font-semibold uppercase tracking-[0.08em]" style={{ color: '#2563EB' }}>
+              <ShieldCheck size={14} />
+              Secure Author Access
             </p>
           </div>
 
@@ -150,9 +159,10 @@ export function Login() {
                     className="w-full text-sm font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-50"
                     style={{
                       padding: '10px 16px',
-                      background: resendingEmail ? '#94A3B8' : '#EF4444',
+                      background: resendingEmail ? '#94A3B8' : 'linear-gradient(135deg, #DC2626 0%, #EF4444 100%)',
                       color: '#FFFFFF',
-                      borderRadius: '8px',
+                      borderRadius: '10px',
+                      boxShadow: '0 8px 18px rgba(220, 38, 38, 0.22)',
                     }}
                   >
                     {resendingEmail ? 'Sending...' : 'Resend Verification Email'}
@@ -202,51 +212,77 @@ export function Login() {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+          <form onSubmit={handleSubmit} className="space-y-6">
             <div>
               <label
                 htmlFor="email"
-                className="mb-2 block text-sm font-semibold"
+                className="mb-2.5 block text-[14px] font-semibold tracking-[0.02em]"
                 style={{ color: '#0B1C4D' }}
               >
                 Email Address
               </label>
-              <input
-                type="email"
-                id="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-lg border px-4 py-3 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
-                style={{ borderColor: '#CBD5E1' }}
-                placeholder="your.email@example.com"
-              />
+              <div className="relative">
+                <span
+                  className="pointer-events-none absolute left-4.5 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border"
+                  style={{ borderColor: '#CFE0FF', background: '#EEF4FF' }}
+                >
+                  <Mail size={15} className="text-[#1D4ED8]" />
+                </span>
+                <input
+                  type="email"
+                  id="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full rounded-[16px] border bg-[#F8FBFF] py-4 text-base font-medium text-slate-800 transition-all focus:border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500"
+                  style={{
+                    borderColor: '#CBD5E1',
+                    paddingLeft: '62px',
+                    paddingRight: '18px',
+                    borderRadius: '18px',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7)',
+                  }}
+                  placeholder="your.email@example.com"
+                />
+              </div>
             </div>
 
             <div>
               <label
                 htmlFor="password"
-                className="mb-2 block text-sm font-semibold"
+                className="mb-2.5 block text-[14px] font-semibold tracking-[0.02em]"
                 style={{ color: '#0B1C4D' }}
               >
                 Password
               </label>
               <div className="relative">
+                <span
+                  className="pointer-events-none absolute left-4.5 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border"
+                  style={{ borderColor: '#CFE0FF', background: '#EEF4FF' }}
+                >
+                  <Lock size={15} className="text-[#1D4ED8]" />
+                </span>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   id="password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-lg border px-4 py-3 pr-12 text-sm focus:border-transparent focus:ring-2 focus:ring-blue-500"
-                  style={{ borderColor: '#CBD5E1' }}
+                  className="w-full rounded-[16px] border bg-[#F8FBFF] py-4 text-base font-medium text-slate-800 transition-all focus:border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500"
+                  style={{
+                    borderColor: '#CBD5E1',
+                    paddingLeft: '62px',
+                    paddingRight: '62px',
+                    borderRadius: '18px',
+                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7)',
+                  }}
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-gray-700 focus:outline-none"
+                  className="absolute right-2.5 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 focus:outline-none"
                 >
                   {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -256,27 +292,28 @@ export function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full text-base font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-50"
+              className="mt-2 w-full text-base font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50"
               style={{
-                padding: '14px 20px',
-                background: loading
-                  ? '#94A3B8'
-                  : 'linear-gradient(135deg, #0B1C4D 0%, #2563EB 100%)',
+                padding: '14px 18px',
+                background: loading ? '#94A3B8' : '#1D4ED8',
                 color: '#FFFFFF',
-                borderRadius: '12px',
-                boxShadow: '0 4px 12px rgba(11, 28, 77, 0.2)',
+                borderRadius: '18px',
               }}
             >
               {loading ? 'Signing in...' : 'Sign In'}
             </button>
           </form>
 
-          <div className="mt-6 text-center text-sm">
+          <div className="mt-8 text-center text-sm">
             <span style={{ color: '#64748B' }}>Don't have an account? </span>
             <Link
               to="/register"
-              className="font-semibold hover:underline"
-              style={{ color: '#2563EB' }}
+              className="font-semibold"
+              style={{
+                color: '#2563EB',
+                textDecoration: 'underline',
+                textUnderlineOffset: '3px',
+              }}
             >
               Register here
             </Link>

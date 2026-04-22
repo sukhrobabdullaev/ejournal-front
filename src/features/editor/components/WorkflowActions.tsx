@@ -1,5 +1,5 @@
 import React from 'react';
-import { CheckCircle2, Eye, Send } from 'lucide-react';
+import { CheckCircle2, Eye, Fingerprint, Send } from 'lucide-react';
 import type { Submission } from '../../../lib/api';
 
 interface WorkflowActionsProps {
@@ -8,8 +8,10 @@ interface WorkflowActionsProps {
   onSendToReview: () => void;
   onMoveToDecision: () => void;
   onPublish: () => void;
+  onGenerateDoi: () => void;
   movingToDecision: boolean;
   publishing: boolean;
+  generatingDoi: boolean;
 }
 
 const primaryButtonStyle: React.CSSProperties = {
@@ -65,8 +67,10 @@ export const WorkflowActions: React.FC<WorkflowActionsProps> = ({
   onSendToReview,
   onMoveToDecision,
   onPublish,
+  onGenerateDoi,
   movingToDecision,
   publishing,
+  generatingDoi,
 }) => {
   return (
     <div className="space-y-2 border-t pt-3" style={{ borderColor: '#E2E8F0' }}>
@@ -102,12 +106,31 @@ export const WorkflowActions: React.FC<WorkflowActionsProps> = ({
       )}
 
       {submission.status === 'accepted' && (
+        <div className="space-y-2">
+          <WorkflowButton
+            onClick={onPublish}
+            disabled={publishing}
+            icon={<CheckCircle2 size={15} />}
+            label={publishing ? 'Publishing...' : 'Publish Submission'}
+            style={{ backgroundColor: '#15803D', borderColor: '#15803D' }}
+          />
+          <WorkflowButton
+            onClick={onGenerateDoi}
+            disabled={generatingDoi}
+            icon={<Fingerprint size={15} />}
+            label={generatingDoi ? 'Generating DOI...' : submission.doi ? 'Refresh DOI' : 'Generate DOI'}
+            style={{ backgroundColor: '#2563EB', borderColor: '#2563EB' }}
+          />
+        </div>
+      )}
+
+      {submission.status === 'published' && (
         <WorkflowButton
-          onClick={onPublish}
-          disabled={publishing}
-          icon={<CheckCircle2 size={15} />}
-          label={publishing ? 'Publishing...' : 'Publish Submission'}
-          style={{ backgroundColor: '#15803D', borderColor: '#15803D' }}
+          onClick={onGenerateDoi}
+          disabled={generatingDoi}
+          icon={<Fingerprint size={15} />}
+          label={generatingDoi ? 'Generating DOI...' : submission.doi ? 'Refresh DOI' : 'Generate DOI'}
+          style={{ backgroundColor: '#2563EB', borderColor: '#2563EB' }}
         />
       )}
     </div>

@@ -2,7 +2,24 @@ import React, { useState } from 'react';
 import { useParams, Link } from 'react-router';
 import { Download, Copy, CheckCircle, Calendar, FileText, ChevronRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { Helmet } from 'react-helmet-async';
 import { getArticleBySlug } from '../lib/queries-api';
+
+const formatCitationDate = (value?: string): string | null => {
+  if (!value) {
+    return null;
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  const year = parsed.getFullYear();
+  const month = String(parsed.getMonth() + 1).padStart(2, '0');
+  const day = String(parsed.getDate()).padStart(2, '0');
+  return `${year}/${month}/${day}`;
+};
 
 export function ArticleDetail() {
   const { articleSlug } = useParams<{ articleSlug: string }>();
@@ -19,13 +36,21 @@ export function ArticleDetail() {
   });
 
   const authors = article?.authors || [];
+  const journalTitle =
+    article?.journal_title || 'Digital Innovation and Emerging Technologies - Ditech Asia Journal';
+  const doiUrl = article?.doi ? `https://doi.org/${article.doi}` : null;
+  const citationPublicationDate = formatCitationDate(article?.published_at);
+  const citationLandingUrl = article?.scholar_public_url ||
+    (typeof window !== 'undefined' ? window.location.href : undefined);
+  const articleCanonicalUrl =
+    typeof window !== 'undefined' ? window.location.href : undefined;
 
   const handleCopyCitation = () => {
     if (!article) return;
 
     const authorNames = authors.map((a) => a.full_name).join(', ');
     const year = article.published_at ? new Date(article.published_at).getFullYear() : 'n.d.';
-    const citation = `${authorNames} (${year}). ${article.title}. Digital Innovation and Emerging Technologies - Ditech Asia Journal. ${article.doi || 'DOI: TBD'}`;
+    const citation = `${authorNames} (${year}). ${article.title}. ${journalTitle}. ${doiUrl || 'DOI: TBD'}`;
 
     // Try to copy to clipboard, handle error gracefully
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -96,6 +121,42 @@ export function ArticleDetail() {
 
   return (
     <div style={{ backgroundColor: '#F8FAFC', minHeight: '100vh' }}>
+      <Helmet>
+        <title>{article.title} | Ditech Asia Journal</title>
+        <meta
+          name="description"
+          content={(article.abstract || article.title).slice(0, 200)}
+        />
+
+        <meta name="citation_title" content={article.title} />
+        {authors.map((author, index) => (
+          <meta key={`citation-author-${index}`} name="citation_author" content={author.full_name} />
+        ))}
+        <meta name="citation_journal_title" content={journalTitle} />
+        {article.volume ? <meta name="citation_volume" content={String(article.volume)} /> : null}
+        {article.issue_number ? (
+          <meta name="citation_issue" content={String(article.issue_number)} />
+        ) : null}
+        {article.page_start ? (
+          <meta name="citation_firstpage" content={String(article.page_start)} />
+        ) : null}
+        {article.page_end ? <meta name="citation_lastpage" content={String(article.page_end)} /> : null}
+        {citationPublicationDate ? (
+          <meta name="citation_publication_date" content={citationPublicationDate} />
+        ) : null}
+        {doiUrl ? <meta name="citation_doi" content={article.doi || ''} /> : null}
+        {citationLandingUrl ? (
+          <meta name="citation_abstract_html_url" content={citationLandingUrl} />
+        ) : null}
+        {citationLandingUrl ? (
+          <meta name="citation_fulltext_html_url" content={citationLandingUrl} />
+        ) : null}
+        {article.pdf_public_url ? (
+          <meta name="citation_pdf_url" content={article.pdf_public_url} />
+        ) : null}
+        {articleCanonicalUrl ? <link rel="canonical" href={articleCanonicalUrl} /> : null}
+      </Helmet>
+
       {/* Breadcrumb */}
       <div className="bg-white" style={{ borderBottom: '1px solid #E2E8F0' }}>
         <div className="mx-auto max-w-[1120px] px-4 py-4 sm:px-6 lg:px-8">
@@ -216,9 +277,21 @@ export function ArticleDetail() {
                     <span className="font-semibold" style={{ color: '#475569' }}>
                       DOI:
                     </span>
-                    <span className="ml-2" style={{ color: '#2563EB' }}>
-                      {article.doi || 'TBD'}
-                    </span>
+                    {doiUrl ? (
+                      <a
+                        href={doiUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ml-2 font-semibold hover:underline"
+                        style={{ color: '#2563EB' }}
+                      >
+                        {article.doi}
+                      </a>
+                    ) : (
+                      <span className="ml-2" style={{ color: '#2563EB' }}>
+                        TBD
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -287,9 +360,7 @@ export function ArticleDetail() {
                   >
                     {authors.map((a) => a.full_name).join(', ')} (
                     {article.published_at ? new Date(article.published_at).getFullYear() : 'n.d.'}).{' '}
-                    {article.title}.{' '}
-                    <em>Digital Innovation and Emerging Technologies - Ditech Asia Journal</em>.{' '}
-                    {article.doi || 'DOI: TBD'}
+                    {article.title}. <em>{journalTitle}</em>. {doiUrl || 'DOI: TBD'}
                   </p>
                   <button
                     onClick={handleCopyCitation}
@@ -407,9 +478,15 @@ export function ArticleDetail() {
                     <p className="mb-2 text-xs font-semibold" style={{ color: '#64748B' }}>
                       DOI
                     </p>
-                    <p className="text-xs break-all" style={{ color: '#2563EB' }}>
+                    <a
+                      href={doiUrl || '#'}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs break-all font-semibold hover:underline"
+                      style={{ color: '#2563EB' }}
+                    >
                       {article.doi}
-                    </p>
+                    </a>
                   </div>
                 )}
               </div>

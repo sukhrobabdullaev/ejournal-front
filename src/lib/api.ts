@@ -308,6 +308,8 @@ export interface SupplementaryFile {
 export interface Submission {
   id: number;
   status: SubmissionStatus;
+  doi?: string | null;
+  doi_status?: 'pending' | 'registered' | 'failed' | string;
   title: string;
   abstract: string;
   keywords: string[];
@@ -322,6 +324,10 @@ export interface Submission {
   created_at: string;
   updated_at: string;
   author?: number;
+  author_orcid_id?: string;
+  author_google_scholar_url?: string;
+  author_has_orcid?: boolean;
+  author_has_google_scholar?: boolean;
   // Some APIs return `reason` instead of `desk_reject_reason`
   reason?: string;
   desk_reject_reason?: string;
@@ -415,13 +421,19 @@ export interface Article {
   title: string;
   abstract: string;
   keywords: string[];
+  journal_title?: string;
+  volume?: number | null;
+  issue_number?: number | null;
   topic_tags?: string[];
   authors?: ArticleAuthor[];
   published_at?: string;
   received_at?: string;
   accepted_at?: string;
-  doi?: string;
+  page_start?: number | null;
+  page_end?: number | null;
+  doi?: string | null;
   pdf_public_url?: string;
+  scholar_public_url?: string;
   status?: string;
 }
 
@@ -441,6 +453,7 @@ export interface PublishedIssueArticle {
   id: number;
   slug: string;
   title: string;
+  doi?: string | null;
   authors: Array<{ full_name: string; affiliation?: string }>;
   issue_order?: number | null;
   page_start?: number | null;

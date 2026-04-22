@@ -635,10 +635,21 @@ export function DashboardNew() {
 // the user actually has the matching role, keeping the devtools clean.
 
 function ReviewerSection() {
-  const { data: reviewAssignments = [] } = useQuery({
+  const {
+    data: reviewAssignments = [],
+    isLoading: reviewAssignmentsLoading,
+    isError: reviewAssignmentsError,
+    error: reviewAssignmentsQueryError,
+  } = useQuery({
     queryKey: ['my-assignments'],
     queryFn: () => getMyAssignments(),
+    retry: 1,
   });
+
+  const reviewAssignmentsErrorMessage =
+    reviewAssignmentsQueryError instanceof Error
+      ? reviewAssignmentsQueryError.message
+      : 'Failed to load review assignments.';
 
   const [reviewerSearchTerm, setReviewerSearchTerm] = useState('');
   const [reviewerStatusFilter, setReviewerStatusFilter] = useState('all');
@@ -724,6 +735,16 @@ function ReviewerSection() {
         </div>
       </div>
 
+      {reviewAssignmentsError && (
+        <div className="mb-6 rounded-lg border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          <p className="font-medium">Could not load your review assignments.</p>
+          <p className="mt-1">
+            {reviewAssignmentsErrorMessage}
+            {' '}If you just updated backend code, run database migrations and refresh this page.
+          </p>
+        </div>
+      )}
+
       {/* Statistics Section */}
       {reviewAssignments.length > 0 && <ReviewerStatistics assignments={reviewAssignments} />}
 
@@ -765,7 +786,13 @@ function ReviewerSection() {
             </select>
           </div>
         </div>
-        {reviewAssignments.length === 0 ? (
+        {reviewAssignmentsLoading ? (
+          <p className="text-sm text-slate-600">Loading review assignments...</p>
+        ) : reviewAssignmentsError ? (
+          <p className="text-sm text-slate-600">
+            Review assignments are temporarily unavailable. Please refresh after backend checks.
+          </p>
+        ) : reviewAssignments.length === 0 ? (
           <p className="text-sm text-slate-600">No review assignments yet.</p>
         ) : filteredReviewAssignments.length === 0 ? (
           <div className="rounded-lg border border-dashed border-[#C9DCF6] bg-[#F8FBFF] px-4 py-8 text-center">

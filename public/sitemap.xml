@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>https://devmastery.uz/</loc>
+  </url>
+  <url>
+    <loc>https://devmastery.uz/articles</loc>
+  </url>
+  <url>
+    <loc>https://devmastery.uz/published</loc>
+  </url>
+  <url>
+    <loc>https://devmastery.uz/about</loc>
+  </url>
+  <url>
+    <loc>https://devmastery.uz/contact</loc>
+  </url>
+  <url>
+    <loc>https://devmastery.uz/editorial-board</loc>
+  </url>
+  <url>
+    <loc>https://devmastery.uz/policies</loc>
+  </url>
+  <url>
+    <loc>https://devmastery.uz/guidelines</loc>
+  </url>
+  <url>
+    <loc>https://devmastery.uz/aims-scope</loc>
+  </url>
+  <url>
+    <loc>https://devmastery.uz/api/scholar/articles/</loc>
+  </url>
+</urlset>

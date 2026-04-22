@@ -26,6 +26,7 @@ export const API_ENDPOINTS = {
     moveToDecision: (id: string) => `/editor/submissions/${id}/move-to-decision/`,
     makeDecision: (id: string) => `/editor/submissions/${id}/decision/`,
     publish: (id: string) => `/editor/submissions/${id}/publish/`,
+    generateDoi: (id: string) => `/editor/submissions/${id}/generate-doi/`,
     remindReviewer: (assignmentId: string) => `/editor/review-assignments/${assignmentId}/remind/`,
   },
   reviewer: {
