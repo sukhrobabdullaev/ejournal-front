@@ -91,7 +91,7 @@ export function PublishedIssues() {
       <div className="mx-auto max-w-5xl px-4 sm:px-6">
         
         {/* ── HEADER & SEARCH SECTION ── */}
-        <section className="sticky top-4 z-20 rounded-2xl border border-slate-200 bg-white/80 p-5 shadow-sm backdrop-blur-xl md:p-8">
+        <section className="mb-8 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm md:p-8">
           <div className="max-w-3xl space-y-3">
             <span className="inline-flex items-center whitespace-nowrap rounded-full border border-blue-100 bg-blue-50 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-blue-700">
               Academic Archive
@@ -104,7 +104,7 @@ export function PublishedIssues() {
             </p>
           </div>
 
-          {/* ── SEARCH & FILTER (Xatoliklar To'liq Bartaraf Etildi) ── */}
+          {/* ── SEARCH & FILTER ── */}
           <div className="mt-6 flex flex-col gap-4 md:flex-row md:items-center">
             
             {/* 1. Search Input */}
@@ -124,7 +124,7 @@ export function PublishedIssues() {
 
             <div className="flex flex-wrap items-center gap-4">
               
-              {/* 2. Sort Select (Barcha sun'iy iconlar yo'qotilib, o'z holiga qo'yildi) */}
+              {/* 2. Sort Select */}
               <select
                 value={sortBy}
                 onChange={(event) => setSortBy(event.target.value as 'newest' | 'oldest')}
@@ -135,7 +135,7 @@ export function PublishedIssues() {
               </select>
 
               {/* 3. Count Badge */}
-              <div className="flex h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl border border-slate-200 bg-slate-100 px-4 text-sm font-semibold text-slate-700">
+              <div className="flex h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-slate-100 px-4 text-sm font-semibold text-slate-700 border border-slate-200">
                 <BookOpen size={16} className="shrink-0 text-slate-500" />
                 <span>{filteredIssues.length} ta son</span>
               </div>
@@ -153,49 +153,50 @@ export function PublishedIssues() {
           <>
             {/* ── FEATURED ISSUE ── */}
             {featuredIssue && (
-              <section className="mt-8">
+              <section className="mb-6">
                 <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow hover:shadow-md md:p-8">
-                  <div className="flex flex-col gap-6 md:flex-row md:items-stretch">
+                  <div className="flex flex-col gap-8 md:flex-row md:items-center">
                     
                     {/* Featured Thumbnail */}
-                    <div className="relative flex min-h-[260px] shrink-0 flex-col justify-between overflow-hidden rounded-xl bg-gradient-to-br from-blue-700 to-blue-900 p-6 text-white shadow-inner md:w-[240px]">
-                      <div className="absolute -right-10 -top-10 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
-                      <div className="absolute -bottom-10 -left-10 h-32 w-32 rounded-full bg-blue-500/20 blur-2xl" />
-
-                      <div className="relative z-10">
-                        <p className="mb-4 text-[10px] font-bold uppercase tracking-widest text-blue-200">
-                          Ditech Asia Journal
-                        </p>
-                        <h2 className="text-5xl font-black leading-none tracking-tight text-white">
-                          Vol {featuredIssue.volume}
-                        </h2>
-                        <p className="mt-2 text-xl font-medium text-blue-100">
-                          Issue {featuredIssue.issue_number}
-                        </p>
-                      </div>
-                      
-                      <div className="relative z-10 mt-6 inline-flex w-max items-center gap-2 rounded-lg bg-black/20 px-3 py-1.5 text-xs font-medium text-white backdrop-blur-md">
-                        <CalendarDays size={14} />
-                        {featuredIssue.publication_date || featuredIssue.publication_year}
-                      </div>
-                    </div>
+<div 
+  className="relative flex min-h-[280px] shrink-0 flex-col items-center justify-center overflow-hidden rounded-2xl p-6 text-center shadow-sm md:w-[260px] border"
+  style={{ 
+    backgroundColor: '#f0f9ff', // O'sha och havorang (Sky-50)
+    borderColor: '#e0f2fe'      // Chegara uchun bir oz to'qroq havorang
+  }}
+> 
+  <div className="relative z-10 space-y-4">
+    <p className="text-[12px] font-bold uppercase tracking-widest" style={{ color: '#0f172a' }}>
+      Academic Journal
+    </p>
+    <h2 className="text-6xl font-black tracking-tight" style={{ color: '#0f172a' }}>
+      Vol {featuredIssue.volume}
+    </h2>
+    <div className="h-1 w-16 mx-auto rounded-full" style={{ backgroundColor: '#0f172a' }}></div>
+    <p className="text-2xl font-bold" style={{ color: '#11233c' }}>
+      Issue {featuredIssue.issue_number}
+    </p>
+  </div>
+</div>
 
                     {/* Featured Details */}
-                    <div className="flex min-w-0 flex-1 flex-col justify-center py-2 md:pl-2">
-                      <div className="mb-3">
-                        <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-amber-800">
+                    <div className="flex min-w-0 flex-1 flex-col justify-center">
+                      <div className="mb-4">
+                        <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-amber-800 border border-amber-200">
                           Featured Issue
                         </span>
                       </div>
 
-                      <div className="mb-3 flex flex-wrap items-center gap-2 text-xs font-medium">
-                        <span className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-slate-100 px-2.5 py-1 text-slate-700">
-                          <Layers size={14} className="text-slate-500" /> Vol {featuredIssue.volume}
+                      {/* Badgelar qismi */}
+                      <div className="mb-5 flex flex-wrap items-center gap-3 text-xs font-semibold">
+                        <span className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-3 py-1.5 text-blue-700 shadow-sm">
+                          <Layers size={14} /> Vol {featuredIssue.volume}
                         </span>
-                        <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 py-1 text-slate-700">
+                        <span className="inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-slate-700 shadow-sm">
                           Issue {featuredIssue.issue_number}
                         </span>
-                        <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-100 px-2.5 py-1 text-slate-700">
+                        <span className="inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-slate-700 shadow-sm">
+                          <CalendarDays size={14} className="mr-1.5 text-slate-500" />
                           {featuredIssue.publication_year}
                         </span>
                       </div>
@@ -204,31 +205,40 @@ export function PublishedIssues() {
                         {featuredIssue.title || `Volume ${featuredIssue.volume}, Issue ${featuredIssue.issue_number}`}
                       </h2>
 
-                      <p className="mb-6 max-w-2xl text-sm leading-relaxed text-slate-600">
+                      <p className="mb-8 max-w-2xl text-base leading-relaxed text-slate-600">
                         Eng so‘nggi nashr etilgan akademik to'plam. TOC orqali barcha maqolalarni qulay tarzda ko‘ring yoki to‘liq jurnalni PDF formatida yuklab oling.
                       </p>
 
-                      <div className="mt-auto flex flex-wrap items-center gap-3">
+                      {/* Tugmalar qismi (Rasmga moslashtirilgan ko'k dizayn va silliq burchaklar) */}
+                      <div className="flex flex-wrap items-center gap-4">
                         <Link
                           to={`/published/${featuredIssue.id}`}
-                          className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-5 text-sm font-semibold text-slate-700 transition-colors hover:bg-slate-50 hover:text-blue-600"
+                          className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-8 text-base font-medium text-blue-600 shadow-sm transition-all hover:bg-slate-50 hover:border-slate-300 focus:ring-2 focus:ring-slate-200"
                         >
-                          <FileText size={16} />
+                          <FileText size={20} className="text-blue-600" />
                           View TOC
                         </Link>
 
                         {featuredIssue.full_issue_pdf_url ? (
                           <a
-                            href={featuredIssue.full_issue_pdf_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-blue-700"
-                          >
-                            <Download size={16} />
-                            Full PDF
-                          </a>
+  href={featuredIssue.full_issue_pdf_url}
+  target="_blank"
+  rel="noopener noreferrer"
+  className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-slate-200 px-8 text-base font-medium shadow-sm transition-all hover:bg-slate-50 hover:border-slate-300 focus:ring-2 focus:ring-slate-200"
+  // Inline style har qanday global ranglarni bekor qiladi
+  style={{ 
+    backgroundColor: '#ffffff', // Oq fon
+    color: '#2563eb'            // To'q ko'k matn
+  }}
+>
+  <Download 
+    size={20} 
+    style={{ color: '#2563eb' }} // Ikonka ham to'q ko'k
+  />
+  <span style={{ color: '#2563eb' }}>Full PDF</span>
+</a>
                         ) : (
-                          <span className="inline-flex h-10 cursor-not-allowed items-center justify-center rounded-lg border border-slate-200 bg-slate-100 px-5 text-sm font-medium text-slate-400">
+                          <span className="inline-flex h-12 cursor-not-allowed items-center justify-center rounded-2xl border border-slate-200 bg-slate-100 px-8 text-base font-medium text-slate-400">
                             PDF unavailable
                           </span>
                         )}
@@ -241,7 +251,7 @@ export function PublishedIssues() {
 
             {/* ── PAGINATED LIST ── */}
             {paginatedIssues.length > 0 && (
-              <section className="mt-6">
+              <section className="mt-8">
                 <div className="grid gap-4">
                   {paginatedIssues.map((issue) => (
                     <article
@@ -251,14 +261,15 @@ export function PublishedIssues() {
                       <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
                         <div className="min-w-0 flex-1">
                           
-                          <div className="mb-2.5 flex flex-wrap items-center gap-2 text-xs font-medium">
-                            <span className="inline-flex items-center gap-1.5 rounded-md border border-blue-100 bg-blue-50 px-2 py-1 text-blue-700">
-                              <Layers size={12} className="text-blue-500" /> Vol {issue.volume}
+                          {/* List Item Badges */}
+                          <div className="mb-3 flex flex-wrap items-center gap-2 text-xs font-semibold">
+                            <span className="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 bg-blue-50 px-2.5 py-1 text-blue-700 shadow-sm">
+                              <Layers size={12} /> Vol {issue.volume}
                             </span>
-                            <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-slate-600">
+                            <span className="inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-700 shadow-sm">
                               Issue {issue.issue_number}
                             </span>
-                            <span className="inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-slate-600">
+                            <span className="inline-flex items-center rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-slate-700 shadow-sm">
                               {issue.publication_year}
                             </span>
                           </div>
@@ -267,18 +278,19 @@ export function PublishedIssues() {
                             {issue.title || `Volume ${issue.volume}, Issue ${issue.issue_number}`}
                           </h3>
 
-                          <p className="mt-1.5 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500">
+                          <p className="mt-2 inline-flex items-center gap-1.5 text-sm font-medium text-slate-500">
                             <CalendarDays size={14} className="text-slate-400" />
                             {issue.publication_date || issue.publication_year}
                           </p>
                         </div>
 
+                        {/* List Item Buttons (Moslashtirildi) */}
                         <div className="flex shrink-0 flex-wrap items-center gap-3 border-t border-slate-100 pt-4 md:border-t-0 md:pl-6 md:pt-0">
                           <Link
                             to={`/published/${issue.id}`}
-                            className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg border border-slate-200 bg-white px-4 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 hover:text-blue-600"
+                            className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-5 text-sm font-medium text-blue-600 shadow-sm transition-colors hover:bg-slate-50 hover:border-slate-300"
                           >
-                            <FileText size={14} />
+                            <FileText size={16} className="text-blue-600" />
                             TOC
                           </Link>
 
@@ -287,13 +299,13 @@ export function PublishedIssues() {
                               href={issue.full_issue_pdf_url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="inline-flex h-9 items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-4 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+                              className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl bg-blue-600 px-5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-100"
                             >
-                              <Download size={14} />
+                              <Download size={16} className="text-white" />
                               PDF
                             </a>
                           ) : (
-                            <span className="inline-flex h-9 cursor-not-allowed items-center justify-center rounded-lg border border-slate-200 bg-slate-50 px-4 text-sm font-medium text-slate-400">
+                            <span className="inline-flex h-10 cursor-not-allowed items-center justify-center rounded-xl border border-slate-200 bg-slate-50 px-5 text-sm font-medium text-slate-400">
                               No PDF
                             </span>
                           )}
@@ -307,12 +319,12 @@ export function PublishedIssues() {
 
             {/* ── PAGINATION CONTROLS ── */}
             {totalPages > 1 && (
-              <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
+              <div className="mt-10 flex flex-wrap items-center justify-center gap-2">
                 <button
                   type="button"
                   onClick={() => setPage((prev) => Math.max(1, prev - 1))}
                   disabled={page === 1}
-                  className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <ChevronLeft size={16} /> Prev
                 </button>
@@ -323,9 +335,9 @@ export function PublishedIssues() {
                       key={p}
                       type="button"
                       onClick={() => setPage(p)}
-                      className={`inline-flex h-10 w-10 items-center justify-center rounded-lg text-sm font-medium transition-colors ${
+                      className={`inline-flex h-10 w-10 items-center justify-center rounded-lg text-sm font-semibold shadow-sm transition-colors ${
                         page === p
-                          ? 'bg-blue-600 text-white shadow-sm'
+                          ? 'border border-blue-600 bg-blue-600 text-white'
                           : 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
                       }`}
                     >
@@ -334,7 +346,7 @@ export function PublishedIssues() {
                   ))}
                 </div>
 
-                <div className="flex items-center px-4 text-sm font-medium text-slate-600 sm:hidden">
+                <div className="flex items-center px-4 text-sm font-semibold text-slate-600 sm:hidden">
                   {page} / {totalPages}
                 </div>
 
@@ -342,7 +354,7 @@ export function PublishedIssues() {
                   type="button"
                   onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
                   disabled={page === totalPages}
-                  className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex h-10 items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   Next <ChevronRight size={16} />
                 </button>
