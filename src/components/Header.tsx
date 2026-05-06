@@ -72,7 +72,7 @@ const GLASS_STYLES = `
   backdrop-filter: blur(22px) saturate(1.65);
   -webkit-backdrop-filter: blur(22px) saturate(1.65);
   border: 1px solid rgba(199, 224, 255, 0.95);
-  padding: 24px 20px 20px;
+  padding: 28px 22px 22px;
   position: relative;
   overflow: hidden;
 }
@@ -549,14 +549,14 @@ function getRoleBadgeClass(role: string): string {
 
 function normalizeOrcid(orcid?: string | null): string {
   if (!orcid) return '';
-  const cleaned = orcid.replace(/[^0-9Xx]/g, '').toUpperCase();
+  const cleaned = orcid.replace(/[^0-9]/g, '');
   if (cleaned.length !== 16) return orcid;
   return `${cleaned.slice(0, 4)}-${cleaned.slice(4, 8)}-${cleaned.slice(8, 12)}-${cleaned.slice(12)}`;
 }
 
 function isValidOrcid(orcid?: string | null): boolean {
   if (!orcid) return false;
-  return /^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$/i.test(orcid);
+  return /^\d{4}-\d{4}-\d{4}-\d{4}$/.test(orcid);
 }
 
 function isValidGoogleScholarUrl(url?: string | null): boolean {
@@ -582,7 +582,7 @@ export function Header() {
   const [activeRole,            setActiveRoleState]       = useState<string | null>(getStoredActiveRole());
 
   const profileMenuRef   = useRef<HTMLDivElement | null>(null);
-  const scholarSavedBadgeTimerRef = useRef<number | null>(null);
+  const orcidSavedBadgeTimerRef = useRef<number | null>(null);
 
   // Inject CSS once
   useEffect(() => { injectGlassStyles(); }, []);
@@ -614,8 +614,12 @@ export function Header() {
 
   const displayName = currentUser?.full_name || 'User';
   const displayRole = activeRole ? getRoleLabel(activeRole) : 'No Active Role';
-  const orcidId = normalizeOrcid(currentUser?.orcid_id);
-  const hasValidOrcid = isValidOrcid(orcidId);
+  const savedOrcidId = normalizeOrcid(currentUser?.orcid_id);
+  const hasValidOrcid = isValidOrcid(savedOrcidId);
+  const [orcidInput, setOrcidInput] = useState('');
+  const [isSavingOrcid, setIsSavingOrcid] = useState(false);
+  const [orcidFeedback, setOrcidFeedback] = useState<string | null>(null);
+  const [showOrcidSavedBadge, setShowOrcidSavedBadge] = useState(false);
   const [scholarUrlInput, setScholarUrlInput] = useState('');
   const [isSavingScholar, setIsSavingScholar] = useState(false);
   const [scholarFeedback, setScholarFeedback] = useState<string | null>(null);
@@ -629,7 +633,7 @@ export function Header() {
     isSavingScholar ||
     !hasScholarChanges ||
     (!!scholarUrlTrimmed && !hasValidScholar);
-  const hasMissingRequiredAcademicId = requiresAcademicIds && (!hasValidOrcid || !hasSavedValidScholar);
+  const hasMissingRequiredAcademicId = requiresAcademicIds && !hasValidOrcid;
   const publishedAuthorSubmissions = mySubmissions.filter((submission) => submission.status === 'published');
   const publishedWithDoiCount = publishedAuthorSubmissions.filter((submission) => Boolean(submission.doi)).length;
   const hasHealthyDoiCoverage =
@@ -640,6 +644,10 @@ export function Header() {
   const [isVerifyingOrcid, setIsVerifyingOrcid] = useState(false);
   const [copyState, setCopyState] = useState<'idle' | 'copied'>('idle');
   const [showAcademicDetails, setShowAcademicDetails] = useState(false);
+
+  useEffect(() => {
+    setOrcidInput(normalizeOrcid(currentUser?.orcid_id) || '');
+  }, [currentUser?.orcid_id]);
 
   useEffect(() => {
     setScholarUrlInput(currentUser?.google_scholar_url || '');
@@ -653,8 +661,8 @@ export function Header() {
 
   useEffect(() => {
     return () => {
-      if (scholarSavedBadgeTimerRef.current) {
-        window.clearTimeout(scholarSavedBadgeTimerRef.current);
+      if (orcidSavedBadgeTimerRef.current) {
+        window.clearTimeout(orcidSavedBadgeTimerRef.current);
       }
     };
   }, []);
@@ -744,9 +752,9 @@ export function Header() {
   );
 
   const handleCopyOrcid = async () => {
-    if (!orcidId) return;
+    if (!savedOrcidId) return;
     try {
-      await navigator.clipboard.writeText(orcidId);
+      await navigator.clipboard.writeText(savedOrcidId);
       setCopyState('copied');
       window.setTimeout(() => setCopyState('idle'), 1500);
     } catch {
@@ -761,6 +769,46 @@ export function Header() {
     } finally {
       setIsVerifyingOrcid(false);
     }
+  };
+
+  const handleSaveOrcid = async () => {
+    const trimmed = orcidInput.trim();
+    const normalized = normalizeOrcid(trimmed);
+    if (trimmed && !isValidOrcid(normalized)) {
+      setShowOrcidSavedBadge(false);
+      setOrcidFeedback('Please provide ORCID in 0000-0000-0000-0000 format.');
+      return;
+    }
+
+    setIsSavingOrcid(true);
+    setShowOrcidSavedBadge(false);
+    setOrcidFeedback(null);
+    try {
+      const { error } = await updateMyProfile({ orcid_id: normalized });
+      if (error) {
+        setShowOrcidSavedBadge(false);
+        setOrcidFeedback(error?.orcid_id?.[0] || error?.detail || 'Failed to save ORCID iD.');
+        return;
+      }
+      setOrcidFeedback('ORCID iD updated.');
+      setShowOrcidSavedBadge(true);
+      if (orcidSavedBadgeTimerRef.current) {
+        window.clearTimeout(orcidSavedBadgeTimerRef.current);
+      }
+      orcidSavedBadgeTimerRef.current = window.setTimeout(() => {
+        setShowOrcidSavedBadge(false);
+        orcidSavedBadgeTimerRef.current = null;
+      }, 1800);
+      await refetchCurrentUser();
+    } finally {
+      setIsSavingOrcid(false);
+    }
+  };
+
+  const handleClearOrcidInput = () => {
+    setOrcidInput('');
+    setShowOrcidSavedBadge(false);
+    setOrcidFeedback(null);
   };
 
   const handleSaveScholar = async () => {
@@ -783,13 +831,7 @@ export function Header() {
       }
       setScholarFeedback('Google Scholar URL updated.');
       setShowScholarSavedBadge(true);
-      if (scholarSavedBadgeTimerRef.current) {
-        window.clearTimeout(scholarSavedBadgeTimerRef.current);
-      }
-      scholarSavedBadgeTimerRef.current = window.setTimeout(() => {
-        setShowScholarSavedBadge(false);
-        scholarSavedBadgeTimerRef.current = null;
-      }, 1800);
+      window.setTimeout(() => setShowScholarSavedBadge(false), 1800);
       await refetchCurrentUser();
     } finally {
       setIsSavingScholar(false);
@@ -802,40 +844,30 @@ export function Header() {
     setScholarFeedback(null);
   };
 
-  const AcademicIdentityCard = () => {
+  const SettingsCard = () => {
     const doiStatusText = !isAuthorUser
       ? 'Optional'
       : publishedAuthorSubmissions.length === 0
         ? 'No published yet'
         : `${publishedWithDoiCount}/${publishedAuthorSubmissions.length} linked`;
-    const scholarLink = hasValidScholar
-      ? scholarUrlInput.trim()
-      : (currentUser?.google_scholar_url || '').trim() || 'https://scholar.google.com/';
-
-    const summaryItems = [
-      {
-        label: 'ORCID',
-        ok: hasValidOrcid,
-        value: hasValidOrcid ? 'Linked' : 'Missing',
-      },
-      {
-        label: 'Scholar',
-        ok: hasSavedValidScholar,
-        value: hasSavedValidScholar ? 'Linked' : 'Missing',
-      },
-      {
-        label: 'DOI',
-        ok: hasHealthyDoiCoverage,
-        value: doiStatusText,
-      },
-    ];
+    const orcidDraft = orcidInput.trim();
+    const normalizedOrcidDraft = normalizeOrcid(orcidDraft);
+    const isValidOrcidDraft = isValidOrcid(normalizedOrcidDraft);
+    const hasOrcidChanges = normalizedOrcidDraft !== savedOrcidId;
+    const isSaveOrcidDisabled =
+      isSavingOrcid ||
+      !hasOrcidChanges ||
+      (!!orcidDraft && !isValidOrcidDraft);
 
     return (
-      <section className="mt-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-500">Academic Identifiers</p>
+      <section className="mt-3 rounded-2xl border border-slate-200 bg-gradient-to-b from-white to-[#F8FBFF] p-4 shadow-[0_10px_24px_rgba(15,23,42,0.06)]">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0 pr-1">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-slate-500">Settings</p>
+            <p className="mt-1 text-sm font-semibold leading-5 text-slate-900">Academic identity</p>
+          </div>
           <span
-            className={`inline-flex rounded-full border px-2 py-0.5 text-[10px] font-semibold ${
+            className={`inline-flex w-fit items-center rounded-full border px-2.5 py-1 text-[10px] font-semibold sm:ml-auto ${
               requiresAcademicIds
                 ? 'border-rose-200 bg-rose-50 text-rose-700'
                 : 'border-amber-200 bg-amber-50 text-amber-700'
@@ -845,117 +877,112 @@ export function Header() {
           </span>
         </div>
 
-        <div className="mt-2 grid grid-cols-3 gap-2">
-          {summaryItems.map((item) => (
-            <div
-              key={item.label}
-              className={`rounded-lg border px-2 py-1.5 ${
-                item.ok ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50'
-              }`}
-            >
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-600">{item.label}</p>
-              <p className={`mt-0.5 text-[11px] font-semibold ${item.ok ? 'text-emerald-700' : 'text-amber-700'}`}>
-                {item.value}
-              </p>
-            </div>
-          ))}
-        </div>
-
         {hasMissingRequiredAcademicId && (
-          <div className="mt-2 rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700">
-            Author uchun ORCID va Google Scholar URL saqlanishi shart.
+          <div className="mt-3 rounded-xl border border-rose-100 bg-rose-50/80 px-3 py-2 text-[11px] font-medium leading-4 text-rose-700">
+            Author uchun ORCID majburiy. Shu joydan tez saqlab qo‘ying.
           </div>
         )}
 
-        <div className="mt-2 flex items-center justify-between gap-2">
-          <p className="text-[11px] text-slate-500">
-            {requiresAcademicIds
-              ? 'Submitdan oldin ORCID + Scholar tayyor bo‘lsin.'
-              : 'Reviewer uchun bu bo‘lim ixtiyoriy.'}
+        <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <p className="max-w-[230px] text-[11px] leading-5 text-slate-500">
+            {requiresAcademicIds ? 'ORCID, Scholar va DOI bir joyda.' : 'Reviewer uchun ixtiyoriy.'}
           </p>
           <button
             type="button"
             onClick={() => setShowAcademicDetails((prev) => !prev)}
-            className="inline-flex h-7 items-center rounded-md border border-slate-200 bg-white px-2 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
+            className="inline-flex self-start mt-1 sm:mt-0 h-7 items-center rounded-full border border-slate-200 bg-white px-3 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
           >
-            {showAcademicDetails ? 'Hide details' : 'Edit details'}
+            {showAcademicDetails ? 'Collapse' : 'Open'}
           </button>
         </div>
 
         {showAcademicDetails && (
-          <div className="mt-2 space-y-2">
-            <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5">
-              <div className="flex items-start justify-between gap-2">
+          <div className="mt-3 space-y-3">
+            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-[0_4px_12px_rgba(15,23,42,0.04)]">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
-                  <p className="text-xs font-semibold text-slate-800">ORCID iD</p>
-                  <p
-                    className="mt-0.5 truncate text-[11px] text-slate-600"
-                    style={{ fontFamily: 'JetBrains Mono, Roboto Mono, ui-monospace, SFMono-Regular, Menlo, monospace' }}
-                  >
-                    {hasValidOrcid ? orcidId : 'Not linked yet'}
-                  </p>
+                  <p className="text-xs font-semibold tracking-[0.02em] text-slate-900">ORCID iD</p>
+                  <p className="mt-1 text-[11px] leading-5 text-slate-500">0000-0000-0000-0000 formatida kiriting.</p>
                 </div>
-                {hasValidOrcid ? (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
-                    <CheckCircle size={12} />
-                    Ready
-                  </span>
-                ) : (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
-                    <Fingerprint size={12} />
-                    Missing
-                  </span>
-                )}
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${
+                    hasValidOrcid
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                      : 'border-amber-200 bg-amber-50 text-amber-700'
+                  }`}
+                >
+                  {hasValidOrcid ? <CheckCircle size={12} /> : <Fingerprint size={12} />}
+                  {hasValidOrcid ? 'Linked' : 'Missing'}
+                </span>
               </div>
-
-              <div className="mt-2 flex flex-wrap gap-2">
-                {hasValidOrcid ? (
-                  <>
-                    <button
-                      type="button"
-                      onClick={handleVerifyOrcid}
-                      className="inline-flex h-8 items-center justify-center gap-1 rounded-md border border-[#A6CE39] px-2.5 text-[11px] font-semibold text-[#5D7F14] hover:bg-[#F4FAD9]"
-                    >
-                      {isVerifyingOrcid ? 'Checking...' : 'Refresh'}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleCopyOrcid}
-                      className="inline-flex h-8 items-center justify-center gap-1 rounded-md border border-slate-200 px-2.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
-                    >
-                      <Copy size={12} />
-                      {copyState === 'copied' ? 'Copied' : 'Copy'}
-                    </button>
-                    <a
-                      href={`https://orcid.org/${orcidId}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex h-8 items-center justify-center gap-1 rounded-md border border-slate-200 px-2.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50"
-                    >
-                      <ExternalLink size={12} />
-                      Open
-                    </a>
-                  </>
-                ) : (
+              <div className="mt-3 grid gap-3">
+                <input
+                  value={orcidInput}
+                  onChange={(event) => {
+                    setOrcidInput(event.target.value);
+                    setShowOrcidSavedBadge(false);
+                    if (orcidFeedback) setOrcidFeedback(null);
+                  }}
+                  placeholder="0000-0000-0000-0000"
+                  className="h-9 w-full min-w-0 rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 outline-none transition-colors placeholder:text-slate-400 focus:border-[#93C5FD] focus:bg-white"
+                />
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                  <button
+                    type="button"
+                    onClick={handleSaveOrcid}
+                    disabled={isSaveOrcidDisabled}
+                    className="inline-flex h-9 w-full items-center justify-center rounded-xl px-3 text-xs font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-70"
+                    style={{ backgroundColor: isSaveOrcidDisabled ? '#9FC0FF' : '#4285F4' }}
+                  >
+                    {isSavingOrcid ? 'Saqlanmoqda...' : 'Saqlash'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleClearOrcidInput}
+                    disabled={isSavingOrcid || orcidInput.length === 0}
+                    className="inline-flex h-9 w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Tozalash
+                  </button>
                   <a
                     href="https://orcid.org/register"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex h-8 items-center justify-center rounded-md bg-[#A6CE39] px-2.5 text-[11px] font-semibold text-white hover:bg-[#96BD2D]"
+                    className="inline-flex h-9 w-full items-center justify-center rounded-xl border border-emerald-200 bg-emerald-50 px-3 text-xs font-semibold text-emerald-700 hover:bg-emerald-100"
                   >
                     Connect ORCID
                   </a>
-                )}
+                </div>
               </div>
+              {showOrcidSavedBadge && (
+                <div className="mt-2">
+                  <span className="glass-saved-badge">
+                    <CheckCircle size={12} />
+                    Saqlandi
+                  </span>
+                </div>
+              )}
+              {orcidFeedback && (
+                <p
+                  className={`mt-2 text-[11px] font-medium ${
+                    orcidFeedback.includes('updated') ? 'text-emerald-700' : 'text-rose-700'
+                  }`}
+                >
+                  {orcidFeedback}
+                </p>
+              )}
             </div>
 
-            <div className="rounded-lg border border-[#CFE0FF] bg-[#F8FBFF] px-3 py-2.5">
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <p className="text-xs font-semibold text-slate-800">Google Scholar URL</p>
+            <div className="rounded-2xl border border-slate-200 bg-white px-4 py-4 shadow-[0_4px_12px_rgba(15,23,42,0.04)]">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold tracking-[0.02em] text-slate-900">Google Scholar</p>
+                  <p className="mt-1 text-[11px] leading-5 text-slate-500">Citations profilingiz URLini saqlang.</p>
+                </div>
                 <span
-                  className={`inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-semibold ${
+                  className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${
                     hasSavedValidScholar
-                      ? 'border-[#9FC0FF] bg-[#EEF4FF] text-[#2563EB]'
+                      ? 'border-blue-200 bg-blue-50 text-blue-700'
                       : 'border-amber-200 bg-amber-50 text-amber-700'
                   }`}
                 >
@@ -963,8 +990,7 @@ export function Header() {
                   {hasSavedValidScholar ? 'Saved' : 'Missing'}
                 </span>
               </div>
-
-              <div className="space-y-2">
+              <div className="mt-3 space-y-3">
                 <input
                   value={scholarUrlInput}
                   onChange={(event) => {
@@ -973,68 +999,85 @@ export function Header() {
                     if (scholarFeedback) setScholarFeedback(null);
                   }}
                   placeholder="https://scholar.google.com/citations?user=XYZ"
-                  className="h-9 w-full rounded-lg border border-[#CFE0FF] bg-white px-3 text-xs text-slate-700 outline-none transition-colors focus:border-[#93C5FD]"
+                  className="h-9 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 text-xs text-slate-700 outline-none transition-colors placeholder:text-slate-400 focus:border-[#93C5FD] focus:bg-white"
                 />
-                <div className="flex items-center justify-end gap-2">
-                  <button
-                    type="button"
-                    onClick={handleSaveScholar}
-                    disabled={isSaveScholarDisabled}
-                    className="inline-flex h-9 min-w-[90px] items-center justify-center rounded-lg px-3 text-xs font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-70"
-                    style={{ backgroundColor: isSaveScholarDisabled ? '#9FC0FF' : '#4285F4' }}
-                  >
-                    {isSavingScholar ? 'Saqlanmoqda...' : 'Saqlash'}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleClearScholarInput}
-                    disabled={isSavingScholar || scholarUrlInput.length === 0}
-                    className="inline-flex h-9 min-w-[90px] items-center justify-center rounded-lg border border-slate-300 bg-white px-3 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    Tozalash
-                  </button>
-                </div>
-              </div>
-
-              {showScholarSavedBadge && (
-                <div className="mt-1">
-                  <span className="glass-saved-badge">
-                    <CheckCircle size={12} />
-                    Saqlandi
-                  </span>
-                </div>
-              )}
-
-              <div className="mt-2 flex items-center justify-between gap-2">
-                {!scholarUrlInput.trim() ? (
-                  <p className="text-[11px] text-slate-600">Citations profilingiz URLini kiriting.</p>
-                ) : hasValidScholar ? (
-                  <p className="text-[11px] font-medium text-emerald-700">URL format is valid.</p>
-                ) : (
-                  <p className="text-[11px] font-medium text-amber-700">Scholar citations URL formatida kiriting.</p>
-                )}
-                {(hasValidScholar || hasSavedValidScholar) && (
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <a
-                    href={scholarLink}
+                    href="https://scholar.google.com/citations"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="inline-flex h-7 items-center gap-1 rounded-md border border-[#CBDDFE] px-2 text-[11px] font-semibold text-[#4285F4] hover:bg-[#EEF4FF]"
+                    className="inline-flex h-8 w-full items-center justify-center rounded-full border border-slate-200 px-2.5 text-[11px] font-semibold text-slate-700 hover:bg-slate-50 sm:w-auto"
                   >
-                    <ExternalLink size={11} />
-                    Test
+                    Open Scholar
                   </a>
+                  <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <button
+                      type="button"
+                      onClick={handleSaveScholar}
+                      disabled={isSaveScholarDisabled}
+                      className="inline-flex h-9 w-full items-center justify-center rounded-xl px-3 text-xs font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-70"
+                      style={{ backgroundColor: isSaveScholarDisabled ? '#9FC0FF' : '#1D4ED8' }}
+                    >
+                      {isSavingScholar ? 'Saqlanmoqda...' : 'Saqlash'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleClearScholarInput}
+                      disabled={isSavingScholar || scholarUrlInput.length === 0}
+                      className="inline-flex h-9 w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
+                    >
+                      Tozalash
+                    </button>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  {!scholarUrlTrimmed ? (
+                    <p className="text-[11px] leading-5 text-slate-500">Scholar URL kiriting.</p>
+                  ) : hasValidScholar ? (
+                    <p className="text-[11px] font-medium text-emerald-700">Scholar format is valid.</p>
+                  ) : (
+                    <p className="text-[11px] font-medium text-amber-700">Scholar citations URL formatida kiriting.</p>
+                  )}
+                </div>
+                {showScholarSavedBadge && (
+                  <div>
+                    <span className="glass-saved-badge">
+                      <CheckCircle size={12} />
+                      Saqlandi
+                    </span>
+                  </div>
+                )}
+                {scholarFeedback && (
+                  <p
+                    className={`text-[11px] font-medium ${
+                      scholarFeedback.includes('updated') ? 'text-emerald-700' : 'text-rose-700'
+                    }`}
+                  >
+                    {scholarFeedback}
+                  </p>
                 )}
               </div>
+            </div>
 
-              {scholarFeedback && (
-                <p
-                  className={`mt-1 text-[11px] font-medium ${
-                    scholarFeedback.includes('updated') ? 'text-emerald-700' : 'text-rose-700'
+            <div className="rounded-2xl border border-slate-200 bg-[#FCFDFF] px-4 py-4 shadow-[0_4px_12px_rgba(15,23,42,0.04)]">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold tracking-[0.02em] text-slate-900">DOI</p>
+                  <p className="mt-1 text-[11px] leading-5 text-slate-500">Published maqolalar uchun avtomatik biriktiriladi.</p>
+                </div>
+                <span
+                  className={`inline-flex rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${
+                    hasHealthyDoiCoverage
+                      ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
+                      : 'border-amber-200 bg-amber-50 text-amber-700'
                   }`}
                 >
-                  {scholarFeedback}
-                </p>
-              )}
+                  {doiStatusText}
+                </span>
+              </div>
+              <p className="mt-2 text-[11px] leading-5 text-slate-500">
+                DOI editor workflow orqali boshqariladi. Bu yerda faqat status ko‘rsatiladi.
+              </p>
             </div>
           </div>
         )}
@@ -1057,7 +1100,7 @@ export function Header() {
         {isUserAuthenticated && showAcademicCard && (
           <>
             <div className="glass-divider" />
-            {AcademicIdentityCard()}
+            {SettingsCard()}
             <div className="glass-divider" />
           </>
         )}
@@ -1290,7 +1333,7 @@ export function Header() {
             {/* Mobile auth section */}
             {isUserAuthenticated && (
               <div
-                className="mt-4 space-y-2 rounded-xl border bg-[#F8FBFF] p-3"
+                className="mt-4 space-y-2 rounded-xl border bg-[#F8FBFF] p-4"
                 style={{ borderColor: '#D8E4F6' }}
               >
                 <p className="text-xs font-semibold uppercase tracking-wider text-[#1D4ED8]">
@@ -1299,7 +1342,7 @@ export function Header() {
                 <p className="text-sm font-semibold text-[#0B1C4D]">{displayName}</p>
                 <p className="text-xs text-slate-600">{currentUser?.email}</p>
 
-                {activeRole === 'author' && AcademicIdentityCard()}
+                {activeRole === 'author' && SettingsCard()}
 
                 <div className="pt-2">
                   {orderedRoles.map((role) => (
