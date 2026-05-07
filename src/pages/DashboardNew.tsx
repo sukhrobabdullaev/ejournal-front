@@ -274,37 +274,51 @@ export function DashboardNew() {
   const profile = currentUser;
   const mustChooseRole = approvedRoles.length > 1 && !activeRole;
 
+  // ==========================================
+  // O'ZGARTIRILGAN VA YANGILANGAN QISM BOSHLANISHI
+  // ==========================================
   if (mustChooseRole) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-[#F5F9FF] to-[#EEF4FD] px-4 py-16">
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-[#F4F9FF] via-[#EEF4FD] to-[#E6F0FE] px-4 py-16 font-sans">
         <div
-          className="w-full max-w-3xl rounded-md border bg-white p-8 shadow-[0_18px_45px_rgba(15,23,42,0.08)] md:p-12"
-          style={{ borderColor: '#CBD5E1' }}
+          className="w-full max-w-4xl rounded-[32px] border bg-white p-8 shadow-[0_24px_60px_-15px_rgba(11,28,77,0.1)] md:p-14"
+          style={{ borderColor: 'rgba(226, 232, 240, 0.8)' }}
         >
-          <div className="mb-8 border-b pb-6" style={{ borderColor: '#E2E8F0' }}>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+          {/* Sarlavha qismi */}
+          <div className="mb-10 border-b pb-8" style={{ borderColor: '#F1F5F9' }}>
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-1.5 text-xs font-bold uppercase tracking-widest text-blue-600 shadow-sm">
+              <Users size={14} />
               Role Selection
-            </p>
-            <h1 className="mb-3 text-3xl font-bold text-[#0B1C4D]">
-              Tizimga kirish uchun o&apos;zingizga tegishli rolni tanlang
+            </div>
+            <h1 className="mb-4 text-3xl font-black tracking-tight text-[#0B1C4D] md:text-4xl">
+              Tizimga kirish uchun o'zingizga tegishli rolni tanlang
             </h1>
-            <p className="text-sm text-slate-600">
-              Hurmatli {profile.full_name}, tizim davom etishi uchun faol rolni tasdiqlang.
+            <p className="text-base text-slate-600 md:text-lg">
+              Hurmatli <span className="font-semibold text-slate-900">{profile.full_name}</span>, tizimdan to'liq foydalanishni davom ettirish uchun faol rolingizni tasdiqlang.
             </p>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          {/* Rollar gridi yumshoq burchak va havorang fon bilan */}
+          <div className="grid gap-5 md:grid-cols-2">
             {approvedRoles.map((role) => (
               <button
                 key={role}
                 onClick={() => handleRoleSwitch(role)}
-                className="rounded-md border bg-white px-5 py-4 text-left shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#F8FAFC] hover:shadow-md"
-                style={{ borderColor: '#CBD5E1' }}
+                className="group relative overflow-hidden rounded-[24px] border border-transparent bg-[#F4F9FF] p-7 text-left transition-all duration-300 ease-out hover:-translate-y-1 hover:border-blue-200 hover:bg-[#EBF4FF] hover:shadow-[0_16px_32px_-12px_rgba(37,99,235,0.2)] active:scale-[0.98]"
               >
-                <div className="mb-2 text-lg font-semibold text-[#0B1C4D]">{getRoleLabel(role)}</div>
-                <p className="text-sm text-slate-600">
-                  Dashboard ushbu rolda ochiladi va header avtomatik sinxronlanadi.
-                </p>
+                <div className="relative z-10">
+                  <div className="mb-3 flex items-center justify-between">
+                    <span className="text-xl font-bold text-[#0B1C4D] transition-colors group-hover:text-blue-700">
+                      {getRoleLabel(role)}
+                    </span>
+                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100/80 text-blue-600 opacity-0 transition-all duration-300 group-hover:opacity-100 group-hover:shadow-sm">
+                      <Plus size={18} className="rotate-45 transition-transform group-hover:rotate-0" />
+                    </span>
+                  </div>
+                  <p className="text-sm leading-relaxed text-slate-600 transition-colors group-hover:text-slate-800">
+                    Dashboard aynan ushbu rolda ochiladi va tizim header qismi siz uchun avtomatik sinxronlanadi.
+                  </p>
+                </div>
               </button>
             ))}
           </div>
@@ -312,6 +326,9 @@ export function DashboardNew() {
       </div>
     );
   }
+  // ==========================================
+  // O'ZGARTIRILGAN VA YANGILANGAN QISM TUGASHI
+  // ==========================================
 
   if (!activeRole && approvedRoles.length === 0) {
     return (
@@ -481,81 +498,9 @@ export function DashboardNew() {
                                       })}
                                     </p>
                                   </div>
-                                <div className="flex flex-wrap items-center gap-2">
-                                  <Link
-                                    to={`/certificate/${certificate.verification_code}`}
-                                    className="rounded border border-[#C9DCF6] px-3 py-1.5 text-xs font-medium text-[#0B1C4D] transition-colors hover:bg-[#EFF6FF]"
-                                  >
-                                    View
-                                  </Link>
-                                  <a
-                                    href={certificate.pdf_url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="inline-flex items-center rounded border border-[#C9DCF6] px-3 py-1.5 text-xs font-medium text-[#0B1C4D] transition-colors hover:bg-[#EFF6FF]"
-                                  >
-                                    <Download size={13} className="mr-1" />
-                                    Download
-                                  </a>
-                                  <button
-                                    onClick={() =>
-                                      handleShareCertificate(certificate.certificate_page_url, {
-                                        title: 'Reviewer Recognition Certificate',
-                                        text: 'Reviewer recognition certificate',
-                                      })
-                                    }
-                                    className="inline-flex items-center rounded border border-[#C9DCF6] px-3 py-1.5 text-xs font-medium text-[#0B1C4D] transition-colors hover:bg-[#EFF6FF]"
-                                  >
-                                    <Share2 size={13} className="mr-1" />
-                                    Share
-                                  </button>
-                                  <a
-                                    href={certificate.qr_svg_url}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="inline-flex items-center rounded border border-[#C9DCF6] px-3 py-1.5 text-xs font-medium text-[#0B1C4D] transition-colors hover:bg-[#EFF6FF]"
-                                  >
-                                    <QrCode size={13} className="mr-1" />
-                                    QR
-                                  </a>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {submission.journal_certificates &&
-                        submission.journal_certificates.length > 0 && (
-                          <div className="mt-4 rounded-xl border border-[#D8E4F6] bg-[#F8FBFF] p-3">
-                            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#1E3A8A]">
-                              Journal Publication Certificate
-                            </p>
-                            <div className="space-y-2">
-                              {submission.journal_certificates.map((certificate) => (
-                                <div
-                                  key={certificate.id}
-                                  className="flex flex-col gap-2 rounded-xl border border-[#D8E4F6] bg-white p-3 transition-all duration-300 ease-in-out hover:shadow-[0_8px_18px_rgba(37,99,235,0.10)] md:flex-row md:items-center md:justify-between"
-                                >
-                                  <div>
-                                    <p className="text-sm font-semibold text-[#0B1C4D]">
-                                      {certificate.issue_title}
-                                    </p>
-                                    <p className="text-xs text-slate-600">
-                                      Article: {certificate.submission_title}
-                                    </p>
-                                    <p className="text-xs text-slate-600">
-                                      Issued:{' '}
-                                      {new Date(certificate.issued_at).toLocaleDateString('en-US', {
-                                        year: 'numeric',
-                                        month: 'long',
-                                        day: 'numeric',
-                                      })}
-                                    </p>
-                                  </div>
                                   <div className="flex flex-wrap items-center gap-2">
                                     <Link
-                                      to={`/journal-certificate/${certificate.verification_code}`}
+                                      to={`/certificate/${certificate.verification_code}`}
                                       className="rounded border border-[#C9DCF6] px-3 py-1.5 text-xs font-medium text-[#0B1C4D] transition-colors hover:bg-[#EFF6FF]"
                                     >
                                       View
@@ -572,8 +517,8 @@ export function DashboardNew() {
                                     <button
                                       onClick={() =>
                                         handleShareCertificate(certificate.certificate_page_url, {
-                                          title: 'Journal Publication Certificate',
-                                          text: `${certificate.issue_title} - ${certificate.submission_title}`,
+                                          title: 'Reviewer Recognition Certificate',
+                                          text: 'Reviewer recognition certificate',
                                         })
                                       }
                                       className="inline-flex items-center rounded border border-[#C9DCF6] px-3 py-1.5 text-xs font-medium text-[#0B1C4D] transition-colors hover:bg-[#EFF6FF]"
@@ -596,31 +541,103 @@ export function DashboardNew() {
                             </div>
                           </div>
                         )}
-                    </div>
-                  ))}
-                </div>
 
-                {authorTotalPages > 1 && (
-                  <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
-                    {Array.from({ length: authorTotalPages }, (_, i) => i + 1).map((page) => (
-                      <button
-                        key={page}
-                        onClick={() => setAuthorCurrentPage(page)}
-                        aria-current={page === authorSafePage ? 'page' : undefined}
-                        className="inline-flex h-9 min-w-9 items-center justify-center rounded-md border px-3 text-sm font-semibold transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-[#EFF6FF]"
-                        style={
-                          page === authorSafePage
-                            ? { backgroundColor: '#1D4ED8', borderColor: '#1D4ED8', color: '#FFFFFF' }
-                            : { backgroundColor: '#FFFFFF', borderColor: '#C9DCF6', color: '#0B1C4D' }
-                        }
-                      >
-                        {page}
-                      </button>
+                        {submission.journal_certificates &&
+                          submission.journal_certificates.length > 0 && (
+                            <div className="mt-4 rounded-xl border border-[#D8E4F6] bg-[#F8FBFF] p-3">
+                              <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#1E3A8A]">
+                                Journal Publication Certificate
+                              </p>
+                              <div className="space-y-2">
+                                {submission.journal_certificates.map((certificate) => (
+                                  <div
+                                    key={certificate.id}
+                                    className="flex flex-col gap-2 rounded-xl border border-[#D8E4F6] bg-white p-3 transition-all duration-300 ease-in-out hover:shadow-[0_8px_18px_rgba(37,99,235,0.10)] md:flex-row md:items-center md:justify-between"
+                                  >
+                                    <div>
+                                      <p className="text-sm font-semibold text-[#0B1C4D]">
+                                        {certificate.issue_title}
+                                      </p>
+                                      <p className="text-xs text-slate-600">
+                                        Article: {certificate.submission_title}
+                                      </p>
+                                      <p className="text-xs text-slate-600">
+                                        Issued:{' '}
+                                        {new Date(certificate.issued_at).toLocaleDateString('en-US', {
+                                          year: 'numeric',
+                                          month: 'long',
+                                          day: 'numeric',
+                                        })}
+                                      </p>
+                                    </div>
+                                    <div className="flex flex-wrap items-center gap-2">
+                                      <Link
+                                        to={`/journal-certificate/${certificate.verification_code}`}
+                                        className="rounded border border-[#C9DCF6] px-3 py-1.5 text-xs font-medium text-[#0B1C4D] transition-colors hover:bg-[#EFF6FF]"
+                                      >
+                                        View
+                                      </Link>
+                                      <a
+                                        href={certificate.pdf_url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="inline-flex items-center rounded border border-[#C9DCF6] px-3 py-1.5 text-xs font-medium text-[#0B1C4D] transition-colors hover:bg-[#EFF6FF]"
+                                      >
+                                        <Download size={13} className="mr-1" />
+                                        Download
+                                      </a>
+                                      <button
+                                        onClick={() =>
+                                          handleShareCertificate(certificate.certificate_page_url, {
+                                            title: 'Journal Publication Certificate',
+                                            text: `${certificate.issue_title} - ${certificate.submission_title}`,
+                                          })
+                                        }
+                                        className="inline-flex items-center rounded border border-[#C9DCF6] px-3 py-1.5 text-xs font-medium text-[#0B1C4D] transition-colors hover:bg-[#EFF6FF]"
+                                      >
+                                        <Share2 size={13} className="mr-1" />
+                                        Share
+                                      </button>
+                                      <a
+                                        href={certificate.qr_svg_url}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="inline-flex items-center rounded border border-[#C9DCF6] px-3 py-1.5 text-xs font-medium text-[#0B1C4D] transition-colors hover:bg-[#EFF6FF]"
+                                      >
+                                        <QrCode size={13} className="mr-1" />
+                                        QR
+                                      </a>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                      </div>
                     ))}
                   </div>
-                )}
-              </>
-            )}
+
+                  {authorTotalPages > 1 && (
+                    <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
+                      {Array.from({ length: authorTotalPages }, (_, i) => i + 1).map((page) => (
+                        <button
+                          key={page}
+                          onClick={() => setAuthorCurrentPage(page)}
+                          aria-current={page === authorSafePage ? 'page' : undefined}
+                          className="inline-flex h-9 min-w-9 items-center justify-center rounded-md border px-3 text-sm font-semibold transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-[#EFF6FF]"
+                          style={
+                            page === authorSafePage
+                              ? { backgroundColor: '#1D4ED8', borderColor: '#1D4ED8', color: '#FFFFFF' }
+                              : { backgroundColor: '#FFFFFF', borderColor: '#C9DCF6', color: '#0B1C4D' }
+                          }
+                        >
+                          {page}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
             </div>
           </div>
         )}
@@ -631,8 +648,6 @@ export function DashboardNew() {
 }
 
 // ─── Role-specific sub-components ───────────────────────────────────────────
-// These components own their own queries so the hooks are only registered when
-// the user actually has the matching role, keeping the devtools clean.
 
 function ReviewerSection() {
   const {
@@ -912,6 +927,7 @@ function EditorAdminSection({
     (safePage - 1) * itemsPerPage,
     safePage * itemsPerPage
   );
+  
   const formatCreatedAt = (value?: string) => {
     if (!value) {
       return 'N/A';
@@ -1220,7 +1236,6 @@ function EditorAdminSection({
 
 // ─── Statistics Components ───────────────────────────────────────────────────
 
-// Author Statistics Component
 function AuthorStatistics({ submissions }: { submissions: any[] }) {
   const COLORS = ['#0B1C4D', '#1D4ED8', '#3B82F6', '#60A5FA', '#93C5FD', '#DBEAFE'];
 
@@ -1287,7 +1302,6 @@ function AuthorStatistics({ submissions }: { submissions: any[] }) {
   );
 }
 
-// Reviewer Statistics Component
 function ReviewerStatistics({ assignments }: { assignments: any[] }) {
   const COLORS = ['#0B1C4D', '#1D4ED8', '#3B82F6', '#60A5FA', '#93C5FD', '#DBEAFE'];
 
@@ -1354,7 +1368,6 @@ function ReviewerStatistics({ assignments }: { assignments: any[] }) {
   );
 }
 
-// Editor Statistics Component
 function EditorStatistics({ submissions }: { submissions: any[] }) {
   const COLORS = ['#0B1C4D', '#1D4ED8', '#3B82F6', '#60A5FA', '#93C5FA', '#DBEAFE'];
 
@@ -1435,7 +1448,6 @@ function EditorStatistics({ submissions }: { submissions: any[] }) {
   );
 }
 
-// Admin Statistics Component
 function AdminStatistics({ submissions }: { submissions: any[] }) {
   const COLORS = ['#0B1C4D', '#1D4ED8', '#3B82F6', '#60A5FA', '#93C5FD', '#DBEAFE'];
 

@@ -1,554 +1,535 @@
 import React from 'react';
-import { Download, FileText, CheckCircle, AlertCircle } from 'lucide-react';
+import { Download, FileText, CheckCircle, AlertCircle, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router';
 
 export function AuthorGuidelines() {
   return (
-    <div style={{ backgroundColor: '#F8FAFC' }}>
-      {/* Hero Header */}
-      <div style={{ backgroundColor: '#0B1C4D', paddingTop: '80px', paddingBottom: '60px' }}>
+    <div style={{ backgroundColor: '#FFFFFF', fontFamily: '"Segoe UI", "Helvetica Neue", sans-serif' }}>
+      {/* Hero Section - Refined & Spacious */}
+      <div 
+        style={{
+          background: 'linear-gradient(135deg, #F0F4F9 0%, #E8EEF5 100%)',
+          paddingTop: '120px',
+          paddingBottom: '100px',
+          borderBottom: '1px solid rgba(30, 58, 138, 0.08)',
+        }}
+      >
         <div className="mx-auto max-w-[1120px] px-4 sm:px-6 lg:px-8">
-          <h1 className="mb-4 text-5xl font-bold" style={{ color: '#FFFFFF' }}>
+          <h1 
+            className="mb-6 text-6xl font-bold leading-tight"
+            style={{ color: '#0F2557', letterSpacing: '-0.5px' }}
+          >
             Author Guidelines
           </h1>
-          <p className="text-xl" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-            Comprehensive instructions for preparing and submitting manuscripts to Ditech Asia
-            Journal
+          <p 
+            className="text-xl max-w-2xl"
+            style={{ color: '#475569', lineHeight: '1.8', fontWeight: '400' }}
+          >
+            Comprehensive instructions for preparing and submitting manuscripts to <span style={{ color: '#1E3A8A', fontWeight: '600' }}>Ditech Asia Journal</span>
           </p>
         </div>
       </div>
 
+      {/* Main Content Area - Generously Spaced */}
       <div
         className="mx-auto max-w-[1120px] px-4 sm:px-6 lg:px-8"
-        style={{ paddingTop: '80px', paddingBottom: '80px' }}
+        style={{ paddingTop: '100px', paddingBottom: '100px' }}
       >
-        {/* Quick Actions */}
-        <div className="mb-12 grid gap-8 md:grid-cols-2">
+        {/* Quick Actions - Card Style with Premium Spacing */}
+        <div className="mb-20 grid gap-6 md:grid-cols-2">
+          {/* Submit Card */}
           <Link
             to="/submit"
-            className="flex items-center justify-between transition-all hover:shadow-xl"
+            className="group"
             style={{
-              padding: '32px',
-              backgroundColor: '#0B1C4D',
-              color: '#FFFFFF',
-              borderRadius: '16px',
-              boxShadow: '0 10px 30px rgba(11, 28, 77, 0.15)',
+              display: 'block',
+              textDecoration: 'none',
+              transition: 'all 0.3s ease',
             }}
           >
-            <div>
-              <h3 className="mb-2 text-xl font-semibold text-[#ffffff]">Submit Your Manuscript</h3>
-              <p className="text-sm" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-                Ready to submit? Start here
-              </p>
+            <div
+              style={{
+                padding: '48px',
+                background: 'linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%)',
+                borderRadius: '20px',
+                boxShadow: '0 8px 32px rgba(30, 58, 138, 0.12)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                transition: 'all 0.3s ease',
+                cursor: 'pointer',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-4px)';
+                e.currentTarget.style.boxShadow = '0 16px 48px rgba(30, 58, 138, 0.2)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 8px 32px rgba(30, 58, 138, 0.12)';
+              }}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="mb-3 text-2xl font-bold" style={{ color: '#FFFFFF' }}>
+                    Submit Your Manuscript
+                  </h3>
+                  <p style={{ color: 'rgba(255, 255, 255, 0.85)', fontSize: '15px', lineHeight: '1.6' }}>
+                    Ready to share your research? Start here
+                  </p>
+                </div>
+                <FileText 
+                  size={40} 
+                  style={{ color: 'rgba(255, 255, 255, 0.8)' }}
+                  className="flex-shrink-0"
+                />
+              </div>
             </div>
-            <FileText size={32} />
           </Link>
 
+          {/* Download Template Card */}
           <button
-            className="flex items-center justify-between transition-all hover:shadow-xl"
             style={{
-              padding: '32px',
-              backgroundColor: '#FFFFFF',
-              borderRadius: '16px',
-              border: '2px solid #0B1C4D',
-              boxShadow: '0 10px 30px rgba(11, 28, 77, 0.08)',
+              padding: '48px',
+              background: '#FFFFFF',
+              borderRadius: '20px',
+              border: '2px solid #E2E8F0',
+              boxShadow: '0 4px 16px rgba(30, 58, 138, 0.06)',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              display: 'block',
+              width: '100%',
+              textAlign: 'left',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-4px)';
+              e.currentTarget.style.boxShadow = '0 12px 32px rgba(30, 58, 138, 0.1)';
+              e.currentTarget.style.borderColor = '#3B82F6';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 4px 16px rgba(30, 58, 138, 0.06)';
+              e.currentTarget.style.borderColor = '#E2E8F0';
             }}
           >
-            <div>
-              <h3 className="mb-2 text-xl font-semibold" style={{ color: '#0B1C4D' }}>
-                Download Template
-              </h3>
-              <p className="text-left text-sm" style={{ color: '#475569' }}>
-                LaTeX & Word formats
-              </p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="mb-3 text-2xl font-bold" style={{ color: '#0F2557' }}>
+                  Download Template
+                </h3>
+                <p style={{ color: '#64748B', fontSize: '15px', lineHeight: '1.6' }}>
+                  LaTeX & Word formats available
+                </p>
+              </div>
+              <Download 
+                size={40} 
+                style={{ color: '#3B82F6' }}
+                className="flex-shrink-0"
+              />
             </div>
-            <Download size={32} style={{ color: '#0B1C4D' }} />
           </button>
         </div>
 
-        {/* Main Content */}
-        <div className="space-y-8">
-          {/* Manuscript Types */}
+        {/* Main Content Sections - Card-based with Breathing Room */}
+        <div className="space-y-16">
+          {/* Manuscript Types Section */}
           <section
-            className="bg-white transition-all hover:shadow-xl"
             style={{
-              borderRadius: '16px',
-              padding: '32px',
-              boxShadow: '0 10px 30px rgba(11, 28, 77, 0.08)',
-              borderLeft: '4px solid #2563EB',
+              backgroundColor: '#FFFFFF',
+              borderRadius: '20px',
+              padding: '48px',
+              boxShadow: '0 4px 16px rgba(30, 58, 138, 0.06)',
+              border: '1px solid #E8EEF5',
+              transition: 'all 0.3s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow = '0 8px 32px rgba(30, 58, 138, 0.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = '0 4px 16px rgba(30, 58, 138, 0.06)';
             }}
           >
-            <h2 className="mb-8 text-3xl font-bold" style={{ color: '#0B1C4D' }}>
-              Manuscript Types
-            </h2>
+            <div style={{ marginBottom: '48px', paddingBottom: '24px', borderBottom: '2px solid #E8EEF5' }}>
+              <h2 className="text-4xl font-bold" style={{ color: '#0F2557' }}>
+                01. Manuscript Types
+              </h2>
+            </div>
 
-            <div className="space-y-6">
-              <div>
-                <h3
-                  className="mb-3 flex items-center text-lg font-semibold"
-                  style={{ color: '#0B1C4D' }}
-                >
-                  <CheckCircle className="mr-3" size={20} style={{ color: '#2563EB' }} />
-                  Research Articles
-                </h3>
-                <p className="ml-8 text-base" style={{ color: '#475569', lineHeight: '1.7' }}>
-                  Original research papers presenting novel findings in computing and technology.
-                  Typical length: 5,000-10,000 words including references.
-                </p>
-              </div>
-
-              <div>
-                <h3
-                  className="mb-3 flex items-center text-lg font-semibold"
-                  style={{ color: '#0B1C4D' }}
-                >
-                  <CheckCircle className="mr-3" size={20} style={{ color: '#2563EB' }} />
-                  Review Articles
-                </h3>
-                <p className="ml-8 text-base" style={{ color: '#475569', lineHeight: '1.7' }}>
-                  Comprehensive reviews of specific topics providing critical analysis of existing
-                  literature. Typical length: 7,000-12,000 words including references.
-                </p>
-              </div>
-
-              <div>
-                <h3
-                  className="mb-3 flex items-center text-lg font-semibold"
-                  style={{ color: '#0B1C4D' }}
-                >
-                  <CheckCircle className="mr-3" size={20} style={{ color: '#2563EB' }} />
-                  Technical Notes
-                </h3>
-                <p className="ml-8 text-base" style={{ color: '#475569', lineHeight: '1.7' }}>
-                  Brief communications of significant technical developments, tools, or
-                  methodologies. Typical length: 2,000-4,000 words including references.
-                </p>
-              </div>
+            <div className="space-y-12">
+              {[
+                {
+                  title: 'Research Articles',
+                  desc: 'Original research papers presenting novel findings in computing and technology. Typical length: 5,000–10,000 words including references.',
+                },
+                {
+                  title: 'Review Articles',
+                  desc: 'Comprehensive reviews of specific topics providing critical analysis of existing literature. Typical length: 7,000–12,000 words including references.',
+                },
+                {
+                  title: 'Technical Notes',
+                  desc: 'Brief communications of significant technical developments, tools, or methodologies. Typical length: 2,000–4,000 words including references.',
+                },
+              ].map((item, idx) => (
+                <div key={idx} style={{ paddingLeft: '0' }}>
+                  <div className="flex items-start">
+                    <div
+                      style={{
+                        width: '48px',
+                        height: '48px',
+                        backgroundColor: '#EFF6FF',
+                        borderRadius: '12px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginRight: '20px',
+                        flexShrink: 0,
+                        border: '2px solid #3B82F6',
+                      }}
+                    >
+                      <CheckCircle size={24} style={{ color: '#3B82F6' }} />
+                    </div>
+                    <div>
+                      <h3 className="mb-3 text-lg font-bold" style={{ color: '#0F2557' }}>
+                        {item.title}
+                      </h3>
+                      <p style={{ color: '#64748B', lineHeight: '1.8', fontSize: '15px' }}>
+                        {item.desc}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </section>
 
-          {/* Formatting Requirements */}
+          {/* Formatting Requirements Section */}
           <section
-            className="bg-white transition-all hover:shadow-xl"
             style={{
-              borderRadius: '16px',
-              padding: '32px',
-              boxShadow: '0 10px 30px rgba(11, 28, 77, 0.08)',
-              borderLeft: '4px solid #2563EB',
+              backgroundColor: '#FFFFFF',
+              borderRadius: '20px',
+              padding: '48px',
+              boxShadow: '0 4px 16px rgba(30, 58, 138, 0.06)',
+              border: '1px solid #E8EEF5',
+              transition: 'all 0.3s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow = '0 8px 32px rgba(30, 58, 138, 0.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = '0 4px 16px rgba(30, 58, 138, 0.06)';
             }}
           >
-            <h2 className="mb-8 text-3xl font-bold" style={{ color: '#0B1C4D' }}>
-              Formatting Requirements
-            </h2>
+            <div style={{ marginBottom: '48px', paddingBottom: '24px', borderBottom: '2px solid #E8EEF5' }}>
+              <h2 className="text-4xl font-bold" style={{ color: '#0F2557' }}>
+                02. Formatting Requirements
+              </h2>
+            </div>
 
-            <div className="space-y-5">
-              <div className="flex items-start">
-                <span
-                  className="mt-2 mr-4 flex-shrink-0 rounded-full"
-                  style={{ width: '8px', height: '8px', backgroundColor: '#2563EB' }}
-                ></span>
-                <div>
-                  <p className="mb-2 font-semibold" style={{ color: '#0B1C4D' }}>
-                    File Format
-                  </p>
-                  <p style={{ color: '#475569', lineHeight: '1.7' }}>
-                    Submit manuscripts as PDF for initial review. Accepted papers may require source
-                    files (LaTeX, Word).
-                  </p>
+            <div className="space-y-10">
+              {[
+                {
+                  title: 'File Format',
+                  desc: 'Submit manuscripts as PDF for initial review. Accepted papers may require source files (LaTeX, Word).',
+                },
+                {
+                  title: 'Page Layout',
+                  desc: 'A4 or US Letter size, single column, double-spaced, 12pt font, 2.5cm (1 inch) margins.',
+                },
+                {
+                  title: 'Structure',
+                  desc: 'Title, Authors & Affiliations, Abstract (250–300 words), Keywords (3–10), Introduction, Methods, Results, Discussion, Conclusion, References.',
+                },
+                {
+                  title: 'Figures & Tables',
+                  desc: 'High resolution (minimum 300 DPI), clearly labeled with captions. Submit as separate files if requested.',
+                },
+                {
+                  title: 'References',
+                  desc: 'Use APA 7th edition style. Minimum 20 references for research articles, properly cited throughout the text.',
+                },
+              ].map((item, idx) => (
+                <div key={idx} className="flex items-start">
+                  <div
+                    style={{
+                      width: '12px',
+                      height: '12px',
+                      backgroundColor: '#3B82F6',
+                      borderRadius: '50%',
+                      marginRight: '20px',
+                      marginTop: '6px',
+                      flexShrink: 0,
+                    }}
+                  />
+                  <div style={{ flex: 1 }}>
+                    <h3 className="mb-2 text-lg font-bold" style={{ color: '#0F2557' }}>
+                      {item.title}
+                    </h3>
+                    <p style={{ color: '#64748B', lineHeight: '1.8', fontSize: '15px' }}>
+                      {item.desc}
+                    </p>
+                  </div>
                 </div>
-              </div>
-
-              <div className="flex items-start">
-                <span
-                  className="mt-2 mr-4 flex-shrink-0 rounded-full"
-                  style={{ width: '8px', height: '8px', backgroundColor: '#2563EB' }}
-                ></span>
-                <div>
-                  <p className="mb-2 font-semibold" style={{ color: '#0B1C4D' }}>
-                    Page Layout
-                  </p>
-                  <p style={{ color: '#475569', lineHeight: '1.7' }}>
-                    A4 or US Letter size, single column, double-spaced, 12pt font, 2.5cm (1 inch)
-                    margins.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start">
-                <span
-                  className="mt-2 mr-4 flex-shrink-0 rounded-full"
-                  style={{ width: '8px', height: '8px', backgroundColor: '#2563EB' }}
-                ></span>
-                <div>
-                  <p className="mb-2 font-semibold" style={{ color: '#0B1C4D' }}>
-                    Structure
-                  </p>
-                  <p style={{ color: '#475569', lineHeight: '1.7' }}>
-                    Title, Authors & Affiliations, Abstract (250-300 words), Keywords (3-10),
-                    Introduction, Methods, Results, Discussion, Conclusion, References.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start">
-                <span
-                  className="mt-2 mr-4 flex-shrink-0 rounded-full"
-                  style={{ width: '8px', height: '8px', backgroundColor: '#2563EB' }}
-                ></span>
-                <div>
-                  <p className="mb-2 font-semibold" style={{ color: '#0B1C4D' }}>
-                    Figures & Tables
-                  </p>
-                  <p style={{ color: '#475569', lineHeight: '1.7' }}>
-                    High resolution (minimum 300 DPI), clearly labeled with captions. Submit as
-                    separate files if requested.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start">
-                <span
-                  className="mt-2 mr-4 flex-shrink-0 rounded-full"
-                  style={{ width: '8px', height: '8px', backgroundColor: '#2563EB' }}
-                ></span>
-                <div>
-                  <p className="mb-2 font-semibold" style={{ color: '#0B1C4D' }}>
-                    References
-                  </p>
-                  <p style={{ color: '#475569', lineHeight: '1.7' }}>
-                    Use APA 7th edition style. Minimum 20 references for research articles, properly
-                    cited throughout the text.
-                  </p>
-                </div>
-              </div>
+              ))}
             </div>
           </section>
 
-          {/* Ethics & Plagiarism */}
+          {/* Ethics & Plagiarism Section */}
           <section
-            className="bg-white transition-all hover:shadow-xl"
             style={{
-              borderRadius: '16px',
-              padding: '32px',
-              boxShadow: '0 10px 30px rgba(11, 28, 77, 0.08)',
-              borderLeft: '4px solid #2563EB',
+              backgroundColor: '#FFFFFF',
+              borderRadius: '20px',
+              padding: '48px',
+              boxShadow: '0 4px 16px rgba(30, 58, 138, 0.06)',
+              border: '1px solid #E8EEF5',
+              transition: 'all 0.3s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow = '0 8px 32px rgba(30, 58, 138, 0.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = '0 4px 16px rgba(30, 58, 138, 0.06)';
             }}
           >
-            <h2 className="mb-8 text-3xl font-bold" style={{ color: '#0B1C4D' }}>
-              Ethics & Plagiarism
-            </h2>
+            <div style={{ marginBottom: '48px', paddingBottom: '24px', borderBottom: '2px solid #E8EEF5' }}>
+              <h2 className="text-4xl font-bold" style={{ color: '#0F2557' }}>
+                03. Ethics & Plagiarism
+              </h2>
+            </div>
 
+            {/* Alert Box */}
             <div
-              className="mb-8"
               style={{
-                backgroundColor: '#FEF2F2',
-                border: '2px solid #FCA5A5',
-                borderRadius: '12px',
-                padding: '24px',
+                backgroundColor: '#FEF8F0',
+                border: '2px solid #FED7AA',
+                borderRadius: '16px',
+                padding: '32px',
+                marginBottom: '48px',
               }}
             >
               <div className="flex items-start">
-                <AlertCircle
-                  className="mt-1 mr-4 flex-shrink-0"
-                  size={24}
-                  style={{ color: '#DC2626' }}
+                <AlertCircle 
+                  size={28}
+                  style={{ color: '#D97706', marginRight: '20px', marginTop: '2px', flexShrink: 0 }}
                 />
                 <div>
-                  <p className="mb-2 font-semibold" style={{ color: '#991B1B' }}>
+                  <p className="mb-2 text-lg font-bold" style={{ color: '#92400E' }}>
                     Zero Tolerance Policy
                   </p>
-                  <p className="text-sm" style={{ color: '#7F1D1D', lineHeight: '1.7' }}>
-                    Ditech Asia Journal has a strict zero-tolerance policy for plagiarism, data
-                    fabrication, and unethical research practices. All submissions undergo
-                    plagiarism screening.
+                  <p style={{ color: '#78350F', lineHeight: '1.8', fontSize: '15px' }}>
+                    Ditech Asia Journal has a strict zero-tolerance policy for plagiarism, data fabrication, and unethical research practices. All submissions undergo comprehensive plagiarism screening using industry-standard tools.
                   </p>
                 </div>
               </div>
             </div>
 
-            <div className="space-y-6">
-              <div>
-                <h3 className="mb-3 text-lg font-semibold" style={{ color: '#0B1C4D' }}>
-                  Originality
-                </h3>
-                <p style={{ color: '#475569', lineHeight: '1.7' }}>
-                  Manuscripts must be original work not previously published or under consideration
-                  elsewhere. Preprints on recognized servers (arXiv, bioRxiv) are acceptable.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="mb-3 text-lg font-semibold" style={{ color: '#0B1C4D' }}>
-                  Authorship
-                </h3>
-                <p style={{ color: '#475569', lineHeight: '1.7' }}>
-                  All listed authors must have made substantial contributions to the work.
-                  Corresponding author is responsible for ensuring all co-authors approve the final
-                  version.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="mb-3 text-lg font-semibold" style={{ color: '#0B1C4D' }}>
-                  Research Ethics
-                </h3>
-                <p style={{ color: '#475569', lineHeight: '1.7' }}>
-                  Studies involving human subjects or animals must have received appropriate ethics
-                  approval. Include ethics statement and approval numbers in the manuscript.
-                </p>
-              </div>
-
-              <div>
-                <h3 className="mb-3 text-lg font-semibold" style={{ color: '#0B1C4D' }}>
-                  Data Availability
-                </h3>
-                <p style={{ color: '#475569', lineHeight: '1.7' }}>
-                  Authors should make research data available upon reasonable request, unless
-                  restricted by ethical or legal considerations.
-                </p>
-              </div>
+            {/* Ethics Items */}
+            <div className="space-y-12">
+              {[
+                {
+                  title: 'Originality',
+                  desc: 'Manuscripts must be original work not previously published or under consideration elsewhere. Preprints on recognized servers (arXiv, bioRxiv) are acceptable.',
+                },
+                {
+                  title: 'Authorship',
+                  desc: 'All listed authors must have made substantial contributions to the work. Corresponding author is responsible for ensuring all co-authors approve the final version.',
+                },
+                {
+                  title: 'Research Ethics',
+                  desc: 'Studies involving human subjects or animals must have received appropriate ethics approval. Include ethics statement and approval numbers in the manuscript.',
+                },
+                {
+                  title: 'Data Availability',
+                  desc: 'Authors should make research data available upon reasonable request, unless restricted by ethical or legal considerations.',
+                },
+              ].map((item, idx) => (
+                <div key={idx}>
+                  <h3 className="mb-3 text-lg font-bold" style={{ color: '#0F2557' }}>
+                    {item.title}
+                  </h3>
+                  <p style={{ color: '#64748B', lineHeight: '1.8', fontSize: '15px', marginLeft: '0' }}>
+                    {item.desc}
+                  </p>
+                </div>
+              ))}
             </div>
           </section>
 
-          {/* Review Process */}
+          {/* Review Process Section */}
           <section
-            className="bg-white transition-all hover:shadow-xl"
             style={{
-              borderRadius: '16px',
-              padding: '32px',
-              boxShadow: '0 10px 30px rgba(11, 28, 77, 0.08)',
-              borderLeft: '4px solid #2563EB',
+              backgroundColor: '#FFFFFF',
+              borderRadius: '20px',
+              padding: '48px',
+              boxShadow: '0 4px 16px rgba(30, 58, 138, 0.06)',
+              border: '1px solid #E8EEF5',
+              transition: 'all 0.3s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow = '0 8px 32px rgba(30, 58, 138, 0.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = '0 4px 16px rgba(30, 58, 138, 0.06)';
             }}
           >
-            <h2 className="mb-8 text-3xl font-bold" style={{ color: '#0B1C4D' }}>
-              Review Process Overview
-            </h2>
+            <div style={{ marginBottom: '48px', paddingBottom: '24px', borderBottom: '2px solid #E8EEF5' }}>
+              <h2 className="text-4xl font-bold" style={{ color: '#0F2557' }}>
+                04. Review Process Overview
+              </h2>
+            </div>
 
-            <div className="space-y-6">
-              <div className="flex">
-                <div
-                  className="mr-4 flex flex-shrink-0 items-center justify-center rounded-full font-bold"
-                  style={{
-                    width: '48px',
-                    height: '48px',
-                    backgroundColor: '#EFF6FF',
-                    color: '#2563EB',
-                  }}
-                >
-                  1
+            <div className="space-y-12">
+              {[
+                { num: '1', title: 'Submission & Initial Check', desc: 'Manuscripts are checked for completeness, formatting, and scope alignment (1–3 days).' },
+                { num: '2', title: 'Editorial Screening', desc: 'Editor-in-Chief or Associate Editor evaluates scientific quality and fit (7–14 days target).' },
+                { num: '3', title: 'Peer Review', desc: 'Double-blind review by 2–3 expert reviewers (4–6 weeks typical).' },
+                { num: '4', title: 'Decision & Revision', desc: 'Authors receive decision (accept, minor/major revision, reject) and reviewer comments.' },
+                { num: '5', title: 'Publication', desc: 'Final manuscripts are copyedited, formatted, and published online with DOI assignment.' },
+              ].map((item, idx) => (
+                <div key={idx} className="flex items-start">
+                  <div
+                    style={{
+                      width: '56px',
+                      height: '56px',
+                      backgroundColor: '#EFF6FF',
+                      borderRadius: '14px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginRight: '24px',
+                      flexShrink: 0,
+                      border: '2px solid #3B82F6',
+                      fontSize: '18px',
+                      fontWeight: 'bold',
+                      color: '#3B82F6',
+                    }}
+                  >
+                    {item.num}
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <h3 className="mb-2 text-lg font-bold" style={{ color: '#0F2557' }}>
+                      {item.title}
+                    </h3>
+                    <p style={{ color: '#64748B', lineHeight: '1.8', fontSize: '15px' }}>
+                      {item.desc}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="mb-2 text-lg font-semibold" style={{ color: '#0B1C4D' }}>
-                    Submission & Initial Check
-                  </h3>
-                  <p style={{ color: '#475569', lineHeight: '1.7' }}>
-                    Manuscripts are checked for completeness, formatting, and scope alignment (1-3
-                    days).
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex">
-                <div
-                  className="mr-4 flex flex-shrink-0 items-center justify-center rounded-full font-bold"
-                  style={{
-                    width: '48px',
-                    height: '48px',
-                    backgroundColor: '#EFF6FF',
-                    color: '#2563EB',
-                  }}
-                >
-                  2
-                </div>
-                <div>
-                  <h3 className="mb-2 text-lg font-semibold" style={{ color: '#0B1C4D' }}>
-                    Editorial Screening
-                  </h3>
-                  <p style={{ color: '#475569', lineHeight: '1.7' }}>
-                    Editor-in-Chief or Associate Editor evaluates scientific quality and fit (7-14
-                    days target).
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex">
-                <div
-                  className="mr-4 flex flex-shrink-0 items-center justify-center rounded-full font-bold"
-                  style={{
-                    width: '48px',
-                    height: '48px',
-                    backgroundColor: '#EFF6FF',
-                    color: '#2563EB',
-                  }}
-                >
-                  3
-                </div>
-                <div>
-                  <h3 className="mb-2 text-lg font-semibold" style={{ color: '#0B1C4D' }}>
-                    Peer Review
-                  </h3>
-                  <p style={{ color: '#475569', lineHeight: '1.7' }}>
-                    Double-blind review by 2-3 expert reviewers (4-6 weeks typical).
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex">
-                <div
-                  className="mr-4 flex flex-shrink-0 items-center justify-center rounded-full font-bold"
-                  style={{
-                    width: '48px',
-                    height: '48px',
-                    backgroundColor: '#EFF6FF',
-                    color: '#2563EB',
-                  }}
-                >
-                  4
-                </div>
-                <div>
-                  <h3 className="mb-2 text-lg font-semibold" style={{ color: '#0B1C4D' }}>
-                    Decision & Revision
-                  </h3>
-                  <p style={{ color: '#475569', lineHeight: '1.7' }}>
-                    Authors receive decision (accept, minor/major revision, reject) and reviewer
-                    comments.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex">
-                <div
-                  className="mr-4 flex flex-shrink-0 items-center justify-center rounded-full font-bold"
-                  style={{
-                    width: '48px',
-                    height: '48px',
-                    backgroundColor: '#EFF6FF',
-                    color: '#2563EB',
-                  }}
-                >
-                  5
-                </div>
-                <div>
-                  <h3 className="mb-2 text-lg font-semibold" style={{ color: '#0B1C4D' }}>
-                    Publication
-                  </h3>
-                  <p style={{ color: '#475569', lineHeight: '1.7' }}>
-                    Final manuscripts are copyedited, formatted, and published online with DOI
-                    assignment.
-                  </p>
-                </div>
-              </div>
+              ))}
             </div>
           </section>
 
-          {/* Publication Fees */}
+          {/* Publication Fees Section */}
           <section
-            className="bg-white transition-all hover:shadow-xl"
             style={{
-              borderRadius: '16px',
-              padding: '32px',
-              boxShadow: '0 10px 30px rgba(11, 28, 77, 0.08)',
-              borderLeft: '4px solid #2563EB',
+              backgroundColor: '#FFFFFF',
+              borderRadius: '20px',
+              padding: '48px',
+              boxShadow: '0 4px 16px rgba(30, 58, 138, 0.06)',
+              border: '1px solid #E8EEF5',
+              transition: 'all 0.3s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow = '0 8px 32px rgba(30, 58, 138, 0.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = '0 4px 16px rgba(30, 58, 138, 0.06)';
             }}
           >
-            <h2 className="mb-8 text-3xl font-bold" style={{ color: '#0B1C4D' }}>
-              Publication Fees
-            </h2>
+            <div style={{ marginBottom: '48px', paddingBottom: '24px', borderBottom: '2px solid #E8EEF5' }}>
+              <h2 className="text-4xl font-bold" style={{ color: '#0F2557' }}>
+                05. Publication Fees
+              </h2>
+            </div>
 
             <div
               style={{
                 backgroundColor: '#F0FDF4',
                 border: '2px solid #86EFAC',
-                borderRadius: '12px',
-                padding: '24px',
+                borderRadius: '16px',
+                padding: '32px',
               }}
             >
-              <p className="mb-2 font-semibold" style={{ color: '#166534' }}>
+              <p className="mb-3 text-lg font-bold" style={{ color: '#166534' }}>
                 MVP Phase: No Fees
               </p>
-              <p style={{ color: '#14532D', lineHeight: '1.7' }}>
-                During our initial launch phase, Ditech Asia Journal does not charge article
-                processing charges (APCs) or submission fees. This policy is subject to change as
-                the journal matures, and authors will be notified of any future fee structure.
+              <p style={{ color: '#15803D', lineHeight: '1.8', fontSize: '15px' }}>
+                During our initial launch phase, Ditech Asia Journal does not charge article processing charges (APCs) or submission fees. This policy is subject to change as the journal matures, and authors will be notified of any future fee structure with adequate advance notice.
               </p>
             </div>
           </section>
 
-          {/* How to Submit */}
+          {/* How to Submit Section */}
           <section
-            className="bg-white transition-all hover:shadow-xl"
             style={{
-              borderRadius: '16px',
-              padding: '32px',
-              boxShadow: '0 10px 30px rgba(11, 28, 77, 0.08)',
-              borderLeft: '4px solid #2563EB',
+              backgroundColor: '#FFFFFF',
+              borderRadius: '20px',
+              padding: '48px',
+              boxShadow: '0 4px 16px rgba(30, 58, 138, 0.06)',
+              border: '1px solid #E8EEF5',
+              transition: 'all 0.3s ease',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.boxShadow = '0 8px 32px rgba(30, 58, 138, 0.1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.boxShadow = '0 4px 16px rgba(30, 58, 138, 0.06)';
             }}
           >
-            <h2 className="mb-8 text-3xl font-bold" style={{ color: '#0B1C4D' }}>
-              How to Submit
-            </h2>
+            <div style={{ marginBottom: '48px', paddingBottom: '24px', borderBottom: '2px solid #E8EEF5' }}>
+              <h2 className="text-4xl font-bold" style={{ color: '#0F2557' }}>
+                06. How to Submit
+              </h2>
+            </div>
 
-            <p className="mb-8" style={{ color: '#475569', lineHeight: '1.7' }}>
-              Submissions are made through our online submission system. Ensure you have the
-              following ready:
+            <p className="mb-12" style={{ color: '#64748B', lineHeight: '1.8', fontSize: '15px' }}>
+              Submissions are made through our online submission system. Ensure you have the following ready before starting:
             </p>
 
-            <ul className="mb-8 space-y-3">
-              <li className="flex items-start" style={{ color: '#475569', lineHeight: '1.7' }}>
-                <CheckCircle
-                  className="mt-0.5 mr-3 flex-shrink-0"
-                  size={20}
-                  style={{ color: '#10B981' }}
-                />
-                Manuscript PDF file
-              </li>
-              <li className="flex items-start" style={{ color: '#475569', lineHeight: '1.7' }}>
-                <CheckCircle
-                  className="mt-0.5 mr-3 flex-shrink-0"
-                  size={20}
-                  style={{ color: '#10B981' }}
-                />
-                Complete author information and affiliations
-              </li>
-              <li className="flex items-start" style={{ color: '#475569', lineHeight: '1.7' }}>
-                <CheckCircle
-                  className="mt-0.5 mr-3 flex-shrink-0"
-                  size={20}
-                  style={{ color: '#10B981' }}
-                />
-                Abstract and keywords
-              </li>
-              <li className="flex items-start" style={{ color: '#475569', lineHeight: '1.7' }}>
-                <CheckCircle
-                  className="mt-0.5 mr-3 flex-shrink-0"
-                  size={20}
-                  style={{ color: '#10B981' }}
-                />
-                Cover letter (optional but recommended)
-              </li>
-              <li className="flex items-start" style={{ color: '#475569', lineHeight: '1.7' }}>
-                <CheckCircle
-                  className="mt-0.5 mr-3 flex-shrink-0"
-                  size={20}
-                  style={{ color: '#10B981' }}
-                />
-                Ethics statements and approvals (if applicable)
-              </li>
+            <ul className="mb-16 space-y-4">
+              {[
+                'Manuscript PDF file',
+                'Complete author information and affiliations',
+                'Abstract and keywords',
+                'Cover letter (optional but recommended)',
+                'Ethics statements and approvals (if applicable)',
+              ].map((item, idx) => (
+                <li key={idx} className="flex items-center" style={{ color: '#64748B', fontSize: '15px' }}>
+                  <CheckCircle 
+                    size={20}
+                    style={{ color: '#10B981', marginRight: '16px', flexShrink: 0 }}
+                  />
+                  {item}
+                </li>
+              ))}
             </ul>
 
-            <div className="flex justify-center">
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
               <Link
                 to="/submit"
-                className="inline-flex items-center text-lg font-semibold transition-all hover:shadow-xl"
                 style={{
-                  padding: '16px 32px',
-                  background: 'linear-gradient(135deg, #0B1C4D 0%, #2563EB 100%)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '12px',
+                  padding: '18px 40px',
+                  background: 'linear-gradient(135deg, #1E3A8A 0%, #3B82F6 100%)',
                   color: '#FFFFFF',
                   borderRadius: '16px',
-                  boxShadow: '0 10px 30px rgba(11, 28, 77, 0.2)',
+                  textDecoration: 'none',
+                  fontSize: '16px',
+                  fontWeight: '600',
+                  boxShadow: '0 8px 24px rgba(30, 58, 138, 0.2)',
+                  transition: 'all 0.3s ease',
+                  border: 'none',
+                  cursor: 'pointer',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = '0 12px 32px rgba(30, 58, 138, 0.3)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = '0 8px 24px rgba(30, 58, 138, 0.2)';
                 }}
               >
                 Start Your Submission
+                <ArrowRight size={20} />
               </Link>
             </div>
           </section>

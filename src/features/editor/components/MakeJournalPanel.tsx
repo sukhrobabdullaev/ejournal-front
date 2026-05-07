@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { AlertTriangle, CheckCircle2, FileDown, FileText, Loader2, Search } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, FileDown, FileText, Loader2, Search, Info } from 'lucide-react';
 import {
   getAcceptedSubmissionsForIssue,
   getEditorIssues,
@@ -27,10 +27,10 @@ const STATUS_STYLES: Record<string, { bg: string; border: string; color: string 
 };
 
 const inputBaseClass =
-  'w-full rounded-xl border bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-[#1D4ED8] focus:ring-2 focus:ring-[#BFDBFE]';
+  'w-full rounded-xl border bg-slate-50/50 px-[18px] py-3.5 text-[15px] font-medium text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-[#1D4ED8] focus:bg-white focus:ring-4 focus:ring-[#1D4ED8]/10';
 
-const labelClass = 'space-y-2.5 pt-1';
-const labelTextClass = 'text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500';
+const labelClass = 'space-y-2 block';
+const labelTextClass = 'text-[12.5px] font-semibold uppercase tracking-wider text-slate-600';
 
 const formatDate = (value?: string) => {
   if (!value) return 'N/A';
@@ -114,9 +114,8 @@ export function MakeJournalPanel() {
 
   const visibleSubmissions = useMemo(() => {
     const query = search.trim().toLowerCase();
-    if (!query) {
-      return editableSubmissions;
-    }
+    if (!query) return editableSubmissions;
+    
     return editableSubmissions.filter((item) => {
       return (
         (item.title || '').toLowerCase().includes(query) ||
@@ -194,10 +193,24 @@ export function MakeJournalPanel() {
     return result;
   }, [autoPaginationRows]);
 
-  React.useEffect(() => {
-    if (!selectedIssue) {
-      return;
+  // Validation logic: Tugmani faollashtirish uchun barcha qoidalar tekshiriladi
+  const isFormReady = useMemo(() => {
+    if (!volume || Number(volume) < 1) return false;
+    if (!issueNumber || Number(issueNumber) < 1) return false;
+    if (!publicationYear || Number(publicationYear) < 1900) return false;
+    
+    if (selectedCount === 0) return false;
+
+    const selectedRows = Object.values(rows).filter((r) => r.selected);
+    for (const row of selectedRows) {
+      if (!row.order || Number(row.order) < 1) return false;
     }
+
+    return true;
+  }, [volume, issueNumber, publicationYear, selectedCount, rows]);
+
+  React.useEffect(() => {
+    if (!selectedIssue) return;
 
     setTitle(selectedIssue.title || '');
     setVolume(String(selectedIssue.volume || 1));
@@ -274,11 +287,7 @@ export function MakeJournalPanel() {
     });
   };
 
-  const updateRow = (
-    submissionId: number,
-    field: 'order',
-    value: string
-  ) => {
+  const updateRow = (submissionId: number, field: 'order', value: string) => {
     setRows((current) => ({
       ...current,
       [submissionId]: {
@@ -290,11 +299,12 @@ export function MakeJournalPanel() {
   };
 
   const onPublish = async () => {
+    if (!isFormReady) return;
+    
     setError(null);
     setSuccess(null);
     setIsValidating(true);
 
-    // Ensure users can clearly perceive that processing has started.
     await new Promise((resolve) => setTimeout(resolve, 900));
 
     const selectedRows = autoPaginationRows.map((row) => ({
@@ -303,23 +313,6 @@ export function MakeJournalPanel() {
       page_start: row.page_start,
       page_end: row.page_end,
     }));
-
-    if (selectedRows.length === 0) {
-      setError('Please select at least one article.');
-      setIsValidating(false);
-      return;
-    }
-
-    for (const article of selectedRows) {
-      if (
-        !Number.isFinite(article.order) ||
-        article.order < 1
-      ) {
-        setError('Order is required for all selected articles.');
-        setIsValidating(false);
-        return;
-      }
-    }
 
     const invalidPdfSelection = selectedRows.find((article) => {
       const submission = submissionById.get(article.submission_id);
@@ -341,19 +334,6 @@ export function MakeJournalPanel() {
       articles: selectedRows,
     };
 
-    if (
-      !Number.isFinite(payload.volume) ||
-      payload.volume < 1 ||
-      !Number.isFinite(payload.issue_number) ||
-      payload.issue_number < 1 ||
-      !Number.isFinite(payload.publication_year) ||
-      payload.publication_year < 1900
-    ) {
-      setError('Volume, Issue number and Year must be valid numbers.');
-      setIsValidating(false);
-      return;
-    }
-
     publishMutation.mutate({
       payload,
       issueId: editingIssueId || undefined,
@@ -361,65 +341,59 @@ export function MakeJournalPanel() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 font-sans">
+      {/* 1. Header & Configuration Section */}
       <section
-        className="relative overflow-hidden rounded-[28px] border bg-white p-5 shadow-[0_20px_60px_rgba(11,28,77,0.08)] md:p-6"
-        style={{ borderColor: '#D8E4F6' }}
+        className="relative overflow-hidden rounded-[24px] border bg-white p-6 shadow-[0_8px_30px_rgba(11,28,77,0.06)] md:p-8"
+        style={{ borderColor: 'rgba(226, 232, 240, 0.8)' }}
         aria-busy={isBusy}
       >
         {isBusy && (
-          <div className="absolute inset-0 z-20 flex items-center justify-center rounded-[28px] bg-slate-950/15 px-6 backdrop-blur-md">
-            <div className="w-full max-w-md rounded-3xl border border-[#D8E4F6] bg-white p-6 text-sm text-[#0B1C4D] shadow-[0_24px_70px_rgba(11,28,77,0.2)] ring-1 ring-white/80">
+          <div className="absolute inset-0 z-20 flex items-center justify-center rounded-[24px] bg-white/60 px-6 backdrop-blur-[2px]">
+            <div className="w-full max-w-md rounded-2xl border border-blue-100 bg-white p-6 text-sm text-[#0B1C4D] shadow-[0_20px_40px_rgba(29,78,216,0.1)]">
               <div className="flex items-center gap-3">
-                <Loader2 size={20} className="animate-spin text-[#1D4ED8]" />
+                <Loader2 size={24} className="animate-spin text-blue-600" />
                 <div>
-                  <p className="font-semibold">Building issue PDF</p>
-                  <p className="text-xs text-slate-600">Saving selected articles, calculating pages and merging files.</p>
+                  <p className="text-base font-bold text-slate-900">Building issue PDF</p>
+                  <p className="mt-0.5 text-xs text-slate-500">Saving selected articles, calculating pages and merging files...</p>
                 </div>
               </div>
-              <div className="mt-5 h-2 overflow-hidden rounded-full bg-[#EAF1FF]">
-                <div className="h-full w-2/3 animate-pulse rounded-full bg-gradient-to-r from-[#1D4ED8] via-[#60A5FA] to-[#93C5FD]" />
-              </div>
-              <div className="mt-5 grid gap-2 text-xs text-slate-500 sm:grid-cols-3">
-                <span className="rounded-full bg-[#F8FBFF] px-3 py-1 text-center">Validate</span>
-                <span className="rounded-full bg-[#F8FBFF] px-3 py-1 text-center">Merge</span>
-                <span className="rounded-full bg-[#F8FBFF] px-3 py-1 text-center">Publish</span>
+              <div className="mt-6 h-1.5 overflow-hidden rounded-full bg-slate-100">
+                <div className="h-full w-2/3 animate-pulse rounded-full bg-blue-600" />
               </div>
             </div>
           </div>
         )}
 
-        <div className={isBusy ? 'pointer-events-none opacity-60' : ''}>
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full border border-[#D8E4F6] bg-[#F8FBFF] px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#1D4ED8]">
-                Editor workspace
-              </div>
-              <h2 className="mt-3 text-2xl font-semibold tracking-tight text-[#0B1C4D] md:text-3xl">
-                Make Journal
-              </h2>
-              <p className="mt-1 max-w-2xl text-sm leading-6 text-slate-600 md:text-[15px]">
-                Build a full journal issue from accepted submissions and generate one master PDF.
-              </p>
-            </div>
+        <div className={isBusy ? 'pointer-events-none opacity-50 transition-opacity' : 'transition-opacity'}>
+          <div className="mb-8">
+            <span className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-blue-600">
+              Editor Workspace
+            </span>
+            <h2 className="text-2xl font-black tracking-tight text-slate-900 md:text-3xl">
+              Make Journal
+            </h2>
+            <p className="mt-2 max-w-2xl text-sm font-medium text-slate-500">
+              Build a full journal issue from accepted submissions and generate one master PDF.
+            </p>
           </div>
 
           {error && (
-            <div className="mt-4 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-              <AlertTriangle size={16} className="mt-0.5 shrink-0" />
+            <div className="mb-6 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm font-medium text-red-800">
+              <AlertTriangle size={18} className="shrink-0 text-red-600" />
               <span>{error}</span>
             </div>
           )}
           {success && (
-            <div className="mt-4 flex items-center gap-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-              <CheckCircle2 size={16} />
+            <div className="mb-6 flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm font-medium text-emerald-800">
+              <CheckCircle2 size={18} className="shrink-0 text-emerald-600" />
               {success}
             </div>
           )}
 
-          <div className="mt-5 grid gap-4 xl:grid-cols-12">
+          <div className="grid gap-6 xl:grid-cols-12">
             <label className={`${labelClass} xl:col-span-4`}>
-              <span className={labelTextClass}>Issue mode</span>
+              <span className={labelTextClass}>Issue Mode</span>
               <select
                 value={editingIssueId}
                 onChange={(event) => {
@@ -446,18 +420,18 @@ export function MakeJournalPanel() {
             </label>
 
             <label className={`${labelClass} xl:col-span-8`}>
-              <span className={labelTextClass}>Issue title</span>
+              <span className={labelTextClass}>Issue Title (Optional)</span>
               <input
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
-                placeholder="Optional issue title"
+                placeholder="e.g. Special Edition on AI"
                 className={inputBaseClass}
               />
             </label>
 
-            <div className="grid gap-4 sm:grid-cols-2 xl:col-span-12 xl:grid-cols-4">
+            <div className="grid gap-5 sm:grid-cols-2 xl:col-span-12 xl:grid-cols-4">
               <label className={labelClass}>
-                <span className={labelTextClass}>Volume</span>
+                <span className={labelTextClass}>Volume <span className="text-red-500">*</span></span>
                 <input
                   type="number"
                   min={1}
@@ -466,11 +440,10 @@ export function MakeJournalPanel() {
                   placeholder="1"
                   className={inputBaseClass}
                 />
-                <span className="block text-[11px] text-slate-500">Journal volume.</span>
               </label>
 
               <label className={labelClass}>
-                <span className={labelTextClass}>Issue number</span>
+                <span className={labelTextClass}>Issue Number <span className="text-red-500">*</span></span>
                 <input
                   type="number"
                   min={1}
@@ -479,11 +452,10 @@ export function MakeJournalPanel() {
                   placeholder="1"
                   className={inputBaseClass}
                 />
-                <span className="block text-[11px] text-slate-500">Issue within the volume.</span>
               </label>
 
               <label className={labelClass}>
-                <span className={labelTextClass}>Publication year</span>
+                <span className={labelTextClass}>Publication Year <span className="text-red-500">*</span></span>
                 <input
                   type="number"
                   min={1900}
@@ -492,11 +464,10 @@ export function MakeJournalPanel() {
                   placeholder="2026"
                   className={inputBaseClass}
                 />
-                <span className="block text-[11px] text-slate-500">Official year of publication.</span>
               </label>
 
               <label className={labelClass}>
-                <span className={labelTextClass}>Publication date</span>
+                <span className={labelTextClass}>Publication Date</span>
                 <input
                   type="date"
                   value={publicationDate}
@@ -512,116 +483,98 @@ export function MakeJournalPanel() {
                   }}
                   className={inputBaseClass}
                 />
-                <span className="block text-[11px] text-slate-500">Optional exact date.</span>
               </label>
             </div>
           </div>
 
-          <div className="mt-4 rounded-2xl border border-[#D8E4F6] bg-[#F8FBFF] px-4 py-4 text-sm leading-6 text-slate-600">
-            After selecting articles, <span className="font-semibold text-[#0B1C4D]">Order</span> defines article sequence.
-            <span className="ml-1 font-semibold text-[#0B1C4D]">Page Start / Page End</span> are calculated automatically from PDF page count.
-          </div>
-
-          <div className="mt-4 flex flex-col gap-3 rounded-2xl border border-[#D8E4F6] bg-[#F8FBFF] px-4 py-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
-            <div className="space-y-1">
-              <p className="inline-flex items-center gap-2 rounded-full border border-[#D8E4F6] bg-white px-3 py-1 text-sm font-semibold text-[#0B1C4D] shadow-sm">
-                Selected articles
-                <span className="rounded-full bg-[#1D4ED8] px-2.5 py-0.5 text-xs font-bold text-white">
+          <div className="mt-10 flex flex-col items-center justify-between gap-4 rounded-2xl bg-slate-50 p-4 sm:flex-row sm:p-6 border border-slate-100">
+            <div className="w-full sm:flex-1">
+              <div className="flex items-center gap-3 mb-1">
+                <h3 className="text-sm font-bold text-slate-900">Selected Articles</h3>
+                <span className="flex h-6 min-w-[24px] items-center justify-center rounded-full bg-blue-600 px-2 text-xs font-bold text-white shadow-sm">
                   {selectedCount}
                 </span>
-              </p>
-              <p className="text-xs leading-5 text-slate-600">
+              </div>
+              <p className="text-xs font-medium text-slate-500">
                 {blockedPdfCount > 0
-                  ? `${blockedPdfCount} article(s) are hidden from publishing because their manuscript PDF is missing.`
-                  : 'All visible articles are eligible for journal build.'}
+                  ? `${blockedPdfCount} article(s) are hidden because their PDF is missing.`
+                  : 'All visible articles are eligible for the journal build.'}
               </p>
             </div>
-            <div className="flex w-full flex-col items-stretch gap-2 sm:w-auto sm:min-w-[220px]">
+            
+            <div className="w-full sm:w-auto">
               <button
-                type="button"
-                onClick={onPublish}
-                disabled={publishMutation.isPending}
-                className="group inline-flex w-full items-center justify-center gap-2 rounded-full border border-[#1D4ED8] px-5 py-3 text-sm font-semibold shadow-[0_12px_28px_rgba(29,78,216,0.22)] transition-all duration-200 hover:-translate-y-1 hover:scale-[1.01] hover:brightness-110 hover:shadow-[0_22px_44px_rgba(29,78,216,0.35)] active:translate-y-0 active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-70"
-                style={{
-                  backgroundColor: '#1D4ED8',
-                  color: '#FFFFFF',
-                }}
-              >
-                {publishMutation.isPending || isValidating ? (
-                  <>
-                    <Loader2 size={15} className="animate-spin" />
-                    {publishMutation.isPending ? 'Building issue...' : 'Validating...'}
-                  </>
-                ) : (
-                  <>
-                    <FileDown size={15} className="transition-transform duration-200 group-hover:scale-110" />
-                    {editingIssueId ? 'Update issue' : 'Make issue'}
-                  </>
-                )}
-              </button>
-
-              {showLoadingProcess && (
-                <div className="rounded-xl border border-[#D8E4F6] bg-white px-3 py-2 text-xs text-[#0B1C4D] shadow-sm">
-                  <span className="inline-flex items-center gap-2">
-                    <Loader2 size={13} className="animate-spin text-[#1D4ED8]" />
-                    {publishMutation.isPending
-                      ? 'Loading process is running: creating issue and merging PDF...'
-                      : isValidating
-                        ? 'Loading process is running: validating selected data...'
-                        : 'Loading process is running: preparing submissions and issues...'}
-                  </span>
-                </div>
+  type="button"
+  onClick={onPublish}
+  disabled={!isFormReady || isBusy}
+  // py-4 va min-h-[50px] orqali tugma qalinlashadi (balandligi oshadi)
+  className="group relative flex w-full min-h-[50px] items-center justify-center gap-2.0 overflow-hidden rounded-xl px-8 py-4 text-[15px] font-bold transition-all disabled:cursor-not-allowed sm:w-auto"
+  style={{
+    backgroundColor: (!isFormReady || isBusy) ? '#E2E8F0' : '#1D4ED8',
+    color: (!isFormReady || isBusy) ? '#64748B' : '#FFFFFF',
+    boxShadow: (!isFormReady || isBusy) ? 'none' : '0 10px 20px -5px rgba(29, 78, 216, 0.35)',
+  }}
+>
+  {publishMutation.isPending || isValidating ? (
+    <Loader2 size={16} className="animate-spin" />
+  ) : (
+    <FileDown size={16} className={(!isFormReady || isBusy) ? '' : 'transition-transform group-hover:-translate-y-0.5'} />
+  )}
+  <span>{editingIssueId ? 'Update Issue' : 'Make Issue'}</span>
+</button>
+              {!isFormReady && (
+                <p className="mt-2 text-center text-[10px] font-semibold uppercase tracking-wider text-amber-500">
+                  Fill required fields & select articles
+                </p>
               )}
             </div>
           </div>
         </div>
       </section>
 
+      {/* 2. Articles Selection Section */}
       <section
-        className="rounded-[28px] border bg-white p-5 shadow-[0_20px_60px_rgba(11,28,77,0.08)] md:p-6"
-        style={{ borderColor: '#D8E4F6' }}
+        className="rounded-[24px] border bg-white p-6 shadow-[0_8px_30px_rgba(11,28,77,0.06)] md:p-8"
+        style={{ borderColor: 'rgba(226, 232, 240, 0.8)' }}
       >
-        <div className="flex flex-col justify-between gap-3 md:flex-row md:items-end">
+        <div className="mb-6 flex flex-col gap-4 border-b border-slate-100 pb-6 md:flex-row md:items-end md:justify-between">
           <div>
-            <h3 className="text-lg font-semibold text-[#0B1C4D]">
-              Accepted / Published Articles ({editableSubmissions.length})
+            <h3 className="text-xl font-bold text-slate-900">
+              Article Library <span className="text-slate-400">({editableSubmissions.length})</span>
             </h3>
-            <p className="mt-1 text-sm text-slate-600">
-              Choose the articles to include in the next journal issue.
+            <p className="mt-1 text-sm font-medium text-slate-500">
+              Select the accepted articles to construct your journal issue.
             </p>
           </div>
-          <div className="w-full md:w-96">
-            <span className={labelTextClass}>Filter</span>
-            <div className="mt-2 flex items-center gap-3 rounded-full border border-[#C9DCF6] bg-[#F8FBFF] px-4 py-3 shadow-sm transition focus-within:border-[#1D4ED8] focus-within:ring-2 focus-within:ring-[#BFDBFE]">
-              <Search size={16} className="shrink-0 text-slate-400" />
+          <div className="w-full md:w-80">
+            <div className="relative flex items-center">
+              <Search size={18} className="absolute left-3 text-slate-400" />
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search by title or author"
-                className="min-w-0 flex-1 border-0 bg-transparent p-0 text-sm outline-none"
+                placeholder="Search articles by title or author..."
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm font-medium text-slate-900 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
               />
             </div>
           </div>
         </div>
 
         {loadingAccepted ? (
-          <div className="mt-4 rounded-2xl border border-[#D8E4F6] bg-[#F8FBFF] px-4 py-5 text-sm text-[#0B1C4D] shadow-sm">
-            <div className="flex items-center gap-3">
-              <Loader2 size={16} className="animate-spin text-[#1D4ED8]" />
-              <div>
-                <p className="font-semibold">Loading accepted/published submissions...</p>
-                <p className="text-xs text-slate-600">Preparing articles for journal assembly.</p>
-              </div>
-            </div>
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-12">
+            <Loader2 size={32} className="animate-spin text-blue-600" />
+            <p className="mt-4 text-sm font-bold text-slate-700">Loading library...</p>
           </div>
         ) : visibleSubmissions.length === 0 ? (
-          <p className="mt-4 text-sm text-slate-500">No accepted or published submissions found.</p>
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200 bg-slate-50 py-12">
+            <Info size={32} className="text-slate-400" />
+            <p className="mt-4 text-sm font-bold text-slate-700">No submissions found.</p>
+          </div>
         ) : visibleEligibleCount === 0 ? (
-          <p className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-700">
-            Accepted articles exist, but none can be added because their manuscript PDF is missing.
-          </p>
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center text-sm font-medium text-amber-800">
+            Articles match your search, but they are missing PDF manuscripts and cannot be selected.
+          </div>
         ) : (
-          <div className="mt-4 space-y-3">
+          <div className="grid gap-4">
             {visibleSubmissions.map((submission) => {
               const rowState = rows[submission.id];
               const selected = rowState?.selected || false;
@@ -632,91 +585,83 @@ export function MakeJournalPanel() {
               return (
                 <div
                   key={submission.id}
-                  className="rounded-2xl border bg-[#F8FBFF] p-4"
-                  style={{ borderColor: selected ? '#93C5FD' : '#D8E4F6' }}
+                  className={`group relative overflow-hidden rounded-2xl border p-5 transition-all ${
+                    selected 
+                      ? 'border-blue-400 bg-blue-50/30 shadow-[0_4px_15px_rgba(29,78,216,0.05)]' 
+                      : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
+                  }`}
                 >
-                  <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                    <label className="inline-flex cursor-pointer items-start gap-2">
-                      <input
-                        type="checkbox"
-                        checked={selected}
-                        onChange={() => toggleSelection(submission)}
-                        disabled={!canSelect || publishMutation.isPending}
-                        className="mt-1 h-4 w-4 rounded border-slate-300 text-[#1D4ED8] focus:ring-[#1D4ED8] disabled:cursor-not-allowed"
-                      />
-                      <span>
-                        <span className="block text-sm font-semibold text-[#0B1C4D]">
+                  <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                    <label className="flex cursor-pointer items-start gap-4 flex-1">
+                      <div className="pt-1">
+                        <input
+                          type="checkbox"
+                          checked={selected}
+                          onChange={() => toggleSelection(submission)}
+                          disabled={!canSelect || publishMutation.isPending}
+                          className="h-5 w-5 rounded border-slate-300 text-blue-600 transition-colors focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className={`text-base font-bold leading-tight ${selected ? 'text-blue-900' : 'text-slate-900'}`}>
                           {submission.title || 'Untitled'}
-                        </span>
-                        <span
-                          className="mt-1 inline-flex rounded-full border px-2 py-0.5 text-[11px] font-semibold"
-                          style={{
-                            backgroundColor: STATUS_STYLES[submission.status]?.bg || '#F8FAFC',
-                            color: STATUS_STYLES[submission.status]?.color || '#475569',
-                          }}
-                        >
-                          {STATUS_LABELS[submission.status] || submission.status}
-                        </span>
-                        <span className="block text-xs text-slate-600">
-                          {submission.author_name || submission.author_email} |{' '}
-                          {formatDate(submission.updated_at)}
-                        </span>
-                        <span className="mt-1 block text-xs text-slate-500">
-                          PDF pages: {pageCount}
-                        </span>
-                        {canSelect ? (
-                          <a
-                            href={submission.manuscript_pdf_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-[#1D4ED8] hover:underline"
+                        </h4>
+                        <div className="mt-2 flex flex-wrap items-center gap-2 text-xs font-medium text-slate-500">
+                          <span
+                            className="inline-flex rounded-md border px-2 py-0.5 font-bold uppercase tracking-wide"
+                            style={{
+                              backgroundColor: STATUS_STYLES[submission.status]?.bg || '#F8FAFC',
+                              color: STATUS_STYLES[submission.status]?.color || '#475569',
+                              borderColor: STATUS_STYLES[submission.status]?.border || '#E2E8F0',
+                            }}
                           >
-                            <FileText size={13} />
-                            View PDF
-                          </a>
-                        ) : (
-                          <span className="mt-1 inline-flex items-center gap-1 rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
-                            <AlertTriangle size={12} />
-                            Manuscript PDF missing
+                            {STATUS_LABELS[submission.status] || submission.status}
                           </span>
+                          <span className="h-1 w-1 rounded-full bg-slate-300"></span>
+                          <span>{submission.author_name || submission.author_email}</span>
+                          <span className="h-1 w-1 rounded-full bg-slate-300"></span>
+                          <span>{formatDate(submission.updated_at)}</span>
+                          <span className="h-1 w-1 rounded-full bg-slate-300"></span>
+                          <span>Pages: {pageCount}</span>
+                        </div>
+
+                        {!canSelect && (
+                          <div className="mt-3 inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-bold text-amber-700">
+                            <AlertTriangle size={14} />
+                            PDF Missing — Cannot Select
+                          </div>
                         )}
-                      </span>
+                      </div>
                     </label>
 
                     {selected && (
-                      <div className="grid grid-cols-3 gap-2 lg:w-[430px]">
-                        <label className="space-y-1">
-                          <span className="text-[11px] text-slate-500">Order (Tartib)</span>
+                      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-blue-100 bg-white p-3 shadow-sm lg:w-auto">
+                        <label className="flex w-20 flex-col gap-1">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Order</span>
                           <input
                             type="number"
                             min={1}
                             value={rowState?.order || ''}
-                            onChange={(event) =>
-                              updateRow(submission.id, 'order', event.target.value)
-                            }
-                            placeholder="1"
-                            className="w-full rounded-lg border px-2 py-2 text-xs outline-none transition focus:border-[#1D4ED8] focus:ring-1 focus:ring-[#BFDBFE]"
-                            style={{ borderColor: '#C9DCF6' }}
+                            onChange={(event) => updateRow(submission.id, 'order', event.target.value)}
+                            className="w-full rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-center text-sm font-bold text-blue-900 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100"
                           />
                         </label>
-                        <label className="space-y-1">
-                          <span className="text-[11px] text-slate-500">Page Start</span>
+                        <label className="flex w-20 flex-col gap-1">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Pg Start</span>
                           <input
                             type="number"
                             value={autoRow?.page_start || ''}
                             readOnly
-                            className="w-full rounded-lg border bg-white px-2 py-2 text-xs outline-none"
-                            style={{ borderColor: '#C9DCF6' }}
+                            className="w-full rounded-lg border border-transparent bg-slate-100 px-2 py-1.5 text-center text-sm font-bold text-slate-600 outline-none"
                           />
                         </label>
-                        <label className="space-y-1">
-                          <span className="text-[11px] text-slate-500">Page End</span>
+                        <label className="flex w-20 flex-col gap-1">
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500">Pg End</span>
                           <input
                             type="number"
                             value={autoRow?.page_end || ''}
                             readOnly
-                            className="w-full rounded-lg border bg-white px-2 py-2 text-xs outline-none"
-                            style={{ borderColor: '#C9DCF6' }}
+                            className="w-full rounded-lg border border-transparent bg-slate-100 px-2 py-1.5 text-center text-sm font-bold text-slate-600 outline-none"
                           />
                         </label>
                       </div>
@@ -729,31 +674,45 @@ export function MakeJournalPanel() {
         )}
       </section>
 
+      {/* 3. Published Issues History */}
       <section
-        className="rounded-[28px] border bg-white p-5 shadow-[0_20px_60px_rgba(11,28,77,0.08)] md:p-6"
-        style={{ borderColor: '#D8E4F6' }}
+        className="rounded-[24px] border bg-white p-6 shadow-[0_8px_30px_rgba(11,28,77,0.06)] md:p-8"
+        style={{ borderColor: 'rgba(226, 232, 240, 0.8)' }}
       >
-        <h3 className="text-lg font-semibold text-[#0B1C4D]">Published Issues</h3>
+        <h3 className="text-xl font-bold text-slate-900 mb-6">Published Issues Archive</h3>
         {loadingIssues ? (
-          <div className="mt-3 rounded-2xl border border-[#D8E4F6] bg-[#F8FBFF] px-4 py-6 text-sm text-slate-500">
-            Loading issues...
+          <div className="flex items-center gap-3 text-sm font-medium text-slate-500">
+            <Loader2 size={16} className="animate-spin text-blue-600" />
+            Loading archive...
           </div>
         ) : existingIssues.length === 0 ? (
-          <p className="mt-3 text-sm text-slate-500">No published issues yet.</p>
+          <p className="text-sm font-medium text-slate-500">No published issues in the archive yet.</p>
         ) : (
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {existingIssues.map((issue) => (
               <div
                 key={issue.id}
-                className="rounded-2xl border bg-[#F8FBFF] p-4"
-                style={{ borderColor: '#D8E4F6' }}
+                className="group flex flex-col justify-between rounded-2xl border border-slate-200 bg-slate-50 p-5 transition-all hover:border-blue-200 hover:bg-white hover:shadow-md"
               >
-                <p className="text-sm font-semibold text-[#0B1C4D]">
-                  Volume {issue.volume}, Issue {issue.issue_number} -{' '}
-                  {issue.publication_date || issue.publication_year}
-                </p>
-                <p className="mt-1 text-xs text-slate-600">{issue.title}</p>
-                <p className="mt-1 text-xs text-slate-500">{issue.articles?.length || 0} articles</p>
+                <div>
+                  <h4 className="text-base font-bold text-slate-900 group-hover:text-blue-700 transition-colors">
+                    Volume {issue.volume}, Issue {issue.issue_number}
+                  </h4>
+                  <p className="mt-1 text-xs font-semibold uppercase tracking-wider text-slate-500">
+                    {issue.publication_date || issue.publication_year}
+                  </p>
+                  {issue.title && (
+                    <p className="mt-3 text-sm font-medium text-slate-700 line-clamp-2">
+                      {issue.title}
+                    </p>
+                  )}
+                </div>
+                <div className="mt-5 flex items-center justify-between border-t border-slate-200 pt-4">
+                  <span className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500">
+                    <FileText size={14} />
+                    {issue.articles?.length || 0} Articles
+                  </span>
+                </div>
               </div>
             ))}
           </div>

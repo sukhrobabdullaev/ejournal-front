@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, MapPin, Phone, Send, CheckCircle } from 'lucide-react';
+import { Mail, MapPin, Phone, Send, CheckCircle, Info } from 'lucide-react';
 
 export function Contact() {
   const [formData, setFormData] = useState({
@@ -9,14 +9,74 @@ export function Contact() {
     message: '',
   });
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => {
-      setSubmitted(false);
-      setFormData({ name: '', email: '', subject: '', message: '' });
-    }, 3000);
+    const { name, email, subject, message } = formData;
+    
+    if (!name || !email || !subject || !message) {
+      return;
+    }
+
+    setLoading(true);
+
+    const EMAILJS_SERVICE_ID = import.meta.env.VITE_EMAILJS_SERVICE_ID;
+    const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
+    const EMAILJS_USER_ID = import.meta.env.VITE_EMAILJS_USER_ID;
+    const CONTACT_ENDPOINT = import.meta.env.VITE_CONTACT_ENDPOINT;
+    const TO_EMAIL = import.meta.env.VITE_CONTACT_TO_EMAIL || 'contact@ditechasia.org';
+
+    try {
+      if (EMAILJS_SERVICE_ID && EMAILJS_TEMPLATE_ID && EMAILJS_USER_ID) {
+        const body = {
+          service_id: EMAILJS_SERVICE_ID,
+          template_id: EMAILJS_TEMPLATE_ID,
+          user_id: EMAILJS_USER_ID,
+          template_params: {
+            from_name: name,
+            from_email: email,
+            subject,
+            message,
+            to_email: TO_EMAIL,
+          },
+        };
+
+        const resp = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(body),
+        });
+
+        if (!resp.ok) {
+          throw new Error('EmailJS send failed');
+        }
+
+        setSubmitted(true);
+        setFormData({ name: '', email: '', subject: '', message: '' });
+        setTimeout(() => setSubmitted(false), 3000);
+      } else if (CONTACT_ENDPOINT) {
+        const resp = await fetch(CONTACT_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, email, subject, message, to: TO_EMAIL }),
+        });
+
+        if (!resp.ok) {
+          throw new Error(`Request failed: ${resp.status}`);
+        }
+
+        setSubmitted(true);
+        setFormData({ name: '', email: '', subject: '', message: '' });
+        setTimeout(() => setSubmitted(false), 3000);
+      }
+    } catch (err: any) {
+      console.error('Contact send error', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -73,7 +133,7 @@ export function Contact() {
                     className="hover:underline"
                     style={{ color: '#2563EB' }}
                   >
-                    contact@ditechasia.org
+                    bektechedits@gmail.com
                   </a>
                 </div>
               </div>
@@ -112,7 +172,7 @@ export function Contact() {
                     className="hover:underline"
                     style={{ color: '#2563EB' }}
                   >
-                    editor@ditechasia.org
+                    bektechedits@gmail.com
                   </a>
                 </div>
               </div>
@@ -144,13 +204,13 @@ export function Contact() {
                     Address
                   </h3>
                   <p className="text-sm" style={{ color: '#64748B' }}>
-                    Ditech Asia Publishing
+                    TUIT university
                     <br />
-                    123 Research Boulevard, Suite 400
+                    Amire Temur 108, Tashkent 100000
                     <br />
-                    Tech City, TC 12345
+                    Tashkent, Uzbekistan
                     <br />
-                    United States
+                    Uzbekistan
                   </p>
                 </div>
               </div>
@@ -189,7 +249,7 @@ export function Contact() {
                     className="hover:underline"
                     style={{ color: '#2563EB' }}
                   >
-                    +1 (555) 123-4567
+                    +998 (50) 102-05-41
                   </a>
                 </div>
               </div>
@@ -361,23 +421,16 @@ export function Contact() {
                     />
                   </div>
 
-                  <div
-                    className="rounded-lg"
-                    style={{
-                      backgroundColor: '#EFF6FF',
-                      border: '2px solid #93C5FD',
-                      padding: '16px',
-                    }}
-                  >
-                    <p className="text-sm" style={{ color: '#1E3A8A' }}>
-                      <strong>Note:</strong> This is a UI demo. In production, form submissions
-                      would be processed through Supabase and you would receive email notifications.
-                    </p>
+                  {/* Yangi ogohlantirish (test rejimi haqida) */}
+                  <div className="flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
+                    <Info size={18} className="shrink-0 text-amber-600" />
+                    <span>Sayt hozirda test rejimida ishlamoqda.</span>
                   </div>
 
                   <button
                     type="submit"
-                    className="flex w-full items-center justify-center rounded-lg px-6 py-4 font-medium transition-all hover:shadow-xl"
+                    disabled={loading}
+                    className="flex w-full items-center justify-center rounded-lg px-6 py-4 font-medium transition-all hover:shadow-xl disabled:opacity-60"
                     style={{
                       background: 'linear-gradient(135deg, #0B1C4D 0%, #2563EB 100%)',
                       color: '#FFFFFF',
@@ -385,7 +438,7 @@ export function Contact() {
                     }}
                   >
                     <Send size={20} className="mr-2" />
-                    Send Message
+                    {loading ? 'Sending...' : 'Send Message'}
                   </button>
                 </form>
               )}

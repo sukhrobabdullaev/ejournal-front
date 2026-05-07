@@ -222,28 +222,31 @@ export function Login() {
                 Email Address
               </label>
               <div className="relative">
-                <span
-                  className="pointer-events-none absolute left-4.5 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border"
-                  style={{ borderColor: '#CFE0FF', background: '#EEF4FF' }}
-                >
-                  <Mail size={15} className="text-[#1D4ED8]" />
-                </span>
-                <input
-                  type="email"
-                  id="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-[16px] border bg-[#F8FBFF] py-4 text-base font-medium text-slate-800 transition-all focus:border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500"
-                  style={{
-                    borderColor: '#CBD5E1',
-                    paddingLeft: '62px',
-                    paddingRight: '18px',
-                    borderRadius: '18px',
-                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7)',
-                  }}
-                  placeholder="your.email@example.com"
-                />
+                {/* 1-o'zgarish: Ikonka klassidan "border" olib tashlandi, "left-4.5" o'rniga "left-3" qilindi */}
+<span
+  className="pointer-events-none absolute left-3 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full"
+  style={{ background: '#EEF4FF' }}
+>
+  <Mail size={15} className="text-[#1D4ED8]" />
+</span>
+
+{/* 2-o'zgarish: input ichida "text-base" "text-sm" ga o'zgardi va paddingLeft 50px qilindi */}
+<input
+  type="email"
+  id="email"
+  required
+  value={email}
+  onChange={(e) => setEmail(e.target.value)}
+  className="w-full rounded-[16px] border bg-[#F8FBFF] py-4 text-sm font-medium text-slate-800 transition-all focus:border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500"
+  style={{
+    borderColor: '#CBD5E1',
+    paddingLeft: '50px', // Shu joyi o'zgardi
+    paddingRight: '18px',
+    borderRadius: '18px',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7)',
+  }}
+  placeholder="your.email@example.com"
+/>
               </div>
             </div>
 
@@ -256,36 +259,41 @@ export function Login() {
                 Password
               </label>
               <div className="relative">
-                <span
-                  className="pointer-events-none absolute left-4.5 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border"
-                  style={{ borderColor: '#CFE0FF', background: '#EEF4FF' }}
-                >
-                  <Lock size={15} className="text-[#1D4ED8]" />
-                </span>
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  id="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-[16px] border bg-[#F8FBFF] py-4 text-base font-medium text-slate-800 transition-all focus:border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500"
-                  style={{
-                    borderColor: '#CBD5E1',
-                    paddingLeft: '62px',
-                    paddingRight: '62px',
-                    borderRadius: '18px',
-                    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7)',
-                  }}
-                  placeholder="••••••••"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword((v) => !v)}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
-                  className="absolute right-2.5 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 focus:outline-none"
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
+                {/* 3-o'zgarish: Qulf ikonkasidan ham border olindi va "left-3" qilindi */}
+<span
+  className="pointer-events-none absolute left-3 top-1/2 inline-flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full"
+  style={{ background: '#EEF4FF' }}
+>
+  <Lock size={15} className="text-[#1D4ED8]" />
+</span>
+
+{/* 4-o'zgarish: input ichida "text-base" "text-sm" ga o'zgardi, paddingLeft va paddingRight 50px qilindi */}
+<input
+  type={showPassword ? 'text' : 'password'}
+  id="password"
+  required
+  value={password}
+  onChange={(e) => setPassword(e.target.value)}
+  className="w-full rounded-[16px] border bg-[#F8FBFF] py-4 text-sm font-medium text-slate-800 transition-all focus:border-transparent focus:bg-white focus:ring-2 focus:ring-blue-500"
+  style={{
+    borderColor: '#CBD5E1',
+    paddingLeft: '50px', // Shu joyi o'zgardi
+    paddingRight: '50px', // Shu joyi o'zgardi
+    borderRadius: '18px',
+    boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.7)',
+  }}
+  placeholder="••••••••"
+/>
+
+{/* 5-o'zgarish: Ko'zcha tugmasi joylashuvi "right-2.5" dan "right-4" ga o'zgartirildi */}
+<button
+  type="button"
+  onClick={() => setShowPassword((v) => !v)}
+  aria-label={showPassword ? 'Hide password' : 'Show password'}
+  className="absolute right-4 top-1/2 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 focus:outline-none"
+>
+  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+</button>
               </div>
             </div>
 

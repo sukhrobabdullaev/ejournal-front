@@ -4,6 +4,7 @@ import { AuthProvider } from './contexts/AuthContext';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { Toaster } from './components/ui/sonner';
+import { Contact } from './pages/Contact';
 
 function lazyNamed<T extends React.ComponentType<any>>(
   importer: () => Promise<any>,
@@ -35,7 +36,7 @@ const EditorialBoard = lazyNamed(
 );
 const Policies = lazyNamed(() => import('./pages/Policies'), 'Policies');
 const About = lazyNamed(() => import('./pages/About'), 'About');
-const Contact = lazyNamed(() => import('./pages/Contact'), 'Contact');
+// Contact is imported directly above to ensure the page renders immediately (no lazy load)
 const Login = lazyNamed(() => import('./pages/Login'), 'Login');
 const Register = lazyNamed(() => import('./pages/Register'), 'Register');
 const VerifyEmail = lazyNamed(() => import('./pages/VerifyEmail'), 'VerifyEmail');
