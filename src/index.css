@@ -2496,3 +2496,11 @@ a:hover {
     transform: translateY(0);
   }
 }
+
+@media (prefers-reduced-motion: reduce) {
+  .saas-stagger-item {
+    opacity: 1;
+    animation: none;
+    animation-delay: 0ms !important;
+  }
+}

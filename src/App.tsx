@@ -49,10 +49,6 @@ const EditorDashboard = lazyNamed(
   () => import('./pages/EditorDashboard'),
   'EditorDashboard'
 );
-const EditorSubmissionDetail = lazyNamed(
-  () => import('./pages/EditorSubmissionDetail'),
-  'EditorSubmissionDetail'
-);
 const ReviewInvite = lazyNamed(() => import('./pages/ReviewInvite'), 'ReviewInvite');
 const ReviewInviteNew = lazyNamed(
   () => import('./pages/ReviewInviteNew'),
@@ -109,7 +105,6 @@ export default function App() {
                 <Route path="/submission/:id" element={<SubmissionDetail />} />
                 <Route path="/submissions/:id" element={<SubmissionDetail />} />
                 <Route path="/editor" element={<EditorDashboard />} />
-                <Route path="/editor/submissions/:id" element={<EditorSubmissionDetail />} />
                 <Route path="/review-invite" element={<ReviewInvite />} />
                 <Route path="/review/invite/:token" element={<ReviewInviteNew />} />
                 <Route path="/review/assignments/:id" element={<ReviewAssignmentDetail />} />

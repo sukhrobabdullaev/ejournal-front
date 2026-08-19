@@ -200,6 +200,7 @@ export const SubmissionsList: React.FC<SubmissionsListProps> = ({
 
               return (
                 <button
+                    key={submission.id}
                     type="button"
                     onClick={() => onSelect(submission.id)}
                     className="saas-stagger-item w-full rounded-lg border bg-white p-4 text-left shadow-sm"

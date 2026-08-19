@@ -1064,7 +1064,7 @@ function EditorAdminSection({
                           {submission.title || 'Untitled Submission'}
                         </h4>
                         <p className="mt-1 text-sm text-slate-600">
-                          Author: {(submission as any).profiles?.full_name || 'Unknown'}
+                          Author: {(submission as any).author_name || (submission as any).profiles?.full_name || 'Unknown'}
                         </p>
                         <p className="text-sm text-slate-500">
                           Submitted: {formatCreatedAt(submission.created_at)}
@@ -1080,11 +1080,11 @@ function EditorAdminSection({
                     )}
 
                     <Link
-                      to={`/editor/submissions/${submission.id}`}
+                      to="/editor"
                       className="inline-flex items-center text-sm font-medium text-[#1D4ED8] transition-all duration-300 ease-in-out hover:text-[#1E3A8A]"
                     >
                       <Eye size={16} className="mr-1" />
-                      View Submission Details
+                      Open in Editor Workspace
                     </Link>
                   </div>
                 ))}
