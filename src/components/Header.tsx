@@ -47,6 +47,22 @@ const GLASS_STYLES = `
   100% { left:  120%; }
 }
 
+/* ── Backdrop shown behind the open profile panel ── */
+.glass-panel-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  background: rgba(15, 23, 42, 0.18);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
+  animation: glassBackdropIn 0.18s ease both;
+}
+
+@keyframes glassBackdropIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
 /* ── Panel wrapper ── */
 .glass-panel-wrapper {
   position: absolute;
@@ -879,13 +895,13 @@ export function Header() {
 
         {hasMissingRequiredAcademicId && (
           <div className="mt-3 rounded-xl border border-rose-100 bg-rose-50/80 px-3 py-2 text-[11px] font-medium leading-4 text-rose-700">
-            Author uchun ORCID majburiy. Shu joydan tez saqlab qo‘ying.
+            ORCID is required for authors. Save it here to continue.
           </div>
         )}
 
         <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <p className="max-w-[230px] text-[11px] leading-5 text-slate-500">
-            {requiresAcademicIds ? 'ORCID, Scholar va DOI bir joyda.' : 'Reviewer uchun ixtiyoriy.'}
+            {requiresAcademicIds ? 'ORCID, Scholar, and DOI in one place.' : 'Optional for reviewers.'}
           </p>
           <button
             type="button"
@@ -902,7 +918,7 @@ export function Header() {
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
                   <p className="text-xs font-semibold tracking-[0.02em] text-slate-900">ORCID iD</p>
-                  <p className="mt-1 text-[11px] leading-5 text-slate-500">0000-0000-0000-0000 formatida kiriting.</p>
+                  <p className="mt-1 text-[11px] leading-5 text-slate-500">Enter in the format 0000-0000-0000-0000.</p>
                 </div>
                 <span
                   className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${
@@ -934,7 +950,7 @@ export function Header() {
                     className="inline-flex h-9 w-full items-center justify-center rounded-xl px-3 text-xs font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-70"
                     style={{ backgroundColor: isSaveOrcidDisabled ? '#9FC0FF' : '#4285F4' }}
                   >
-                    {isSavingOrcid ? 'Saqlanmoqda...' : 'Saqlash'}
+                    {isSavingOrcid ? 'Saving...' : 'Save'}
                   </button>
                   <button
                     type="button"
@@ -942,7 +958,7 @@ export function Header() {
                     disabled={isSavingOrcid || orcidInput.length === 0}
                     className="inline-flex h-9 w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                   >
-                    Tozalash
+                    Clear
                   </button>
                   <a
                     href="https://orcid.org/register"
@@ -958,7 +974,7 @@ export function Header() {
                 <div className="mt-2">
                   <span className="glass-saved-badge">
                     <CheckCircle size={12} />
-                    Saqlandi
+                    Saved
                   </span>
                 </div>
               )}
@@ -977,7 +993,7 @@ export function Header() {
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
                   <p className="text-xs font-semibold tracking-[0.02em] text-slate-900">Google Scholar</p>
-                  <p className="mt-1 text-[11px] leading-5 text-slate-500">Citations profilingiz URLini saqlang.</p>
+                  <p className="mt-1 text-[11px] leading-5 text-slate-500">Save your Citations profile URL.</p>
                 </div>
                 <span
                   className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${
@@ -1018,7 +1034,7 @@ export function Header() {
                       className="inline-flex h-9 w-full items-center justify-center rounded-xl px-3 text-xs font-semibold text-white transition-colors disabled:cursor-not-allowed disabled:opacity-70"
                       style={{ backgroundColor: isSaveScholarDisabled ? '#9FC0FF' : '#1D4ED8' }}
                     >
-                      {isSavingScholar ? 'Saqlanmoqda...' : 'Saqlash'}
+                      {isSavingScholar ? 'Saving...' : 'Save'}
                     </button>
                     <button
                       type="button"
@@ -1026,24 +1042,24 @@ export function Header() {
                       disabled={isSavingScholar || scholarUrlInput.length === 0}
                       className="inline-flex h-9 w-full items-center justify-center rounded-xl border border-slate-200 bg-white px-3 text-xs font-semibold text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                     >
-                      Tozalash
+                      Clear
                     </button>
                   </div>
                 </div>
                 <div className="flex items-center justify-between gap-2">
                   {!scholarUrlTrimmed ? (
-                    <p className="text-[11px] leading-5 text-slate-500">Scholar URL kiriting.</p>
+                    <p className="text-[11px] leading-5 text-slate-500">Enter your Scholar URL.</p>
                   ) : hasValidScholar ? (
                     <p className="text-[11px] font-medium text-emerald-700">Scholar format is valid.</p>
                   ) : (
-                    <p className="text-[11px] font-medium text-amber-700">Scholar citations URL formatida kiriting.</p>
+                    <p className="text-[11px] font-medium text-amber-700">Enter a valid Scholar citations URL.</p>
                   )}
                 </div>
                 {showScholarSavedBadge && (
                   <div>
                     <span className="glass-saved-badge">
                       <CheckCircle size={12} />
-                      Saqlandi
+                      Saved
                     </span>
                   </div>
                 )}
@@ -1063,7 +1079,7 @@ export function Header() {
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
                   <p className="text-xs font-semibold tracking-[0.02em] text-slate-900">DOI</p>
-                  <p className="mt-1 text-[11px] leading-5 text-slate-500">Published maqolalar uchun avtomatik biriktiriladi.</p>
+                  <p className="mt-1 text-[11px] leading-5 text-slate-500">Automatically assigned to published articles.</p>
                 </div>
                 <span
                   className={`inline-flex rounded-full border px-2.5 py-0.5 text-[11px] font-semibold ${
@@ -1076,7 +1092,7 @@ export function Header() {
                 </span>
               </div>
               <p className="mt-2 text-[11px] leading-5 text-slate-500">
-                DOI editor workflow orqali boshqariladi. Bu yerda faqat status ko‘rsatiladi.
+                DOI is managed through the editor workflow. Only the status is shown here.
               </p>
             </div>
           </div>
@@ -1237,7 +1253,16 @@ export function Header() {
                   <span>Profile</span>
                 </button>
 
-                {showProfileDropdown && ProfilePanel()}
+                {showProfileDropdown && (
+                  <>
+                    <div
+                      className="glass-panel-backdrop"
+                      aria-hidden="true"
+                      onClick={() => setShowProfileDropdown(false)}
+                    />
+                    {ProfilePanel()}
+                  </>
+                )}
               </div>
 
             ) : (

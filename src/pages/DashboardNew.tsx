@@ -291,10 +291,10 @@ export function DashboardNew() {
               Role Selection
             </div>
             <h1 className="mb-4 text-3xl font-black tracking-tight text-[#0B1C4D] md:text-4xl">
-              Tizimga kirish uchun o'zingizga tegishli rolni tanlang
+              Choose which role to sign in with
             </h1>
             <p className="text-base text-slate-600 md:text-lg">
-              Hurmatli <span className="font-semibold text-slate-900">{profile.full_name}</span>, tizimdan to'liq foydalanishni davom ettirish uchun faol rolingizni tasdiqlang.
+              Welcome, <span className="font-semibold text-slate-900">{profile.full_name}</span> — confirm your active role to continue using the full system.
             </p>
           </div>
 
@@ -316,7 +316,7 @@ export function DashboardNew() {
                     </span>
                   </div>
                   <p className="text-sm leading-relaxed text-slate-600 transition-colors group-hover:text-slate-800">
-                    Dashboard aynan ushbu rolda ochiladi va tizim header qismi siz uchun avtomatik sinxronlanadi.
+                    The dashboard opens in this role, and the header syncs to it automatically.
                   </p>
                 </div>
               </button>
@@ -339,7 +339,7 @@ export function DashboardNew() {
         >
           <h2 className="mb-2 text-2xl font-bold text-[#0B1C4D]">Dashboard access unavailable</h2>
           <p className="text-sm text-slate-600">
-            Sizning tasdiqlangan rolingiz topilmadi. Administrator bilan bog&apos;laning.
+            No approved role was found for your account. Please contact an administrator.
           </p>
         </div>
       </div>

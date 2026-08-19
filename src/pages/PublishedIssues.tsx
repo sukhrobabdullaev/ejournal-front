@@ -70,7 +70,7 @@ export function PublishedIssues() {
       <div className="flex min-h-[60vh] items-center justify-center bg-slate-50">
         <div className="text-center">
           <div className="mx-auto mb-4 h-10 w-10 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600" />
-          <p className="text-sm font-medium text-slate-600">Jurnallar yuklanmoqda...</p>
+          <p className="text-sm font-medium text-slate-600">Loading issues...</p>
         </div>
       </div>
     );
@@ -80,7 +80,7 @@ export function PublishedIssues() {
     return (
       <div className="flex min-h-[50vh] items-center justify-center bg-slate-50 px-4 text-center">
         <div className="rounded-xl border border-rose-200 bg-rose-50 px-6 py-4">
-          <p className="text-sm font-medium text-rose-700">Jurnallarni yuklashda xatolik yuz berdi.</p>
+          <p className="text-sm font-medium text-rose-700">Something went wrong while loading issues.</p>
         </div>
       </div>
     );
@@ -100,7 +100,7 @@ export function PublishedIssues() {
               Published Issues
             </h1>
             <p className="text-base text-slate-600">
-              Sonlarni tez toping, TOC ko‘ring va to‘liq PDF ni yuklab oling.
+              Quickly find issues, browse the table of contents, and download the full PDF.
             </p>
           </div>
 
@@ -117,7 +117,7 @@ export function PublishedIssues() {
                 type="text"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Sarlavha, volume, issue yoki yil bo‘yicha qidiring"
+                placeholder="Search by title, volume, issue, or year"
                 className="h-full w-full min-w-0 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
               />
             </div>
@@ -137,7 +137,7 @@ export function PublishedIssues() {
               {/* 3. Count Badge */}
               <div className="flex h-11 shrink-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl bg-slate-100 px-4 text-sm font-semibold text-slate-700 border border-slate-200">
                 <BookOpen size={16} className="shrink-0 text-slate-500" />
-                <span>{filteredIssues.length} ta son</span>
+                <span>{filteredIssues.length} issue{filteredIssues.length === 1 ? '' : 's'}</span>
               </div>
             </div>
           </div>
@@ -146,8 +146,8 @@ export function PublishedIssues() {
         {filteredIssues.length === 0 ? (
           <section className="mt-8 rounded-2xl border border-dashed border-slate-300 bg-white p-12 text-center">
             <Search size={32} className="mx-auto mb-3 text-slate-300" />
-            <p className="text-base font-medium text-slate-600">Qidiruv bo‘yicha mos sonlar topilmadi.</p>
-            <p className="mt-1 text-sm text-slate-500">Boshqa so'zlar bilan qidirib ko'ring.</p>
+            <p className="text-base font-medium text-slate-600">No issues matched your search.</p>
+            <p className="mt-1 text-sm text-slate-500">Try different search terms.</p>
           </section>
         ) : (
           <>
@@ -206,7 +206,7 @@ export function PublishedIssues() {
                       </h2>
 
                       <p className="mb-8 max-w-2xl text-base leading-relaxed text-slate-600">
-                        Eng so‘nggi nashr etilgan akademik to'plam. TOC orqali barcha maqolalarni qulay tarzda ko‘ring yoki to‘liq jurnalni PDF formatida yuklab oling.
+                        The latest published academic collection. Browse all articles conveniently via the table of contents, or download the full journal as a PDF.
                       </p>
 
                       {/* Tugmalar qismi (Rasmga moslashtirilgan ko'k dizayn va silliq burchaklar) */}

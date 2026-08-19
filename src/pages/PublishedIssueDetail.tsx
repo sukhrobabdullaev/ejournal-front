@@ -32,9 +32,9 @@ export function PublishedIssueDetail() {
     return (
       <div className="flex h-[50vh] items-center justify-center bg-[#F8FAFC] px-4 text-center">
         <div className="w-full max-w-sm border border-slate-200 bg-white p-8 shadow-sm" style={{ borderRadius: '24px' }}>
-          <p className="text-sm font-bold text-rose-600">Nashr topilmadi.</p>
+          <p className="text-sm font-bold text-rose-600">Issue not found.</p>
           <Link to="/published" className="mt-3 inline-block text-sm font-semibold text-blue-600 hover:underline">
-            Orqaga qaytish
+            Go back
           </Link>
         </div>
       </div>
@@ -53,7 +53,7 @@ export function PublishedIssueDetail() {
           <div className="flex h-8 w-8 items-center justify-center border border-slate-200 bg-white shadow-sm transition-transform group-hover:-translate-x-1" style={{ borderRadius: '50%' }}>
             <ArrowLeft size={16} />
           </div>
-          <span>Barcha nashrlarga qaytish</span>
+          <span>Back to all issues</span>
         </Link>
 
         {/* -- ASOSIY KONTEYNER -- */}

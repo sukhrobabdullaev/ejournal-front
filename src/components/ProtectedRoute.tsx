@@ -44,8 +44,8 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ requiredRole }) 
   if (requiredRole && !checkPermissions(user, requiredRole)) {
     return (
       <div style={{ padding: '2rem', textAlign: 'center', color: '#dc2626' }}>
-        <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>Kirish rad etildi (403)</h2>
-        <p>Kechirasiz, sizda bu sahifaga kirish uchun ruxsat yo'q yoki rolingiz hali Admin tomonidan tasdiqlanmagan.</p>
+        <h2 style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>Access denied (403)</h2>
+        <p>Sorry, you don't have permission to access this page, or your role hasn't been approved by an admin yet.</p>
       </div>
     );
   }
