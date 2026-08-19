@@ -42,7 +42,7 @@ export function About() {
     <div style={{ backgroundColor: '#F8FAFC' }}>
       {/* Hero Header */}
       <div style={{ backgroundColor: '#0B1C4D', paddingTop: '80px', paddingBottom: '60px' }}>
-        <div className="mx-auto max-w-280 px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <h1 className="mb-4 text-5xl font-bold" style={{ color: '#FFFFFF' }}>
             About Ditech Asia Journal
           </h1>
@@ -53,7 +53,7 @@ export function About() {
       </div>
 
       <div
-        className="mx-auto max-w-280 px-4 sm:px-6 lg:px-8"
+        className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8"
         style={{ paddingTop: '80px', paddingBottom: '80px' }}
       >
         {/* Our Story */}
