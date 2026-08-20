@@ -547,13 +547,13 @@ export function MakeJournalPanel() {
             </p>
           </div>
           <div className="w-full md:w-80">
-            <div className="relative flex items-center">
-              <Search size={18} className="absolute left-3 text-slate-400" />
+            <div className="flex h-11 items-center gap-3 rounded-xl border border-slate-300 bg-white px-4 shadow-sm transition-all focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 hover:border-slate-400">
+              <Search size={18} className="shrink-0 text-slate-400" />
               <input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Search articles by title or author..."
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm font-medium text-slate-900 outline-none transition-all focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10"
+                className="h-full w-full min-w-0 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
               />
             </div>
           </div>

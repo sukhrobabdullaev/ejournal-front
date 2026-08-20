@@ -247,16 +247,15 @@ export const ReviewerInviteForm: React.FC<ReviewerInviteFormProps> = ({
             </div>
 
             <div className="border-b px-4 py-3" style={{ borderColor: '#E2E8F0' }}>
-              <div className="relative">
-                <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <div className="flex h-11 items-center gap-3 rounded-xl border border-slate-300 bg-white px-4 shadow-sm transition-all focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 hover:border-slate-400">
+                <Search size={15} className="shrink-0 text-slate-400" />
                 <input
                   autoFocus
                   type="text"
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
                   placeholder="Search by name, email, affiliation or country"
-                  className="w-full rounded-xl border bg-[#F8FBFF] py-2.5 pl-9 pr-3 text-sm text-slate-700 outline-none"
-                  style={{ borderColor: '#C9DCF6', transition: 'all 0.3s ease-in-out' }}
+                  className="h-full w-full min-w-0 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
                 />
               </div>
             </div>

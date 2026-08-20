@@ -389,32 +389,25 @@ export function DashboardNew() {
             <div className="rounded-xl border bg-white p-6 shadow-[0_12px_30px_rgba(15,23,42,0.06)]" style={{ borderColor: '#CBD5E1' }}>
               <h3 className="mb-4 text-xl font-semibold text-[#0B1C4D]">My Submissions</h3>
               <div className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-[1fr_220px]">
-                <div className="relative">
-                  <Search
-                    size={16}
-                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"
-                    style={{ color: '#94A3B8' }}
-                  />
+                <div className="flex h-11 items-center gap-3 rounded-xl border border-slate-300 bg-white px-4 shadow-sm transition-all focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 hover:border-slate-400">
+                  <Search size={16} className="shrink-0 text-slate-400" />
                   <input
                     type="text"
                     value={authorSearchTerm}
                     onChange={(event) => setAuthorSearchTerm(event.target.value)}
                     placeholder="Search by article title or abstract"
-                    className="w-full rounded-lg border bg-[#F8FBFF] py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-all duration-300 ease-in-out focus:border-[#93C5FD] focus:bg-white"
-                    style={{ borderColor: '#C9DCF6' }}
+                    className="h-full w-full min-w-0 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
                   />
                 </div>
                 <div className="relative">
                   <Filter
                     size={14}
-                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"
-                    style={{ color: '#94A3B8' }}
+                    className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
                   />
                   <select
                     value={authorStatusFilter}
                     onChange={(event) => setAuthorStatusFilter(event.target.value)}
-                    className="w-full rounded-lg border bg-[#F8FBFF] py-2.5 pl-10 pr-10 text-sm text-slate-700 outline-none transition-all duration-300 ease-in-out focus:border-[#93C5FD] focus:bg-white"
-                    style={{ borderColor: '#C9DCF6' }}
+                    className="h-11 w-full cursor-pointer rounded-xl border border-slate-300 bg-white pl-10 pr-4 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                   >
                     {AUTHOR_STATUS_OPTIONS.map((option) => (
                       <option key={option.value} value={option.value}>
@@ -766,32 +759,25 @@ function ReviewerSection() {
       <div className="rounded-xl border border-[#D8E4F6] bg-white p-6 shadow-[0_12px_30px_rgba(15,23,42,0.06)]">
         <h3 className="mb-4 text-xl font-semibold text-[#0B1C4D]">My Review Assignments</h3>
         <div className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-[1fr_220px]">
-          <div className="relative">
-            <Search
-              size={16}
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"
-              style={{ color: '#94A3B8' }}
-            />
+          <div className="flex h-11 items-center gap-3 rounded-xl border border-slate-300 bg-white px-4 shadow-sm transition-all focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 hover:border-slate-400">
+            <Search size={16} className="shrink-0 text-slate-400" />
             <input
               type="text"
               value={reviewerSearchTerm}
               onChange={(event) => setReviewerSearchTerm(event.target.value)}
               placeholder="Search by manuscript title or abstract"
-              className="w-full rounded-lg border bg-[#F8FBFF] py-2.5 pl-10 pr-4 text-sm text-slate-700 outline-none transition-all duration-300 ease-in-out focus:border-[#93C5FD] focus:bg-white"
-              style={{ borderColor: '#C9DCF6' }}
+              className="h-full w-full min-w-0 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
             />
           </div>
           <div className="relative">
             <Filter
               size={14}
-              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2"
-              style={{ color: '#94A3B8' }}
+              className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
             />
             <select
               value={reviewerStatusFilter}
               onChange={(event) => setReviewerStatusFilter(event.target.value)}
-              className="w-full rounded-lg border bg-[#F8FBFF] py-2.5 pl-10 pr-10 text-sm text-slate-700 outline-none transition-all duration-300 ease-in-out focus:border-[#93C5FD] focus:bg-white"
-              style={{ borderColor: '#C9DCF6' }}
+              className="h-11 w-full cursor-pointer rounded-xl border border-slate-300 bg-white pl-10 pr-4 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               {REVIEWER_STATUS_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -1022,19 +1008,20 @@ function EditorAdminSection({
           </div>
 
           <div className="mb-6 grid grid-cols-1 gap-3 md:grid-cols-[1fr_220px]">
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by article title or author"
-              className="w-full rounded-lg border bg-[#F8FBFF] px-4 py-2.5 text-sm text-slate-700 outline-none transition-all duration-300 ease-in-out focus:border-[#93C5FD] focus:bg-white"
-              style={{ borderColor: '#C9DCF6' }}
-            />
+            <div className="flex h-11 items-center gap-3 rounded-xl border border-slate-300 bg-white px-4 shadow-sm transition-all focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500 hover:border-slate-400">
+              <Search size={16} className="shrink-0 text-slate-400" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search by article title or author"
+                className="h-full w-full min-w-0 bg-transparent text-sm text-slate-900 outline-none placeholder:text-slate-400"
+              />
+            </div>
             <select
               value={filterStatus}
               onChange={(e) => setFilterStatus(e.target.value)}
-              className="w-full rounded-lg border bg-[#F8FBFF] px-3 py-2.5 text-sm text-slate-700 outline-none transition-all duration-300 ease-in-out focus:border-[#93C5FD] focus:bg-white"
-              style={{ borderColor: '#C9DCF6' }}
+              className="h-11 w-full cursor-pointer rounded-xl border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 shadow-sm transition-all hover:border-slate-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
             >
               <option value="all">All statuses</option>
               {uniqueStatuses.map((status) => (
