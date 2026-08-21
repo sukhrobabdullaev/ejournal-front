@@ -1,12 +1,12 @@
 import React from 'react';
 import { Download, FileText, CheckCircle, AlertCircle, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router';
-import { useJournal, useJournalPath } from '../contexts/JournalContext';
+import { journalDisplayName, useJournal, useJournalPath } from '../contexts/JournalContext';
 
 export function AuthorGuidelines() {
   const { journal } = useJournal();
   const toJournal = useJournalPath();
-  const journalName = journal?.name ? `${journal.name} Journal` : 'This journal';
+  const journalName = journal?.name ? journalDisplayName(journal.name) : 'This journal';
   return (
     <div style={{ backgroundColor: '#FFFFFF', fontFamily: '"Segoe UI", "Helvetica Neue", sans-serif' }}>
       {/* Hero Section - Refined & Spacious */}

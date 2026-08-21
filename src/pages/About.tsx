@@ -81,7 +81,7 @@ export function About() {
             </p>
             <p>
               Frustrated by slow review times, opaque processes, and access barriers that
-              characterize traditional academic publishing, we set out to build something better.
+              characterize traditional academic publishing, we set out to build something better.{' '}
               {journalName} combines the rigor and quality of established journals with the
               speed, transparency, and accessibility that modern research demands.
             </p>

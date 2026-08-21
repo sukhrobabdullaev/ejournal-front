@@ -407,7 +407,7 @@ export function SubmitPaperForm({
             onChange={(v) => setPolicies((p) => ({ ...p, copyright: v }))}
             title="Copyright Agreement"
           >
-            I agree to the journalвЂ™s copyright and publication terms upon acceptance.
+            I agree to the journal's copyright and publication terms upon acceptance.
           </PolicyCheckbox>
         </section>
 

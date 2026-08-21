@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Eye, EyeOff, Mail, Lock, User, Building2, Globe2 } from 'lucide-react';
 import { signup, resendVerificationEmail } from '../lib/queries-api';
-import { useJournal, useJournalPath } from '../contexts/JournalContext';
+import { journalDisplayName, useJournal, useJournalPath } from '../contexts/JournalContext';
 
 export function Register() {
   const navigate = useNavigate();
@@ -277,7 +277,7 @@ export function Register() {
               Create Account
             </h1>
             <p className="text-[16px] font-medium" style={{ color: '#7A8CA8' }}>
-              Join {journal?.name ? `${journal.name} Journal` : 'the journal'}
+              Join {journal?.name ? journalDisplayName(journal.name) : 'the journal'}
             </p>
           </div>
 

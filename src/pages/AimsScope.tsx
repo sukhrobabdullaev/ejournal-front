@@ -1,9 +1,9 @@
 import React from 'react';
-import { useJournal } from '../contexts/JournalContext';
+import { journalDisplayName, useJournal } from '../contexts/JournalContext';
 
 export function AimsScope() {
   const { journal } = useJournal();
-  const journalName = journal?.name ? `${journal.name} Journal` : 'This journal';
+  const journalName = journal?.name ? journalDisplayName(journal.name) : 'This journal';
   const coreAreas = [
     { title: 'AI & Machine Learning', topics: ['Deep learning', 'Explainable AI', 'NLP', 'Computer vision', 'Reinforcement learning', 'AI ethics'] },
     { title: 'Data Science & Analytics', topics: ['Big data', 'Data mining', 'Predictive analytics', 'Business intelligence', 'Visualization', 'Statistical modeling'] },

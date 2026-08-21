@@ -1,10 +1,10 @@
 import React from 'react';
 import type { Step } from '../types';
-import { useJournal } from '../../../contexts/JournalContext';
+import { journalDisplayName, useJournal } from '../../../contexts/JournalContext';
 
 export const PageHeader: React.FC = () => {
   const { journal } = useJournal();
-  const journalName = journal?.name ? `${journal.name} Journal` : 'the journal';
+  const journalName = journal?.name ? journalDisplayName(journal.name) : 'the journal';
   return (
     <div className="border-b border-gray-300 bg-white">
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">

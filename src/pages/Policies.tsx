@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Shield, Users, Globe, FileSearch } from 'lucide-react';
-import { useJournal } from '../contexts/JournalContext';
+import { journalDisplayName, useJournal } from '../contexts/JournalContext';
 
 export function Policies() {
   const { journal } = useJournal();
-  const journalName = journal?.name ? `${journal.name} Journal` : 'This journal';
+  const journalName = journal?.name ? journalDisplayName(journal.name) : 'This journal';
   const [activeTab, setActiveTab] = useState<'ethics' | 'review' | 'access' | 'plagiarism'>(
     'ethics'
   );

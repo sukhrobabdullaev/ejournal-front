@@ -615,8 +615,9 @@ export function Header() {
     retry:    false,
   });
   const { data: publishedIssues = [] } = useQuery({
-    queryKey: ['published-issues'],
+    queryKey: ['published-issues', journalSlug],
     queryFn:  getPublishedIssues,
+    enabled:  !!journalSlug,
   });
 
   const isUserAuthenticated = !!currentUser;
@@ -1239,7 +1240,7 @@ export function Header() {
 
             {navLinks.map((link) => (
               <Link
-                key={link.path}
+                key={link.name}
                 to={link.path}
                 className={`rounded-xl px-3 py-2 text-sm transition-all duration-300 ease-in-out ${
                   isActive(link.path)
@@ -1359,7 +1360,7 @@ export function Header() {
 
             {navLinks.map((link) => (
               <Link
-                key={link.path}
+                key={link.name}
                 to={link.path}
                 onClick={() => setMobileMenuOpen(false)}
                 className={`block rounded-xl px-3 py-2 text-sm transition-all duration-300 ease-in-out ${

@@ -58,3 +58,10 @@ export function useJournalPath() {
   const { journalSlug } = useJournal();
   return useCallback((path: string) => (journalSlug ? `/j/${journalSlug}${path}` : '/'), [journalSlug]);
 }
+
+// A journal's stored name is sometimes already a full title ("Test University
+// Journal") and sometimes a bare name ("Ditech Asia") — only append "Journal"
+// when the name doesn't already read as one, to avoid "X Journal Journal".
+export function journalDisplayName(name: string): string {
+  return /journal/i.test(name) ? name : `${name} Journal`;
+}

@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Mail, MapPin, Phone, Send, CheckCircle, Info } from 'lucide-react';
-import { useJournal } from '../contexts/JournalContext';
+import { journalDisplayName, useJournal } from '../contexts/JournalContext';
 
 export function Contact() {
   const { journal } = useJournal();
-  const journalName = journal?.name ? `${journal.name} Journal` : 'This journal';
-  const contactEmail = journal?.contact_email || 'contact@ditechasia.org';
+  const journalName = journal?.name ? journalDisplayName(journal.name) : 'This journal';
+  const contactEmail = journal?.contact_email || 'contact@example.com';
   const [formData, setFormData] = useState({
     name: '',
     email: '',

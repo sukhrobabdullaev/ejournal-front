@@ -3,7 +3,7 @@ import { ArrowRight } from 'lucide-react';
 import type { Policies } from '../types';
 import { PolicyCheckbox } from '../shared/PolicyCheckbox';
 import { allPoliciesAccepted } from '../helpers';
-import { useJournal } from '../../../contexts/JournalContext';
+import { journalDisplayName, useJournal } from '../../../contexts/JournalContext';
 
 type PoliciesStepProps = {
   policies: Policies;
@@ -19,7 +19,7 @@ export const PoliciesStep: React.FC<PoliciesStepProps> = ({
   onNext,
 }) => {
   const { journal } = useJournal();
-  const journalName = journal?.name ? `${journal.name} Journal` : 'this journal';
+  const journalName = journal?.name ? journalDisplayName(journal.name) : 'this journal';
   const update = (key: keyof Policies, value: boolean) => onChange({ ...policies, [key]: value });
   const disabled = saving || !allPoliciesAccepted(policies);
 
