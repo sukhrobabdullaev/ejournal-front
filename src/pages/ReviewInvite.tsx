@@ -17,9 +17,11 @@ import {
   declineByToken,
 } from '../lib/queries-api';
 import { useQuery, useMutation } from '@tanstack/react-query';
+import { useJournalPath } from '../contexts/JournalContext';
 
 export function ReviewInvite() {
   const navigate = useNavigate();
+  const toJournal = useJournalPath();
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
   const action = searchParams.get('action');
@@ -32,8 +34,8 @@ export function ReviewInvite() {
   // Redirect to login if not authenticated
   useEffect(() => {
     if (!isLoggedIn) {
-      sessionStorage.setItem('returnUrl', `/review-invite?token=${token}&action=${action || ''}`);
-      navigate('/login');
+      sessionStorage.setItem('returnUrl', toJournal(`/review-invite?token=${token}&action=${action || ''}`));
+      navigate(toJournal('/login'));
     }
   }, [isLoggedIn]);
 
@@ -100,7 +102,7 @@ export function ReviewInvite() {
           </h1>
           <p className="mb-6 text-center text-gray-600">{error}</p>
           <button
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate(toJournal('/dashboard'))}
             className="w-full bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
           >
             Go to Dashboard
@@ -148,7 +150,7 @@ export function ReviewInvite() {
               </div>
 
               <button
-                onClick={() => navigate('/dashboard')}
+                onClick={() => navigate(toJournal('/dashboard'))}
                 className="mb-3 flex w-full items-center justify-center gap-2 bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
               >
                 Go to Reviewer Dashboard
@@ -158,7 +160,7 @@ export function ReviewInvite() {
           )}
 
           <button
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate(toJournal('/dashboard'))}
             className="w-full border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50"
           >
             Return to Dashboard

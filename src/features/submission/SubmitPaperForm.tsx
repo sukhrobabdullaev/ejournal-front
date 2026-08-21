@@ -17,6 +17,7 @@ import { getStatusChipClasses, getStatusLabel } from './status-ui';
 import type { Policies } from './types';
 import { allPoliciesAccepted } from './helpers';
 import { PolicyCheckbox } from './shared/PolicyCheckbox';
+import { useJournal, useJournalPath } from '../../contexts/JournalContext';
 
 type ManuscriptForm = {
   title: string;
@@ -51,6 +52,8 @@ export function SubmitPaperForm({
 }: SubmitPaperFormProps) {
   const navigate = useNavigate();
   const location = useLocation();
+  const { journalSlug } = useJournal();
+  const toJournal = useJournalPath();
 
   const targetId = useMemo(
     () => parseNumericId(submissionIdFromRoute) || parseNumericId(submissionIdFromQuery),
@@ -104,15 +107,15 @@ export function SubmitPaperForm({
 
         const user = await getCurrentUser();
         if (!user) {
-          navigate('/login');
+          navigate(toJournal('/login'));
           return;
         }
-        const approvedRoles = getApprovedRolesFromUser(user);
+        const approvedRoles = getApprovedRolesFromUser(user, journalSlug);
         const hasAuthorRole = approvedRoles.includes('author');
-        const activeRole = getStoredActiveRole();
+        const activeRole = journalSlug ? getStoredActiveRole(journalSlug) : null;
         const activeRoleNotAuthor = Boolean(activeRole && activeRole !== 'author');
         if (!hasAuthorRole || activeRoleNotAuthor) {
-          navigate('/dashboard');
+          navigate(toJournal('/dashboard'));
           return;
         }
 
@@ -137,7 +140,7 @@ export function SubmitPaperForm({
     };
 
     void init();
-  }, [navigate, targetId]);
+  }, [navigate, targetId, journalSlug, toJournal]);
 
   const hydrateFromSubmission = (s: Submission) => {
     setSubmission(s);
@@ -207,7 +210,7 @@ export function SubmitPaperForm({
           return null;
         }
         setSubmission(data);
-        navigate(`/submit/${data.id}#files`);
+        navigate(toJournal(`/submit/${data.id}#files`));
         setSuccess('Submission created.');
         return data;
       }
@@ -304,7 +307,7 @@ export function SubmitPaperForm({
       const next = data ?? (await getSubmissionById(effective.id.toString()));
       if (next) setSubmission(next);
       setSuccess('Submission submitted.');
-      navigate(`/submissions/${effective.id}`);
+      navigate(toJournal(`/submissions/${effective.id}`));
     } catch (err: any) {
       console.error('Error submitting submission:', err);
       setError(err.message || 'Failed to submit manuscript');
@@ -334,7 +337,7 @@ export function SubmitPaperForm({
       <div className="border-b border-gray-300 bg-white">
         <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
           <button
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate(toJournal('/dashboard'))}
             className="mb-4 inline-flex items-center text-sm text-blue-600 hover:text-blue-800"
             type="button"
           >

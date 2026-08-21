@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { Mail, MapPin, Phone, Send, CheckCircle, Info } from 'lucide-react';
+import { useJournal } from '../contexts/JournalContext';
 
 export function Contact() {
+  const { journal } = useJournal();
+  const journalName = journal?.name ? `${journal.name} Journal` : 'This journal';
+  const contactEmail = journal?.contact_email || 'contact@ditechasia.org';
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -25,7 +29,7 @@ export function Contact() {
     const EMAILJS_TEMPLATE_ID = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
     const EMAILJS_USER_ID = import.meta.env.VITE_EMAILJS_USER_ID;
     const CONTACT_ENDPOINT = import.meta.env.VITE_CONTACT_ENDPOINT;
-    const TO_EMAIL = import.meta.env.VITE_CONTACT_TO_EMAIL || 'contact@ditechasia.org';
+    const TO_EMAIL = import.meta.env.VITE_CONTACT_TO_EMAIL || contactEmail;
 
     try {
       if (EMAILJS_SERVICE_ID && EMAILJS_TEMPLATE_ID && EMAILJS_USER_ID) {
@@ -88,7 +92,7 @@ export function Contact() {
             Contact Us
           </h1>
           <p className="text-xl" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
-            Get in touch with the Ditech Asia Journal team. We're here to help.
+            Get in touch with the {journalName} team. We're here to help.
           </p>
         </div>
       </div>
@@ -129,11 +133,11 @@ export function Contact() {
                     For general inquiries and support
                   </p>
                   <a
-                    href="mailto:contact@ditechasia.org"
+                    href={`mailto:${contactEmail}`}
                     className="hover:underline"
                     style={{ color: '#2563EB' }}
                   >
-                    bektechedits@gmail.com
+                    {contactEmail}
                   </a>
                 </div>
               </div>
@@ -168,11 +172,11 @@ export function Contact() {
                     For manuscript and editorial matters
                   </p>
                   <a
-                    href="mailto:editor@ditechasia.org"
+                    href={`mailto:${contactEmail}`}
                     className="hover:underline"
                     style={{ color: '#2563EB' }}
                   >
-                    bektechedits@gmail.com
+                    {contactEmail}
                   </a>
                 </div>
               </div>
@@ -473,7 +477,7 @@ export function Contact() {
                     Are there any publication fees?
                   </h4>
                   <p className="text-sm" style={{ color: '#475569', lineHeight: '1.7' }}>
-                    During our MVP phase, Ditech Asia Journal does not charge article processing
+                    During our MVP phase, {journalName} does not charge article processing
                     charges (APCs). Any future fee structure will be announced well in advance.
                   </p>
                 </div>

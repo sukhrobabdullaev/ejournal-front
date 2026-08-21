@@ -1,8 +1,12 @@
 import React from 'react';
 import { Download, FileText, CheckCircle, AlertCircle, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router';
+import { useJournal, useJournalPath } from '../contexts/JournalContext';
 
 export function AuthorGuidelines() {
+  const { journal } = useJournal();
+  const toJournal = useJournalPath();
+  const journalName = journal?.name ? `${journal.name} Journal` : 'This journal';
   return (
     <div style={{ backgroundColor: '#FFFFFF', fontFamily: '"Segoe UI", "Helvetica Neue", sans-serif' }}>
       {/* Hero Section - Refined & Spacious */}
@@ -25,7 +29,7 @@ export function AuthorGuidelines() {
             className="text-xl max-w-2xl"
             style={{ color: '#475569', lineHeight: '1.8', fontWeight: '400' }}
           >
-            Comprehensive instructions for preparing and submitting manuscripts to <span style={{ color: '#1E3A8A', fontWeight: '600' }}>Ditech Asia Journal</span>
+            Comprehensive instructions for preparing and submitting manuscripts to <span style={{ color: '#1E3A8A', fontWeight: '600' }}>{journalName}</span>
           </p>
         </div>
       </div>
@@ -39,7 +43,7 @@ export function AuthorGuidelines() {
         <div className="mb-20 grid gap-6 md:grid-cols-2">
           {/* Submit Card */}
           <Link
-            to="/submit"
+            to={toJournal('/submit')}
             className="group"
             style={{
               display: 'block',
@@ -313,7 +317,7 @@ export function AuthorGuidelines() {
                     Zero Tolerance Policy
                   </p>
                   <p style={{ color: '#78350F', lineHeight: '1.8', fontSize: '15px' }}>
-                    Ditech Asia Journal has a strict zero-tolerance policy for plagiarism, data fabrication, and unethical research practices. All submissions undergo comprehensive plagiarism screening using industry-standard tools.
+                    {journalName} has a strict zero-tolerance policy for plagiarism, data fabrication, and unethical research practices. All submissions undergo comprehensive plagiarism screening using industry-standard tools.
                   </p>
                 </div>
               </div>
@@ -450,7 +454,7 @@ export function AuthorGuidelines() {
                 MVP Phase: No Fees
               </p>
               <p style={{ color: '#15803D', lineHeight: '1.8', fontSize: '15px' }}>
-                During our initial launch phase, Ditech Asia Journal does not charge article processing charges (APCs) or submission fees. This policy is subject to change as the journal matures, and authors will be notified of any future fee structure with adequate advance notice.
+                During our initial launch phase, {journalName} does not charge article processing charges (APCs) or submission fees. This policy is subject to change as the journal matures, and authors will be notified of any future fee structure with adequate advance notice.
               </p>
             </div>
           </section>
@@ -502,7 +506,7 @@ export function AuthorGuidelines() {
 
             <div style={{ display: 'flex', justifyContent: 'center' }}>
               <Link
-                to="/submit"
+                to={toJournal('/submit')}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',

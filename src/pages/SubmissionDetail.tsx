@@ -5,6 +5,7 @@ import { getSubmissionById } from '../lib/queries-api';
 import { FileText, ArrowLeft } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import dateFormat from 'dateformat';
+import { useJournalPath } from '../contexts/JournalContext';
 
 const STATUS_CHIP_CLASS_MAP: Partial<Record<Submission['status'], string>> = {
   submitted:
@@ -275,6 +276,7 @@ function EditorialOutcomeSection({
 export function SubmissionDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const toJournal = useJournalPath();
 
   const {
     data: submission,
@@ -291,7 +293,7 @@ export function SubmissionDetail() {
   }
 
   if (isError || !submission) {
-    return <NotFoundState onBack={() => navigate('/dashboard')} />;
+    return <NotFoundState onBack={() => navigate(toJournal('/dashboard'))} />;
   }
 
   const currentSubmission = submission;
@@ -308,7 +310,7 @@ export function SubmissionDetail() {
         submission={currentSubmission}
         statusClass={statusClass}
         statusLabel={statusLabel}
-        onBack={() => navigate('/dashboard')}
+        onBack={() => navigate(toJournal('/dashboard'))}
       />
 
       {/* Body */}

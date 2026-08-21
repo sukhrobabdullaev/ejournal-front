@@ -4,6 +4,7 @@ import { Download, Copy, CheckCircle, Calendar, FileText, ChevronRight } from 'l
 import { useQuery } from '@tanstack/react-query';
 import { Helmet } from 'react-helmet-async';
 import { getArticleBySlug } from '../lib/queries-api';
+import { useJournal, useJournalPath } from '../contexts/JournalContext';
 
 const formatCitationDate = (value?: string): string | null => {
   if (!value) {
@@ -24,6 +25,8 @@ const formatCitationDate = (value?: string): string | null => {
 export function ArticleDetail() {
   const { articleSlug } = useParams<{ articleSlug: string }>();
   const [citationCopied, setCitationCopied] = useState(false);
+  const { journal } = useJournal();
+  const toJournal = useJournalPath();
 
   const {
     data: article,
@@ -36,8 +39,7 @@ export function ArticleDetail() {
   });
 
   const authors = article?.authors || [];
-  const journalTitle =
-    article?.journal_title || 'Digital Innovation and Emerging Technologies - Ditech Asia Journal';
+  const journalTitle = article?.journal_title || journal?.name || 'This journal';
   const doiUrl = article?.doi ? `https://doi.org/${article.doi}` : null;
   const citationPublicationDate = formatCitationDate(article?.published_at);
   const citationLandingUrl = article?.scholar_public_url ||
@@ -104,7 +106,7 @@ export function ArticleDetail() {
             The article you are looking for does not exist or is not published yet.
           </p>
           <Link
-            to="/articles"
+            to={toJournal('/articles')}
             className="inline-block rounded-lg px-6 py-3 font-medium transition-all"
             style={{
               background: 'linear-gradient(135deg, #0B1C4D 0%, #2563EB 100%)',
@@ -122,7 +124,7 @@ export function ArticleDetail() {
   return (
     <div style={{ backgroundColor: '#F8FAFC', minHeight: '100vh' }}>
       <Helmet>
-        <title>{article.title} | Ditech Asia Journal</title>
+        <title>{article.title} | {journalTitle}</title>
         <meta
           name="description"
           content={(article.abstract || article.title).slice(0, 200)}
@@ -161,11 +163,11 @@ export function ArticleDetail() {
       <div className="bg-white" style={{ borderBottom: '1px solid #E2E8F0' }}>
         <div className="mx-auto max-w-[1120px] px-4 py-4 sm:px-6 lg:px-8">
           <div className="flex items-center space-x-2 text-sm">
-            <Link to="/" className="hover:underline" style={{ color: '#2563EB' }}>
+            <Link to={toJournal('')} className="hover:underline" style={{ color: '#2563EB' }}>
               Home
             </Link>
             <ChevronRight size={14} style={{ color: '#94A3B8' }} />
-            <Link to="/articles" className="hover:underline" style={{ color: '#2563EB' }}>
+            <Link to={toJournal('/articles')} className="hover:underline" style={{ color: '#2563EB' }}>
               Articles
             </Link>
             <ChevronRight size={14} style={{ color: '#94A3B8' }} />

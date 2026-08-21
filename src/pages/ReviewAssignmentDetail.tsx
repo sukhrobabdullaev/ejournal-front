@@ -9,11 +9,13 @@ import {
   submitReview,
 } from '../lib/queries-api';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useJournalPath } from '../contexts/JournalContext';
 
 export function ReviewAssignmentDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const toJournal = useJournalPath();
 
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -66,7 +68,7 @@ export function ReviewAssignmentDetail() {
       }
       setSuccess('Invitation declined.');
       invalidateAssignment();
-      setTimeout(() => navigate('/dashboard'), 2000);
+      setTimeout(() => navigate(toJournal('/dashboard')), 2000);
     },
     onError: (err: Error) => setError(err.message || 'Failed to decline invitation.'),
   });
@@ -121,7 +123,7 @@ export function ReviewAssignmentDetail() {
             {error || 'We could not find this review assignment.'}
           </p>
           <button
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate(toJournal('/dashboard'))}
             className="rounded-lg bg-gradient-to-r from-blue-600 to-blue-700 px-6 py-3 font-medium text-white shadow-md hover:from-blue-700 hover:to-blue-800"
           >
             Back to Dashboard
@@ -144,7 +146,7 @@ export function ReviewAssignmentDetail() {
           <div className="flex items-center justify-between">
             <button
               type="button"
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate(toJournal('/dashboard'))}
               className="inline-flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium text-white hover:bg-white/10"
             >
               <ArrowLeft className="h-4 w-4" />

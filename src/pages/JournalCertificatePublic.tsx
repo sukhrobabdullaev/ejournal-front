@@ -4,9 +4,11 @@ import { useQuery } from '@tanstack/react-query';
 import { Download, Share2, QrCode, ExternalLink } from 'lucide-react';
 
 import { getPublicJournalCertificateByCode } from '../lib/queries-api';
+import { useJournalPath } from '../contexts/JournalContext';
 
 export function JournalCertificatePublic() {
   const { code } = useParams<{ code: string }>();
+  const toJournal = useJournalPath();
 
   const { data: certificate, isLoading } = useQuery({
     queryKey: ['journal-certificate-public', code],
@@ -50,7 +52,7 @@ export function JournalCertificatePublic() {
             This journal certificate link is invalid or has expired.
           </p>
           <Link
-            to="/"
+            to={toJournal('')}
             className="rounded-md bg-[#0F4FA8] px-4 py-2 text-sm font-semibold text-white"
           >
             Go Home

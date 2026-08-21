@@ -13,9 +13,10 @@ import {
   initializeActiveRole,
   setMyActiveRole,
   getStoredActiveRole,
-  ACTIVE_ROLE_STORAGE_KEY,
+  activeRoleStorageKey,
   ACTIVE_ROLE_CHANGED_EVENT,
 } from '../lib/queries-api';
+import { useJournal } from '../contexts/JournalContext';
 
 /* ─────────────────────────────────────────────────────────────────────────────
    Injected once: premium glassmorphism + role-badge styles
@@ -592,10 +593,15 @@ function isValidGoogleScholarUrl(url?: string | null): boolean {
 export function Header() {
   const location  = useLocation();
   const navigate  = useNavigate();
+  const { journal, journalSlug } = useJournal();
+
+  const withJournal = (path: string) => (journalSlug ? `/j/${journalSlug}${path}` : '/');
 
   const [mobileMenuOpen,        setMobileMenuOpen]        = useState(false);
   const [showProfileDropdown,   setShowProfileDropdown]   = useState(false);
-  const [activeRole,            setActiveRoleState]       = useState<string | null>(getStoredActiveRole());
+  const [activeRole,            setActiveRoleState]       = useState<string | null>(
+    journalSlug ? getStoredActiveRole(journalSlug) : null
+  );
 
   const profileMenuRef   = useRef<HTMLDivElement | null>(null);
   const orcidSavedBadgeTimerRef = useRef<number | null>(null);
@@ -614,11 +620,17 @@ export function Header() {
   });
 
   const isUserAuthenticated = !!currentUser;
-  const approvedRoles       = useMemo(() => getApprovedRolesFromUser(currentUser || null), [currentUser]);
-  const dashboardPath       = activeRole === 'editor' ? '/editor' : '/dashboard';
-  const userRoles           = currentUser?.roles || [];
-  const isAuthorUser        = userRoles.includes('author');
-  const isReviewerUser      = userRoles.includes('reviewer');
+  const approvedRoles       = useMemo(
+    () => getApprovedRolesFromUser(currentUser || null, journalSlug),
+    [currentUser, journalSlug]
+  );
+  const dashboardPath       = withJournal(activeRole === 'editor' ? '/editor' : '/dashboard');
+  const journalMemberships  = useMemo(
+    () => (currentUser?.memberships || []).filter((m) => m.journal_slug === journalSlug),
+    [currentUser, journalSlug]
+  );
+  const isAuthorUser        = journalMemberships.some((m) => m.role === 'author');
+  const isReviewerUser      = journalMemberships.some((m) => m.role === 'reviewer');
   const showAcademicCard    = isAuthorUser || isReviewerUser;
   const requiresAcademicIds = isAuthorUser;
 
@@ -692,22 +704,24 @@ export function Header() {
 
   // Initialize active role
   useEffect(() => {
-    if (!currentUser) { setActiveRoleState(null); return; }
+    if (!currentUser || !journalSlug) { setActiveRoleState(null); return; }
     let isMounted = true;
-    initializeActiveRole(currentUser).then((role) => {
+    initializeActiveRole(journalSlug, currentUser).then((role) => {
       if (isMounted) setActiveRoleState(role);
     });
     return () => { isMounted = false; };
-  }, [currentUser]);
+  }, [currentUser, journalSlug]);
 
   // Listen for role changes across tabs
   useEffect(() => {
+    if (!journalSlug) return;
     const handleRoleChanged = (event: Event) => {
-      const e = event as CustomEvent<{ role?: string | null }>;
-      setActiveRoleState(e.detail?.role ?? getStoredActiveRole());
+      const e = event as CustomEvent<{ journalSlug?: string; role?: string | null }>;
+      if (e.detail?.journalSlug && e.detail.journalSlug !== journalSlug) return;
+      setActiveRoleState(e.detail?.role ?? getStoredActiveRole(journalSlug));
     };
     const handleStorage = (e: StorageEvent) => {
-      if (e.key === ACTIVE_ROLE_STORAGE_KEY) setActiveRoleState(e.newValue);
+      if (e.key === activeRoleStorageKey(journalSlug)) setActiveRoleState(e.newValue);
     };
     window.addEventListener(ACTIVE_ROLE_CHANGED_EVENT, handleRoleChanged as EventListener);
     window.addEventListener('storage', handleStorage);
@@ -715,7 +729,7 @@ export function Header() {
       window.removeEventListener(ACTIVE_ROLE_CHANGED_EVENT, handleRoleChanged as EventListener);
       window.removeEventListener('storage', handleStorage);
     };
-  }, []);
+  }, [journalSlug]);
 
   // Close dropdowns on route change
   useEffect(() => {
@@ -735,28 +749,28 @@ export function Header() {
   }, []);
 
   const handleRoleSwitch = async (role: string) => {
-    if (!currentUser || !approvedRoles.includes(role)) return;
-    const switched = await setMyActiveRole(role, currentUser);
+    if (!currentUser || !journalSlug || !approvedRoles.includes(role)) return;
+    const switched = await setMyActiveRole(journalSlug, role, currentUser);
     if (switched) {
       setActiveRoleState(role);
       setShowProfileDropdown(false);
       setMobileMenuOpen(false);
-      navigate(role === 'editor' ? '/editor' : '/dashboard');
+      navigate(withJournal(role === 'editor' ? '/editor' : '/dashboard'));
     }
   };
 
   const navLinks = [
-    { name: 'Home',           path: '/'               },
-    { name: 'Aims & Scope',   path: '/aims-scope'     },
-    { name: 'Guidelines',     path: '/guidelines'     },
-    { name: 'Editorial Board',path: '/editorial-board'},
-    { name: 'Policies',       path: '/policies'       },
-    { name: 'About',          path: '/about'          },
-    { name: 'Contact',        path: '/contact'        },
+    { name: 'Home',           path: withJournal('')                },
+    { name: 'Aims & Scope',   path: withJournal('/aims-scope')     },
+    { name: 'Guidelines',     path: withJournal('/guidelines')     },
+    { name: 'Editorial Board',path: withJournal('/editorial-board')},
+    { name: 'Policies',       path: withJournal('/policies')       },
+    { name: 'About',          path: withJournal('/about')          },
+    { name: 'Contact',        path: withJournal('/contact')        },
   ];
 
   const isActive          = (path: string) => location.pathname === path;
-  const isPublishedActive = location.pathname.startsWith('/published');
+  const isPublishedActive = location.pathname.startsWith(withJournal('/published'));
   const latestIssues      = publishedIssues.slice(0, 6);
 
   const orderedRoles = useMemo(
@@ -1164,7 +1178,7 @@ export function Header() {
           onClick={async () => {
             await logout();
             setShowProfileDropdown(false);
-            window.location.href = '/';
+            window.location.href = withJournal('');
           }}
         >
           <LogOut size={15} />
@@ -1190,14 +1204,17 @@ export function Header() {
 
           {/* ── Logo ── */}
           <Link
-            to="/"
-            className="flex min-w-[140px] shrink-0 items-center transition-all duration-300 ease-in-out hover:opacity-85"
+            to={withJournal('')}
+            className="flex min-w-[140px] shrink-0 items-center gap-2 transition-all duration-300 ease-in-out hover:opacity-85"
           >
+            {journal?.logo ? (
+              <img src={journal.logo} alt={journal.name} className="h-9 w-9 rounded object-cover" />
+            ) : null}
             <span
               className="whitespace-nowrap text-xl font-bold text-[#0F1F5A]"
               style={{ fontFamily: 'Montserrat, Inter, Segoe UI, sans-serif' }}
             >
-              Ditech Asia
+              {journal?.name || 'Journal Platform'}
             </span>
           </Link>
 
@@ -1205,7 +1222,7 @@ export function Header() {
           <nav className="hidden flex-1 items-center justify-center gap-2 lg:flex">
 
             <Link
-              to="/published"
+              to={withJournal('/published')}
               className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2.5 text-sm transition-all duration-300 ease-in-out ${
                 isPublishedActive
                   ? 'border-[#93C5FD] bg-[#DBEAFE] font-semibold text-[#0F1F5A] shadow-[0_8px_18px_rgba(29,78,216,0.15)]'
@@ -1269,7 +1286,7 @@ export function Header() {
               /* ── Guest buttons ── */
               <div className="glass-auth-group">
                 <Link
-                  to="/login"
+                  to={withJournal('/login')}
                   className="glass-auth-btn"
                 >
                   <span className="glass-auth-icon-wrap" aria-hidden="true">
@@ -1278,7 +1295,7 @@ export function Header() {
                   Login
                 </Link>
                 <Link
-                  to="/register"
+                  to={withJournal('/register')}
                   className="glass-auth-btn glass-auth-btn-primary"
                 >
                   <span className="glass-auth-icon-wrap" aria-hidden="true">
@@ -1313,7 +1330,7 @@ export function Header() {
 
             {/* Published link */}
             <Link
-              to="/published"
+              to={withJournal('/published')}
               onClick={() => setMobileMenuOpen(false)}
               className={`block rounded-xl px-3 py-2 text-sm transition-all duration-300 ease-in-out ${
                 isPublishedActive
@@ -1329,7 +1346,7 @@ export function Header() {
                 {latestIssues.slice(0, 3).map((issue) => (
                   <div key={issue.id} className="rounded-lg px-2 py-1.5 hover:bg-[#F8FBFF]">
                     <Link
-                      to={`/published/${issue.id}`}
+                      to={withJournal(`/published/${issue.id}`)}
                       onClick={() => setMobileMenuOpen(false)}
                       className="block text-xs text-slate-600"
                     >
@@ -1404,7 +1421,7 @@ export function Header() {
                     onClick={async () => {
                       await logout();
                       setMobileMenuOpen(false);
-                      window.location.href = '/';
+                      window.location.href = withJournal('');
                     }}
                     className="block w-full rounded-xl border px-4 py-2 text-center text-sm font-medium text-slate-700 transition-all duration-300 ease-in-out hover:bg-[#F3F8FF]"
                     style={{ borderColor: '#D8E4F6' }}
@@ -1415,7 +1432,7 @@ export function Header() {
               ) : (
                 <div className="glass-auth-mobile">
                   <Link
-                    to="/login"
+                    to={withJournal('/login')}
                     onClick={() => setMobileMenuOpen(false)}
                     className="glass-auth-btn"
                   >
@@ -1425,7 +1442,7 @@ export function Header() {
                     Login
                   </Link>
                   <Link
-                    to="/register"
+                    to={withJournal('/register')}
                     onClick={() => setMobileMenuOpen(false)}
                     className="glass-auth-btn glass-auth-btn-primary"
                   >

@@ -10,10 +10,11 @@ import {
   getApprovedRolesFromUser,
   getRoleLabel,
   getStoredActiveRole,
+  activeRoleStorageKey,
   ACTIVE_ROLE_CHANGED_EVENT,
-  ACTIVE_ROLE_STORAGE_KEY,
   ROLE_SELECTION_REQUIRED_KEY,
 } from '../lib/queries-api';
+import { useJournal, useJournalPath } from '../contexts/JournalContext';
 import { useQuery } from '@tanstack/react-query';
 import {
   FileText,
@@ -64,7 +65,11 @@ const REVIEWER_STATUS_OPTIONS: Array<{ value: string; label: string }> = [
 
 export function DashboardNew() {
   const navigate = useNavigate();
-  const [activeRole, setActiveRoleState] = useState<string | null>(() => getStoredActiveRole());
+  const { journalSlug } = useJournal();
+  const toJournal = useJournalPath();
+  const [activeRole, setActiveRoleState] = useState<string | null>(() =>
+    journalSlug ? getStoredActiveRole(journalSlug) : null
+  );
   const [roleResolved, setRoleResolved] = useState(false);
 
   const {
@@ -78,8 +83,8 @@ export function DashboardNew() {
   });
 
   const approvedRoles = useMemo(
-    () => getApprovedRolesFromUser(currentUser || null),
-    [currentUser]
+    () => getApprovedRolesFromUser(currentUser || null, journalSlug),
+    [currentUser, journalSlug]
   );
 
   const { data: submissions = [] } = useQuery({
@@ -136,7 +141,7 @@ export function DashboardNew() {
 
   // Initialize active role based on approved roles and login-time selection requirement.
   useEffect(() => {
-    if (!currentUser) {
+    if (!currentUser || !journalSlug) {
       setRoleResolved(true);
       return;
     }
@@ -145,7 +150,7 @@ export function DashboardNew() {
     const forceSelectionForMultipleRoles =
       sessionStorage.getItem(ROLE_SELECTION_REQUIRED_KEY) === '1';
 
-    initializeActiveRole(currentUser, { forceSelectionForMultipleRoles }).then((role) => {
+    initializeActiveRole(journalSlug, currentUser, { forceSelectionForMultipleRoles }).then((role) => {
       if (!isMounted) {
         return;
       }
@@ -159,16 +164,19 @@ export function DashboardNew() {
     return () => {
       isMounted = false;
     };
-  }, [currentUser]);
+  }, [currentUser, journalSlug]);
 
   useEffect(() => {
+    if (!journalSlug) return;
+
     const handleRoleChanged = (event: Event) => {
-      const customEvent = event as CustomEvent<{ role?: string | null }>;
-      setActiveRoleState(customEvent.detail?.role ?? getStoredActiveRole());
+      const customEvent = event as CustomEvent<{ journalSlug?: string; role?: string | null }>;
+      if (customEvent.detail?.journalSlug && customEvent.detail.journalSlug !== journalSlug) return;
+      setActiveRoleState(customEvent.detail?.role ?? getStoredActiveRole(journalSlug));
     };
 
     const handleStorageChanged = (event: StorageEvent) => {
-      if (event.key === ACTIVE_ROLE_STORAGE_KEY) {
+      if (event.key === activeRoleStorageKey(journalSlug)) {
         setActiveRoleState(event.newValue);
       }
     };
@@ -180,20 +188,20 @@ export function DashboardNew() {
       window.removeEventListener(ACTIVE_ROLE_CHANGED_EVENT, handleRoleChanged as EventListener);
       window.removeEventListener('storage', handleStorageChanged);
     };
-  }, []);
+  }, [journalSlug]);
 
   // Redirect if unauthenticated
   useEffect(() => {
     if (!userLoading && (userError || !currentUser)) {
-      navigate('/login');
+      navigate(toJournal('/login'));
     }
-  }, [userLoading, userError, currentUser, navigate]);
+  }, [userLoading, userError, currentUser, navigate, toJournal]);
 
   const handleRoleSwitch = async (newRole: string) => {
-    if (!currentUser || !approvedRoles.includes(newRole)) {
+    if (!currentUser || !journalSlug || !approvedRoles.includes(newRole)) {
       return;
     }
-    const success = await setMyActiveRole(newRole, currentUser);
+    const success = await setMyActiveRole(journalSlug, newRole, currentUser);
     if (success) {
       setActiveRoleState(newRole);
       sessionStorage.removeItem(ROLE_SELECTION_REQUIRED_KEY);
@@ -373,7 +381,7 @@ export function DashboardNew() {
             {/* New Submission Button */}
             <div className="mb-8">
               <Link
-                to="/submit"
+                to={toJournal('/submit')}
                 className="inline-flex items-center rounded-xl px-6 py-3 font-medium text-white transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:shadow-[0_12px_24px_rgba(29,78,216,0.28)]"
                 style={{ backgroundColor: '#0B1C4D' }}
               >
@@ -460,7 +468,7 @@ export function DashboardNew() {
                           </p>
                         )}
                         <Link
-                          to={`/submission/${submission.id}`}
+                          to={toJournal(`/submission/${submission.id}`)}
                           className="inline-flex items-center text-sm font-medium text-[#0B1C4D] transition-all duration-300 ease-in-out hover:text-[#12327A]"
                         >
                           <FileText size={16} className="mr-1" />
@@ -493,7 +501,7 @@ export function DashboardNew() {
                                   </div>
                                   <div className="flex flex-wrap items-center gap-2">
                                     <Link
-                                      to={`/certificate/${certificate.verification_code}`}
+                                      to={toJournal(`/certificate/${certificate.verification_code}`)}
                                       className="rounded border border-[#C9DCF6] px-3 py-1.5 text-xs font-medium text-[#0B1C4D] transition-colors hover:bg-[#EFF6FF]"
                                     >
                                       View
@@ -565,7 +573,7 @@ export function DashboardNew() {
                                     </div>
                                     <div className="flex flex-wrap items-center gap-2">
                                       <Link
-                                        to={`/journal-certificate/${certificate.verification_code}`}
+                                        to={toJournal(`/journal-certificate/${certificate.verification_code}`)}
                                         className="rounded border border-[#C9DCF6] px-3 py-1.5 text-xs font-medium text-[#0B1C4D] transition-colors hover:bg-[#EFF6FF]"
                                       >
                                         View
@@ -643,6 +651,7 @@ export function DashboardNew() {
 // ─── Role-specific sub-components ───────────────────────────────────────────
 
 function ReviewerSection() {
+  const toJournal = useJournalPath();
   const {
     data: reviewAssignments = [],
     isLoading: reviewAssignmentsLoading,
@@ -855,7 +864,7 @@ function ReviewerSection() {
                   </p>
                 )}
                 <Link
-                  to={`/review/assignments/${assignment.id}`}
+                  to={toJournal(`/review/assignments/${assignment.id}`)}
                   className="inline-flex items-center text-sm font-medium text-blue-600 transition-all duration-300 ease-in-out hover:text-blue-700"
                 >
                   View Assignment Details
@@ -878,6 +887,7 @@ function EditorAdminSection({
   getStatusColor: (s: string) => string;
   getStatusLabel: (s: string) => string;
 }) {
+  const toJournal = useJournalPath();
   const { data: allSubmissions = [] } = useQuery({
     queryKey: ['all-submissions'],
     queryFn: () => getAllSubmissions(),
@@ -1067,7 +1077,7 @@ function EditorAdminSection({
                     )}
 
                     <Link
-                      to="/editor"
+                      to={toJournal('/editor')}
                       className="inline-flex items-center text-sm font-medium text-[#1D4ED8] transition-all duration-300 ease-in-out hover:text-[#1E3A8A]"
                     >
                       <Eye size={16} className="mr-1" />
@@ -1159,7 +1169,7 @@ function EditorAdminSection({
             Manage all submissions, assign editors, and oversee the editorial workflow.
           </p>
           <Link
-            to="/editor"
+            to={toJournal('/editor')}
             className="inline-flex items-center rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:bg-blue-700 hover:shadow-[0_10px_22px_rgba(37,99,235,0.25)]"
           >
             <FileText size={16} className="mr-2" />

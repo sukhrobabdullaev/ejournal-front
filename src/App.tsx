@@ -1,10 +1,13 @@
 import React, { Suspense as ReactSuspense } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router';
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router';
 import { AuthProvider } from './contexts/AuthContext';
+import { JournalProvider } from './contexts/JournalContext';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { Toaster } from './components/ui/sonner';
 import { Contact } from './pages/Contact';
+import { JournalDirectory } from './pages/JournalDirectory';
+import { JournalLayout } from './layouts/JournalLayout';
 
 function lazyNamed<T extends React.ComponentType<any>>(
   importer: () => Promise<any>,
@@ -67,55 +70,76 @@ const JournalCertificatePublic = lazyNamed(
   'JournalCertificatePublic'
 );
 
+// Header/Footer render outside <Routes> as fixed shell chrome, so the active
+// journal is derived straight from the URL here (not from useParams(), which
+// only resolves inside a matched <Route>) and provided to the whole shell.
+function AppShell() {
+  const location = useLocation();
+  const journalSlug = location.pathname.match(/^\/j\/([^/]+)/)?.[1] ?? null;
+
+  return (
+    <JournalProvider slug={journalSlug}>
+      <div className="flex min-h-screen flex-col bg-[#EEF5FF]">
+        <Header />
+        <main className="grow pt-2 pb-8 md:pt-3 md:pb-10">
+          <ReactSuspense
+            fallback={
+              <div className="flex min-h-[50vh] items-center justify-center">
+                <div className="text-center">
+                  <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+                  <p className="text-sm text-gray-600">Loading page...</p>
+                </div>
+              </div>
+            }
+          >
+            <Routes>
+              <Route path="/" element={<JournalDirectory />} />
+              {/* Backend-generated verification emails link to a bare /verify-email (no
+                  journal context is known at send time); keep it reachable outside the
+                  journal-nested tree too. The page itself doesn't need journal context. */}
+              <Route path="/verify-email" element={<VerifyEmail />} />
+              <Route path="/j/:journalSlug" element={<JournalLayout />}>
+                <Route index element={<Home />} />
+                <Route path="published" element={<PublishedIssues />} />
+                <Route path="published/:issueId" element={<PublishedIssueDetail />} />
+                <Route path="articles" element={<Articles />} />
+                <Route path="articles/:articleSlug" element={<ArticleDetail />} />
+                <Route path="submit" element={<SubmitPaper />} />
+                <Route path="submit/:submissionId" element={<SubmitPaper />} />
+                <Route path="guidelines" element={<AuthorGuidelines />} />
+                <Route path="aims-scope" element={<AimsScope />} />
+                <Route path="editorial-board" element={<EditorialBoard />} />
+                <Route path="policies" element={<Policies />} />
+                <Route path="about" element={<About />} />
+                <Route path="contact" element={<Contact />} />
+                <Route path="login" element={<Login />} />
+                <Route path="register" element={<Register />} />
+                <Route path="verify-email" element={<VerifyEmail />} />
+                <Route path="dashboard" element={<DashboardNew />} />
+                <Route path="submission/:id" element={<SubmissionDetail />} />
+                <Route path="submissions/:id" element={<SubmissionDetail />} />
+                <Route path="editor" element={<EditorDashboard />} />
+                <Route path="review-invite" element={<ReviewInvite />} />
+                <Route path="review/invite/:token" element={<ReviewInviteNew />} />
+                <Route path="review/assignments/:id" element={<ReviewAssignmentDetail />} />
+                <Route path="certificate/:code" element={<CertificatePublic />} />
+                <Route path="journal-certificate/:code" element={<JournalCertificatePublic />} />
+              </Route>
+            </Routes>
+          </ReactSuspense>
+        </main>
+        <Footer />
+      </div>
+      <Toaster />
+    </JournalProvider>
+  );
+}
+
 export default function App() {
   return (
     <AuthProvider>
       <Router>
-        <div className="flex min-h-screen flex-col bg-[#EEF5FF]">
-          <Header />
-          <main className="grow pt-2 pb-8 md:pt-3 md:pb-10">
-            <ReactSuspense
-              fallback={
-                <div className="flex min-h-[50vh] items-center justify-center">
-                  <div className="text-center">
-                    <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-                    <p className="text-sm text-gray-600">Loading page...</p>
-                  </div>
-                </div>
-              }
-            >
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/published" element={<PublishedIssues />} />
-                <Route path="/published/:issueId" element={<PublishedIssueDetail />} />
-                <Route path="/articles" element={<Articles />} />
-                <Route path="/articles/:articleSlug" element={<ArticleDetail />} />
-                <Route path="/submit" element={<SubmitPaper />} />
-                <Route path="/submit/:submissionId" element={<SubmitPaper />} />
-                <Route path="/guidelines" element={<AuthorGuidelines />} />
-                <Route path="/aims-scope" element={<AimsScope />} />
-                <Route path="/editorial-board" element={<EditorialBoard />} />
-                <Route path="/policies" element={<Policies />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/verify-email" element={<VerifyEmail />} />
-                <Route path="/dashboard" element={<DashboardNew />} />
-                <Route path="/submission/:id" element={<SubmissionDetail />} />
-                <Route path="/submissions/:id" element={<SubmissionDetail />} />
-                <Route path="/editor" element={<EditorDashboard />} />
-                <Route path="/review-invite" element={<ReviewInvite />} />
-                <Route path="/review/invite/:token" element={<ReviewInviteNew />} />
-                <Route path="/review/assignments/:id" element={<ReviewAssignmentDetail />} />
-                <Route path="/certificate/:code" element={<CertificatePublic />} />
-                <Route path="/journal-certificate/:code" element={<JournalCertificatePublic />} />
-              </Routes>
-            </ReactSuspense>
-          </main>
-          <Footer />
-        </div>
-        <Toaster />
+        <AppShell />
       </Router>
     </AuthProvider>
   );

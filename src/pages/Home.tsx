@@ -2,8 +2,13 @@ import React from 'react';
 import { Link } from 'react-router';
 import { BookOpen, Users, FileText, Award, CheckCircle, Eye, UserCheck } from 'lucide-react';
 import journalCover from 'figma:asset/1213522a5242c1f43db11177313419914eea13eb.png';
+import { useJournal, useJournalPath } from '../contexts/JournalContext';
 
 export function Home() {
+  const { journal } = useJournal();
+  const toJournal = useJournalPath();
+  const heroTitle = journal?.name || 'Digital Innovation and Emerging Technologies';
+  const heroTagline = journal?.tagline || `An International Peer-Reviewed Journal by ${journal?.name || 'Ditech Asia'}`;
   return (
     <div style={{ backgroundColor: '#F8FAFC' }}>
       {/* Hero Section - Two Column Layout */}
@@ -13,10 +18,10 @@ export function Home() {
             {/* Left Column - Content */}
             <div className="space-y-6">
               <h1 className="text-5xl leading-tight font-bold" style={{ color: '#0B1C4D' }}>
-                Digital Innovation and Emerging Technologies
+                {heroTitle}
               </h1>
               <p className="text-xl" style={{ color: '#475569' }}>
-                An International Peer-Reviewed Journal by Ditech Asia
+                {heroTagline}
               </p>
               <p className="text-base leading-relaxed" style={{ color: '#475569' }}>
                 A premier platform for publishing cutting-edge research in digital innovation,
@@ -52,7 +57,7 @@ export function Home() {
               {/* CTA Buttons */}
               <div className="flex flex-wrap gap-4 pt-4">
                 <Link
-                  to="/submit"
+                  to={toJournal('/submit')}
                   className="inline-flex items-center text-base font-semibold shadow-md transition-all"
                   style={{
                     padding: '12px 18px',
@@ -69,7 +74,7 @@ export function Home() {
                   Submit Manuscript
                 </Link>
                 <Link
-                  to="/articles"
+                  to={toJournal('/articles')}
                   className="inline-flex items-center text-base font-semibold transition-all"
                   style={{
                     padding: '12px 18px',
@@ -310,7 +315,7 @@ export function Home() {
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link
-              to="/submit"
+              to={toJournal('/submit')}
               className="inline-flex items-center text-lg font-semibold shadow-lg transition-all"
               style={{
                 padding: '12px 24px',
@@ -329,7 +334,7 @@ export function Home() {
               Submit Your Manuscript
             </Link>
             <Link
-              to="/guidelines"
+              to={toJournal('/guidelines')}
               className="inline-flex items-center text-lg font-semibold transition-all"
               style={{
                 padding: '12px 24px',

@@ -3,8 +3,10 @@ import { Link } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { BookOpen, CalendarDays, ChevronLeft, ChevronRight, Download, FileText, Layers, Search } from 'lucide-react';
 import { getPublishedIssues } from '../lib/queries-api';
+import { useJournalPath } from '../contexts/JournalContext';
 
 export function PublishedIssues() {
+  const toJournal = useJournalPath();
   const [query, setQuery] = useState('');
   const [sortBy, setSortBy] = useState<'newest' | 'oldest'>('newest');
   const [page, setPage] = useState(1);
@@ -212,7 +214,7 @@ export function PublishedIssues() {
                       {/* Tugmalar qismi (Rasmga moslashtirilgan ko'k dizayn va silliq burchaklar) */}
                       <div className="flex flex-wrap items-center gap-4">
                         <Link
-                          to={`/published/${featuredIssue.id}`}
+                          to={toJournal(`/published/${featuredIssue.id}`)}
                           className="inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-8 text-base font-medium text-blue-600 shadow-sm transition-all hover:bg-slate-50 hover:border-slate-300 focus:ring-2 focus:ring-slate-200"
                         >
                           <FileText size={20} className="text-blue-600" />
@@ -287,7 +289,7 @@ export function PublishedIssues() {
                         {/* List Item Buttons (Moslashtirildi) */}
                         <div className="flex shrink-0 flex-wrap items-center gap-3 border-t border-slate-100 pt-4 md:border-t-0 md:pl-6 md:pt-0">
                           <Link
-                            to={`/published/${issue.id}`}
+                            to={toJournal(`/published/${issue.id}`)}
                             className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-5 text-sm font-medium text-blue-600 shadow-sm transition-colors hover:bg-slate-50 hover:border-slate-300"
                           >
                             <FileText size={16} className="text-blue-600" />

@@ -8,11 +8,13 @@ import {
 } from '../lib/queries-api';
 import { CheckCircle, XCircle, FileText, Download } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useJournalPath } from '../contexts/JournalContext';
 
 export function ReviewInviteNew() {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const toJournal = useJournalPath();
 
   const {
     data: assignment,
@@ -40,7 +42,7 @@ export function ReviewInviteNew() {
     mutationFn: async (accepted: boolean) => {
       const user = await getCurrentUser();
       if (!user) {
-        navigate(`/login?returnTo=/review/invite/${token}`);
+        navigate(toJournal(`/login?returnTo=${toJournal(`/review/invite/${token}`)}`));
         throw new Error('not logged in');
       }
       if (accepted) {
@@ -87,7 +89,7 @@ export function ReviewInviteNew() {
           <h2 className="mb-2 text-2xl font-bold text-gray-900">Invitation Not Found</h2>
           <p className="mb-6 text-gray-600">This invitation link is invalid or has expired.</p>
           <button
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate(toJournal('/dashboard'))}
             className="bg-blue-600 px-6 py-3 font-medium text-white hover:bg-blue-700"
           >
             Go to Dashboard
@@ -182,7 +184,7 @@ export function ReviewInviteNew() {
 
           <div className="text-center">
             <button
-              onClick={() => navigate('/dashboard')}
+              onClick={() => navigate(toJournal('/dashboard'))}
               className="bg-blue-600 px-6 py-3 font-medium text-white hover:bg-blue-700"
             >
               Go to Dashboard
@@ -207,7 +209,7 @@ export function ReviewInviteNew() {
             .
           </p>
           <button
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate(toJournal('/dashboard'))}
             className="bg-blue-600 px-6 py-3 font-medium text-white hover:bg-blue-700"
           >
             Go to Dashboard

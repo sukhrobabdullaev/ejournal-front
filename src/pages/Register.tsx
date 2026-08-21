@@ -2,9 +2,12 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import { Eye, EyeOff, Mail, Lock, User, Building2, Globe2 } from 'lucide-react';
 import { signup, resendVerificationEmail } from '../lib/queries-api';
+import { useJournal, useJournalPath } from '../contexts/JournalContext';
 
 export function Register() {
   const navigate = useNavigate();
+  const { journal, journalSlug } = useJournal();
+  const toJournal = useJournalPath();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -93,6 +96,12 @@ export function Register() {
       return;
     }
 
+    if (!journalSlug) {
+      setError('No journal selected. Please go back and choose a journal.');
+      setLoading(false);
+      return;
+    }
+
     try {
       const { data, error: signupError } = await signup({
         email: formData.email,
@@ -100,6 +109,7 @@ export function Register() {
         full_name: formData.full_name,
         affiliation: formData.affiliation,
         country: formData.country,
+        journal_slug: journalSlug,
         roles: formData.roles,
         why_to_be: formData.why_to_be,
       });
@@ -236,7 +246,7 @@ export function Register() {
               </button>
 
               <Link
-                to="/login"
+                to={toJournal('/login')}
                 className="block text-sm font-semibold hover:underline"
                 style={{ color: '#2563EB' }}
               >
@@ -267,7 +277,7 @@ export function Register() {
               Create Account
             </h1>
             <p className="text-[16px] font-medium" style={{ color: '#7A8CA8' }}>
-              Join Ditech Asia Journal
+              Join {journal?.name ? `${journal.name} Journal` : 'the journal'}
             </p>
           </div>
 
@@ -628,7 +638,7 @@ export function Register() {
           <div className="mt-6 text-center text-sm">
             <span style={{ color: '#64748B' }}>Already have an account? </span>
             <Link
-              to="/login"
+              to={toJournal('/login')}
               className="font-semibold"
               style={{
                 color: '#3B82F6',

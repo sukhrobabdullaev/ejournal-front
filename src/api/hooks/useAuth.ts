@@ -9,6 +9,7 @@ interface SignupData {
   full_name: string;
   affiliation: string;
   country: string;
+  journal_slug: string;
   roles: string[];
   why_to_be?: string;
 }
@@ -110,7 +111,7 @@ export function useMyRole() {
   return useQuery<string | null>({
     queryKey: QUERY_KEYS.myRole,
     queryFn: () => {
-      return user?.roles?.[0] || null;
+      return user?.memberships?.[0]?.role || null;
     },
     enabled: !!user,
   });

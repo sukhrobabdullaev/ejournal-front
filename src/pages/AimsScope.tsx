@@ -1,6 +1,9 @@
 import React from 'react';
+import { useJournal } from '../contexts/JournalContext';
 
 export function AimsScope() {
+  const { journal } = useJournal();
+  const journalName = journal?.name ? `${journal.name} Journal` : 'This journal';
   const coreAreas = [
     { title: 'AI & Machine Learning', topics: ['Deep learning', 'Explainable AI', 'NLP', 'Computer vision', 'Reinforcement learning', 'AI ethics'] },
     { title: 'Data Science & Analytics', topics: ['Big data', 'Data mining', 'Predictive analytics', 'Business intelligence', 'Visualization', 'Statistical modeling'] },
@@ -34,7 +37,7 @@ export function AimsScope() {
           
           <div className="max-w-3xl pl-4 border-l-4 border-blue-400">
             <p className="text-lg leading-relaxed text-slate-600 font-medium">
-              "Ditech Asia Journal is a peer-reviewed, open-access platform dedicated to the 
+              "{journalName} is a peer-reviewed, open-access platform dedicated to the
               dissemination of high-quality research in computer science and information technology."
             </p>
           </div>
@@ -192,7 +195,7 @@ export function AimsScope() {
       {/* Footer */}
       <footer className="border-t border-blue-100 py-8 text-center bg-white">
         <p className="text-sm font-medium text-slate-500">
-          © 2026 Ditech Asia Journal. <span className="text-blue-600 font-bold ml-2">Professional Academic Publishing.</span>
+          &copy; 2026 {journalName}. <span className="text-blue-600 font-bold ml-2">Professional Academic Publishing.</span>
         </p>
       </footer>
     </div>

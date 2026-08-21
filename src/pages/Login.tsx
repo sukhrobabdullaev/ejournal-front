@@ -4,9 +4,11 @@ import { Eye, EyeOff, Lock, Mail, ShieldCheck } from 'lucide-react';
 import { login, resendVerificationEmail } from '../lib/queries-api';
 import { TokenManager } from '../lib/api';
 import { useQueryClient } from '@tanstack/react-query';
+import { useJournalPath } from '../contexts/JournalContext';
 
 export function Login() {
   const navigate = useNavigate();
+  const toJournal = useJournalPath();
   const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const [email, setEmail] = useState('');
@@ -25,10 +27,10 @@ export function Login() {
         sessionStorage.removeItem('returnUrl');
         navigate(nextUrl);
       } else {
-        navigate('/dashboard');
+        navigate(toJournal('/dashboard'));
       }
     }
-  }, [navigate, searchParams]);
+  }, [navigate, searchParams, toJournal]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,7 +65,7 @@ export function Login() {
           sessionStorage.removeItem('returnUrl');
           navigate(nextUrl);
         } else {
-          navigate('/dashboard');
+          navigate(toJournal('/dashboard'));
         }
       }
     } catch (err) {
@@ -315,7 +317,7 @@ export function Login() {
           <div className="mt-8 text-center text-sm">
             <span style={{ color: '#64748B' }}>Don't have an account? </span>
             <Link
-              to="/register"
+              to={toJournal('/register')}
               className="font-semibold"
               style={{
                 color: '#2563EB',

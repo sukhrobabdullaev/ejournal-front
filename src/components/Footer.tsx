@@ -1,6 +1,11 @@
 import { Link } from 'react-router';
+import { useJournal } from '../contexts/JournalContext';
 
 export function Footer() {
+  const { journal, journalSlug } = useJournal();
+  const withJournal = (path: string) => (journalSlug ? `/j/${journalSlug}${path}` : '/');
+  const journalName = journal?.name || 'the journal';
+
   return (
     <footer className="mt-auto border-t bg-white" style={{ borderColor: '#E2E8F0' }}>
       <div className="mx-auto max-w-7xl px-6 py-12">
@@ -8,13 +13,11 @@ export function Footer() {
           {/* About Section */}
           <div>
             <h3 className="mb-3 text-sm font-semibold" style={{ color: '#0B1C4D' }}>
-              About Ditech Asia Journal
+              About {journalName}
             </h3>
             <p className="text-sm leading-relaxed" style={{ color: '#475569' }}>
-              Ditech Asia publishes peer-reviewed research on digital innovation and emerging
-              technologies including artificial intelligence, blockchain, cloud computing,
-              cybersecurity, and innovations shaping Asia's digital future. We are committed to
-              advancing knowledge through rigorous, transparent scholarly communication.
+              {journal?.tagline ||
+                `${journalName} publishes peer-reviewed research and is committed to advancing knowledge through rigorous, transparent scholarly communication.`}
             </p>
           </div>
 
@@ -26,7 +29,7 @@ export function Footer() {
             <ul className="space-y-2 text-sm">
               <li>
                 <Link
-                  to="/policies"
+                  to={withJournal('/policies')}
                   className="transition-colors hover:underline"
                   style={{ color: '#2563EB' }}
                 >
@@ -35,7 +38,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  to="/policies"
+                  to={withJournal('/policies')}
                   className="transition-colors hover:underline"
                   style={{ color: '#2563EB' }}
                 >
@@ -44,7 +47,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  to="/policies"
+                  to={withJournal('/policies')}
                   className="transition-colors hover:underline"
                   style={{ color: '#2563EB' }}
                 >
@@ -53,7 +56,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  to="/contact"
+                  to={withJournal('/contact')}
                   className="transition-colors hover:underline"
                   style={{ color: '#2563EB' }}
                 >
@@ -70,7 +73,7 @@ export function Footer() {
             className="flex flex-col items-center justify-between text-sm md:flex-row"
             style={{ color: '#475569' }}
           >
-            <p>© 2026 Ditech Asia. All rights reserved.</p>
+            <p>&copy; 2026 {journalName}. All rights reserved.</p>
             <p className="mt-2 md:mt-0">ISSN: Pending</p>
           </div>
         </div>

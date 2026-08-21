@@ -39,6 +39,9 @@ class TokenManager {
   }
 }
 
+// Endpoints that are NOT scoped to a journal (identity is global; only roles are per-journal).
+const GLOBAL_ENDPOINT_PREFIXES = ['/auth/', '/me', '/journals'];
+
 // API Client
 export class APIClient {
   private baseURL: string;
@@ -50,6 +53,7 @@ export class APIClient {
     '/editorial-board/',
     '/certificates/public/',
     '/certificates/journal/public/',
+    '/journals',
   ];
 
   constructor(baseURL: string = API_BASE_URL) {
@@ -68,6 +72,24 @@ export class APIClient {
 
   private isPublicEndpoint(endpoint: string): boolean {
     return this.publicEndpointPrefixes.some((prefix) => endpoint.startsWith(prefix));
+  }
+
+  private isGlobalEndpoint(endpoint: string): boolean {
+    return GLOBAL_ENDPOINT_PREFIXES.some((prefix) => endpoint.startsWith(prefix));
+  }
+
+  // The active journal is derived from the URL (/j/:journalSlug/...) rather than stored
+  // as mutable client state, so it can never drift out of sync with what the user is viewing.
+  private getCurrentJournalSlug(): string | null {
+    if (typeof window === 'undefined') return null;
+    const match = window.location.pathname.match(/\/j\/([^/]+)/);
+    return match ? match[1] : null;
+  }
+
+  private scopeToJournal(endpoint: string): string {
+    if (this.isGlobalEndpoint(endpoint)) return endpoint;
+    const journalSlug = this.getCurrentJournalSlug();
+    return journalSlug ? `/j/${journalSlug}${endpoint}` : endpoint;
   }
 
   // Refresh access token
@@ -106,7 +128,7 @@ export class APIClient {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<{ data: T | null; error: any }> {
-    const url = `${this.baseURL}${endpoint}`;
+    const url = `${this.baseURL}${this.scopeToJournal(endpoint)}`;
     const accessToken = TokenManager.getAccessToken();
     const isPublicEndpoint = this.isPublicEndpoint(endpoint);
 
@@ -277,6 +299,13 @@ export type EditorialDecision = 'accept' | 'reject' | 'revision_required';
 
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected' | null;
 
+export interface JournalMembership {
+  journal_slug: string;
+  journal_name: string;
+  role: 'author' | 'reviewer' | 'editor';
+  status: 'pending' | 'approved' | 'rejected';
+}
+
 export interface User {
   id: number;
   email: string;
@@ -286,10 +315,17 @@ export interface User {
   orcid_id: string;
   google_scholar_url?: string;
   is_email_verified: boolean;
-  roles: string[];
-  reviewer_status: ApprovalStatus;
-  editor_status: ApprovalStatus;
+  memberships: JournalMembership[];
   date_joined: string;
+}
+
+export interface Journal {
+  slug: string;
+  name: string;
+  tagline: string;
+  logo: string | null;
+  accent_color: string;
+  contact_email: string;
 }
 
 export interface TopicArea {

@@ -1,7 +1,11 @@
 import { Target, TrendingUp, Award, Users, Zap } from 'lucide-react';
 import { Link } from 'react-router';
+import { useJournal, useJournalPath } from '../contexts/JournalContext';
 
 export function About() {
+  const { journal } = useJournal();
+  const toJournal = useJournalPath();
+  const journalName = journal?.name || 'the journal';
   const milestones = [
     { year: '2026', event: 'Journal launch and first issue', status: 'current' },
     { year: '2026 Q3', event: 'DOI prefix registration', status: 'planned' },
@@ -44,7 +48,7 @@ export function About() {
       <div style={{ backgroundColor: '#0B1C4D', paddingTop: '80px', paddingBottom: '60px' }}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <h1 className="mb-4 text-5xl font-bold" style={{ color: '#FFFFFF' }}>
-            About Ditech Asia Journal
+            About {journalName}
           </h1>
           <p className="text-xl" style={{ color: 'rgba(255, 255, 255, 0.8)' }}>
             Reimagining academic publishing for the modern era of computing research
@@ -71,14 +75,14 @@ export function About() {
           </h2>
           <div className="space-y-4 text-base" style={{ color: '#475569', lineHeight: '1.7' }}>
             <p>
-              Ditech Asia Journal was founded in 2026 with a clear vision: to create a modern,
+              {journalName} was founded in 2026 with a clear vision: to create a modern,
               efficient, and researcher-friendly publishing platform that serves the rapidly
               evolving field of computing and technology.
             </p>
             <p>
               Frustrated by slow review times, opaque processes, and access barriers that
               characterize traditional academic publishing, we set out to build something better.
-              Ditech Asia Journal combines the rigor and quality of established journals with the
+              {journalName} combines the rigor and quality of established journals with the
               speed, transparency, and accessibility that modern research demands.
             </p>
             <p>
@@ -403,7 +407,7 @@ export function About() {
                     style={{ width: '6px', height: '6px', backgroundColor: '#2563EB' }}
                   ></span>
                   <span style={{ color: '#475569', lineHeight: '1.7' }}>
-                    <strong>Conference Series:</strong> Launch annual Ditech Asia computing
+                    <strong>Conference Series:</strong> Launch an annual {journalName} computing
                     conference
                   </span>
                 </li>
@@ -510,14 +514,14 @@ export function About() {
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link
-              to="/submit"
+              to={toJournal('/submit')}
               className="rounded-lg px-6 py-3 font-medium transition-all hover:shadow-lg"
               style={{ backgroundColor: '#FFFFFF', color: '#0B1C4D' }}
             >
               Submit Your Research
             </Link>
             <Link
-              to="/contact"
+              to={toJournal('/contact')}
               className="rounded-lg px-6 py-3 font-medium transition-all"
               style={{
                 backgroundColor: 'transparent',

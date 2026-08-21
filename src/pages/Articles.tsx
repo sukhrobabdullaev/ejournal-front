@@ -3,8 +3,10 @@ import { Link } from 'react-router';
 import { Search, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { getPublishedArticles } from '../lib/queries-api';
+import { useJournalPath } from '../contexts/JournalContext';
 
 export function Articles() {
+  const toJournal = useJournalPath();
   const {
     data: articles = [],
     isLoading: loading,
@@ -252,7 +254,7 @@ export function Articles() {
               >
                 <div className="mb-3">
                   <Link
-                    to={`/articles/${article.slug}`}
+                    to={toJournal(`/articles/${article.slug}`)}
                     className="text-xl font-semibold hover:underline"
                     style={{ color: '#2563EB' }}
                   >
@@ -308,7 +310,7 @@ export function Articles() {
                   </span>
                   <div className="flex items-center gap-4">
                     <Link
-                      to={`/articles/${article.slug}`}
+                      to={toJournal(`/articles/${article.slug}`)}
                       className="text-[#1d4ed8] hover:underline"
                     >
                       View

@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { Shield, Users, Globe, FileSearch } from 'lucide-react';
+import { useJournal } from '../contexts/JournalContext';
 
 export function Policies() {
+  const { journal } = useJournal();
+  const journalName = journal?.name ? `${journal.name} Journal` : 'This journal';
   const [activeTab, setActiveTab] = useState<'ethics' | 'review' | 'access' | 'plagiarism'>(
     'ethics'
   );
@@ -73,7 +76,7 @@ export function Policies() {
                     Publication Ethics Policy
                   </h2>
                   <p className="mb-6 text-base" style={{ color: '#475569', lineHeight: '1.7' }}>
-                    Ditech Asia Journal is committed to upholding the highest standards of
+                    {journalName} is committed to upholding the highest standards of
                     publication ethics and follows guidelines established by the Committee on
                     Publication Ethics (COPE). All parties involved—authors, editors, reviewers, and
                     publishers—share responsibility for maintaining these standards.
@@ -293,7 +296,7 @@ export function Policies() {
                     Peer Review Policy
                   </h2>
                   <p className="mb-6 text-base" style={{ color: '#475569', lineHeight: '1.7' }}>
-                    Ditech Asia Journal employs a rigorous double-blind peer review process to
+                    {journalName} employs a rigorous double-blind peer review process to
                     ensure the quality and validity of published research. Our review process
                     balances thoroughness with efficiency to provide timely feedback to authors.
                   </p>
@@ -465,7 +468,7 @@ export function Policies() {
                     Open Access Policy
                   </h2>
                   <p className="mb-6 text-base" style={{ color: '#475569', lineHeight: '1.7' }}>
-                    Ditech Asia Journal is committed to open access publishing, ensuring that
+                    {journalName} is committed to open access publishing, ensuring that
                     research is freely available to read, download, and share worldwide. We believe
                     that removing barriers to access accelerates scientific progress and maximizes
                     research impact.
@@ -489,14 +492,14 @@ export function Policies() {
                       Creative Commons CC BY 4.0
                     </p>
                     <p className="text-sm" style={{ color: '#14532D', lineHeight: '1.7' }}>
-                      All articles published in Ditech Asia Journal are licensed under Creative
+                      All articles published in {journalName} are licensed under Creative
                       Commons Attribution 4.0 International License (CC BY 4.0). This allows users
                       to copy, distribute, transmit, and adapt the work, provided appropriate credit
                       is given.
                     </p>
                   </div>
                   <p style={{ color: '#475569', lineHeight: '1.7' }}>
-                    Authors retain copyright of their work while granting Ditech Asia Journal a
+                    Authors retain copyright of their work while granting {journalName} a
                     license to publish the article. This ensures authors maintain control while
                     enabling widespread dissemination.
                   </p>
@@ -562,7 +565,7 @@ export function Policies() {
                       MVP Phase: No APCs
                     </p>
                     <p className="mb-3 text-sm" style={{ color: '#1E40AF', lineHeight: '1.7' }}>
-                      During our initial launch phase, Ditech Asia Journal does not charge article
+                      During our initial launch phase, {journalName} does not charge article
                       processing charges (APCs). This allows us to build a strong foundation and
                       community.
                     </p>
@@ -580,7 +583,7 @@ export function Policies() {
                     Archiving & Preservation
                   </h3>
                   <p style={{ color: '#475569', lineHeight: '1.7' }}>
-                    Ditech Asia Journal is committed to long-term preservation of published content.
+                    {journalName} is committed to long-term preservation of published content.
                     Articles are permanently archived and remain freely accessible. We plan to
                     participate in preservation initiatives like CLOCKSS and Portico to ensure
                     content remains available even if the journal ceases operation.
@@ -624,7 +627,7 @@ export function Policies() {
                     Plagiarism Policy
                   </h2>
                   <p className="mb-6 text-base" style={{ color: '#475569', lineHeight: '1.7' }}>
-                    Ditech Asia Journal has zero tolerance for plagiarism in any form. All
+                    {journalName} has zero tolerance for plagiarism in any form. All
                     submissions undergo plagiarism screening to ensure originality and proper
                     attribution. We use advanced detection tools and editorial expertise to maintain
                     the integrity of our publications.

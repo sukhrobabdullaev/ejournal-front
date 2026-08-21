@@ -26,6 +26,7 @@ import {
   SubmissionsList,
 } from '../features/editor/components';
 import { ApiError } from '../features/editor/utils';
+import { useJournal, useJournalPath } from '../contexts/JournalContext';
 
 type TabType = 'new' | 'screening' | 'review' | 'decisions' | 'journal';
 type ApiMutationResult<T> = { data: T | null; error: any };
@@ -115,6 +116,8 @@ const unwrapApiMutationResult = <T,>(
 
 export function EditorDashboard() {
   const navigate = useNavigate();
+  const { journalSlug } = useJournal();
+  const toJournal = useJournalPath();
   const queryClient = useQueryClient();
 
   const [activeTab, setActiveTab] = useState<TabType>('new');
@@ -138,10 +141,10 @@ export function EditorDashboard() {
   });
 
   const approvedRoles = useMemo(
-    () => getApprovedRolesFromUser(currentUser || null),
-    [currentUser]
+    () => getApprovedRolesFromUser(currentUser || null, journalSlug),
+    [currentUser, journalSlug]
   );
-  const authorized = approvedRoles.includes('editor') || approvedRoles.includes('admin');
+  const authorized = approvedRoles.includes('editor');
 
   const { data: submissionData, isLoading: submissionsLoading } = useQuery<
     Submission[],
@@ -561,7 +564,7 @@ export function EditorDashboard() {
           <h1 className="mt-3 text-2xl font-bold text-[#0B1C4D]">Access denied</h1>
           <p className="mt-2 text-sm text-slate-600">You need editor permissions to open this page.</p>
           <button
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate(toJournal('/dashboard'))}
             className="mt-5 rounded-xl border px-4 py-2.5 text-sm font-semibold text-white"
             style={{
               backgroundColor: '#1D4ED8',
@@ -585,7 +588,7 @@ export function EditorDashboard() {
         >
           <button
             type="button"
-            onClick={() => navigate('/dashboard')}
+            onClick={() => navigate(toJournal('/dashboard'))}
             className="mb-3 inline-flex items-center gap-2 text-sm font-medium text-slate-500 transition-all duration-300 ease-in-out hover:-translate-y-0.5 hover:text-blue-600"
           >
             <ArrowLeft size={16} />

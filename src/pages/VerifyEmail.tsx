@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router';
 import { verifyEmail } from '../lib/queries-api';
+import { useJournalPath } from '../contexts/JournalContext';
 
 export function VerifyEmail() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const toJournal = useJournalPath();
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('');
 
@@ -28,7 +30,7 @@ export function VerifyEmail() {
           setStatus('success');
           setMessage('Your email has been successfully verified!');
           setTimeout(() => {
-            navigate('/login');
+            navigate(toJournal('/login'));
           }, 3000);
         }
       } catch (err: any) {
@@ -38,7 +40,7 @@ export function VerifyEmail() {
     };
 
     verify();
-  }, [searchParams, navigate]);
+  }, [searchParams, navigate, toJournal]);
 
   return (
     <div
@@ -153,7 +155,7 @@ export function VerifyEmail() {
                 {message}
               </p>
               <Link
-                to="/login"
+                to={toJournal('/login')}
                 className="inline-block text-base font-semibold transition-all"
                 style={{
                   padding: '14px 20px',

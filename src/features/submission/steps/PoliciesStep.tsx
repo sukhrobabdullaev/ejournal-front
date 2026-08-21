@@ -3,6 +3,7 @@ import { ArrowRight } from 'lucide-react';
 import type { Policies } from '../types';
 import { PolicyCheckbox } from '../shared/PolicyCheckbox';
 import { allPoliciesAccepted } from '../helpers';
+import { useJournal } from '../../../contexts/JournalContext';
 
 type PoliciesStepProps = {
   policies: Policies;
@@ -17,6 +18,8 @@ export const PoliciesStep: React.FC<PoliciesStepProps> = ({
   onChange,
   onNext,
 }) => {
+  const { journal } = useJournal();
+  const journalName = journal?.name ? `${journal.name} Journal` : 'this journal';
   const update = (key: keyof Policies, value: boolean) => onChange({ ...policies, [key]: value });
   const disabled = saving || !allPoliciesAccepted(policies);
 
@@ -63,7 +66,7 @@ export const PoliciesStep: React.FC<PoliciesStepProps> = ({
           onChange={(v) => update('copyright', v)}
           title="Copyright Agreement"
         >
-          I agree to transfer copyright to Ditech Asia Journal upon acceptance, and understand that
+          I agree to transfer copyright to {journalName} upon acceptance, and understand that
           the manuscript will be published under an appropriate license.
         </PolicyCheckbox>
       </div>

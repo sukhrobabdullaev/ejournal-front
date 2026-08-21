@@ -2,6 +2,7 @@
 import {
   apiClient,
   User,
+  Journal,
   Submission,
   ReviewAssignment,
   JournalPublicationCertificate,
@@ -16,39 +17,42 @@ import {
   TokenManager,
 } from './api';
 
-export const ACTIVE_ROLE_STORAGE_KEY = 'active_role';
 export const ACTIVE_ROLE_CHANGED_EVENT = 'ejournal:active-role-changed';
 export const ROLE_SELECTION_REQUIRED_KEY = 'ejournal:role-selection-required';
 
-function emitActiveRoleChanged(role: string | null) {
+// The active role is remembered per journal, since a user can hold different
+// roles in different journals (e.g. editor of one, plain author of another).
+export function activeRoleStorageKey(journalSlug: string): string {
+  return `active_role:${journalSlug}`;
+}
+
+function emitActiveRoleChanged(journalSlug: string, role: string | null) {
   if (typeof window === 'undefined') {
     return;
   }
 
   window.dispatchEvent(
     new CustomEvent(ACTIVE_ROLE_CHANGED_EVENT, {
-      detail: { role },
+      detail: { journalSlug, role },
     })
   );
 }
 
-export function getApprovedRolesFromUser(user: User | null): string[] {
-  if (!user) {
+export function getApprovedRolesFromUser(user: User | null, journalSlug: string | null): string[] {
+  if (!user || !journalSlug) {
     return [];
   }
 
+  const memberships = user.memberships.filter((m) => m.journal_slug === journalSlug);
   const approvedRoles: string[] = [];
 
-  if (user.roles.includes('admin')) {
-    approvedRoles.push('admin');
-  }
-  if (user.roles.includes('editor') && user.editor_status === 'approved') {
+  if (memberships.some((m) => m.role === 'editor' && m.status === 'approved')) {
     approvedRoles.push('editor');
   }
-  if (user.roles.includes('reviewer') && user.reviewer_status === 'approved') {
+  if (memberships.some((m) => m.role === 'reviewer' && m.status === 'approved')) {
     approvedRoles.push('reviewer');
   }
-  if (user.roles.includes('author')) {
+  if (memberships.some((m) => m.role === 'author')) {
     approvedRoles.push('author');
   }
 
@@ -59,18 +63,18 @@ export function getRoleLabel(role: string): string {
   return role.charAt(0).toUpperCase() + role.slice(1);
 }
 
-export function getStoredActiveRole(): string | null {
-  return localStorage.getItem(ACTIVE_ROLE_STORAGE_KEY);
+export function getStoredActiveRole(journalSlug: string): string | null {
+  return localStorage.getItem(activeRoleStorageKey(journalSlug));
 }
 
-export function clearStoredActiveRole() {
-  localStorage.removeItem(ACTIVE_ROLE_STORAGE_KEY);
-  emitActiveRoleChanged(null);
+export function clearStoredActiveRole(journalSlug: string) {
+  localStorage.removeItem(activeRoleStorageKey(journalSlug));
+  emitActiveRoleChanged(journalSlug, null);
 }
 
-function persistActiveRole(role: string) {
-  localStorage.setItem(ACTIVE_ROLE_STORAGE_KEY, role);
-  emitActiveRoleChanged(role);
+function persistActiveRole(journalSlug: string, role: string) {
+  localStorage.setItem(activeRoleStorageKey(journalSlug), role);
+  emitActiveRoleChanged(journalSlug, role);
 }
 
 // ==========================================
@@ -83,6 +87,7 @@ export async function signup(data: {
   full_name: string;
   affiliation: string;
   country: string;
+  journal_slug: string;
   roles: string[];
   why_to_be?: string;
 }): Promise<{ data: any; error: any }> {
@@ -100,7 +105,6 @@ export async function login(
 
   if (result.data) {
     TokenManager.setTokens(result.data.access, result.data.refresh);
-    clearStoredActiveRole();
     sessionStorage.setItem(ROLE_SELECTION_REQUIRED_KEY, '1');
   }
 
@@ -109,7 +113,6 @@ export async function login(
 
 export async function logout(): Promise<void> {
   TokenManager.clearTokens();
-  clearStoredActiveRole();
   sessionStorage.removeItem(ROLE_SELECTION_REQUIRED_KEY);
 }
 
@@ -156,60 +159,65 @@ export async function updateMyProfile(updates: {
   return await apiClient.patch<User>('/me', updates);
 }
 
-export async function getMyRoles(): Promise<string[]> {
+export async function getMyRoles(journalSlug: string): Promise<string[]> {
   const user = await getCurrentUser();
-  return user?.roles || [];
+  return getApprovedRolesFromUser(user, journalSlug);
 }
 
-export async function getMyApprovedRoles(): Promise<string[]> {
+export async function getMyApprovedRoles(journalSlug: string): Promise<string[]> {
   const user = await getCurrentUser();
-  return getApprovedRolesFromUser(user);
+  return getApprovedRolesFromUser(user, journalSlug);
 }
 
-export async function getMyActiveRole(): Promise<string | null> {
-  const roles = await getMyApprovedRoles();
-  const storedRole = getStoredActiveRole();
+export async function getMyActiveRole(journalSlug: string): Promise<string | null> {
+  const roles = await getMyApprovedRoles(journalSlug);
+  const storedRole = getStoredActiveRole(journalSlug);
   if (storedRole && roles.includes(storedRole)) {
     return storedRole;
   }
   return roles.length === 1 ? roles[0] : null;
 }
 
-export async function setMyActiveRole(role: string, user?: User | null): Promise<boolean> {
-  // Active role is managed client-side, stored in localStorage
-  const roles = user ? getApprovedRolesFromUser(user) : await getMyApprovedRoles();
+export async function setMyActiveRole(
+  journalSlug: string,
+  role: string,
+  user?: User | null
+): Promise<boolean> {
+  // Active role is managed client-side, stored in localStorage (per journal)
+  const roles = user ? getApprovedRolesFromUser(user, journalSlug) : await getMyApprovedRoles(journalSlug);
   if (roles.includes(role)) {
-    persistActiveRole(role);
+    persistActiveRole(journalSlug, role);
     return true;
   }
   return false;
 }
 
 export async function initializeActiveRole(
+  journalSlug: string,
   user?: User | null,
   options?: { forceSelectionForMultipleRoles?: boolean }
 ): Promise<string | null> {
-  const roles = user ? getApprovedRolesFromUser(user) : await getMyApprovedRoles();
+  const roles = user ? getApprovedRolesFromUser(user, journalSlug) : await getMyApprovedRoles(journalSlug);
   if (roles.length === 0) {
-    clearStoredActiveRole();
+    clearStoredActiveRole(journalSlug);
     return null;
   }
 
-  const storedRole = getStoredActiveRole();
+  const storedRole = getStoredActiveRole(journalSlug);
   if (storedRole && roles.includes(storedRole)) {
     if (options?.forceSelectionForMultipleRoles && roles.length > 1) {
-      clearStoredActiveRole();
+      clearStoredActiveRole(journalSlug);
       return null;
     }
     return storedRole;
   }
 
   if (roles.length === 1) {
-    persistActiveRole(roles[0]);
+    persistActiveRole(journalSlug, roles[0]);
     return roles[0];
   }
 
-  clearStoredActiveRole();
+  clearStoredActiveRole(journalSlug);
   return null;
 }
 
@@ -665,9 +673,9 @@ export const getAllReviewers = async (): Promise<any[]> => {
   return data || [];
 };
 
-export const getMyRole = async (): Promise<string | null> => {
-  const roles = await getMyApprovedRoles();
-  const storedRole = getStoredActiveRole();
+export const getMyRole = async (journalSlug: string): Promise<string | null> => {
+  const roles = await getMyApprovedRoles(journalSlug);
+  const storedRole = getStoredActiveRole(journalSlug);
 
   if (storedRole && roles.includes(storedRole)) {
     return storedRole;
@@ -685,16 +693,10 @@ export const getMyRole = async (): Promise<string | null> => {
     return 'author';
   }
 
-  if (roles.includes('admin')) {
-    return 'admin';
-  }
-
   return null;
 };
 
-export const getMyRoleRequests = async (): Promise<any[]> => {
-  // Role requests are handled differently in the new API
-  // reviewer_status and editor_status indicate approval status
+export const getMyRoleRequests = async (journalSlug: string): Promise<any[]> => {
   const user = await getCurrentUser();
   if (!user) return [];
 
@@ -705,22 +707,16 @@ export const getMyRoleRequests = async (): Promise<any[]> => {
     created_at: string;
   }> = [];
 
-  if (user.roles.includes('reviewer')) {
-    requests.push({
-      id: 'reviewer',
-      requested_role: 'reviewer',
-      status: user.reviewer_status || 'pending',
-      created_at: user.date_joined,
-    });
-  }
-
-  if (user.roles.includes('editor')) {
-    requests.push({
-      id: 'editor',
-      requested_role: 'editor',
-      status: user.editor_status || 'pending',
-      created_at: user.date_joined,
-    });
+  for (const membership of user.memberships) {
+    if (membership.journal_slug !== journalSlug) continue;
+    if (membership.role === 'reviewer' || membership.role === 'editor') {
+      requests.push({
+        id: membership.role,
+        requested_role: membership.role,
+        status: membership.status,
+        created_at: user.date_joined,
+      });
+    }
   }
 
   return requests;
@@ -729,3 +725,25 @@ export const getMyRoleRequests = async (): Promise<any[]> => {
 export const getSubmissionsByStatus = async (status: string): Promise<Submission[]> => {
   return await getAllSubmissions(status);
 };
+
+// ==========================================
+// JOURNAL DIRECTORY (GLOBAL, NOT JOURNAL-SCOPED)
+// ==========================================
+
+export async function getJournals(): Promise<Journal[]> {
+  const { data, error } = await apiClient.get<Journal[]>('/journals/');
+  if (error) {
+    console.error('Error fetching journals:', error);
+    return [];
+  }
+  return data || [];
+}
+
+export async function getJournalBySlug(slug: string): Promise<Journal | null> {
+  const { data, error } = await apiClient.get<Journal>(`/journals/${slug}/`);
+  if (error) {
+    console.error('Error fetching journal:', error);
+    return null;
+  }
+  return data;
+}

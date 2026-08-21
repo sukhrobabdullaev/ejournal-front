@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router';
 import { useQuery } from '@tanstack/react-query';
 import { ArrowLeft, CalendarDays, FileText, Hash, Layers } from 'lucide-react';
 import { getPublishedIssueById } from '../lib/queries-api';
+import { useJournalPath } from '../contexts/JournalContext';
 
 const pagesLabel = (start?: number | null, end?: number | null) => {
   if (!start || !end) return 'Pages: N/A';
@@ -11,6 +12,7 @@ const pagesLabel = (start?: number | null, end?: number | null) => {
 
 export function PublishedIssueDetail() {
   const { issueId } = useParams();
+  const toJournal = useJournalPath();
   const { data: issue, isLoading, isError } = useQuery({
     queryKey: ['published-issue-detail', issueId],
     queryFn: () => getPublishedIssueById(issueId || ''),
@@ -22,7 +24,7 @@ export function PublishedIssueDetail() {
       <div className="flex h-[60vh] items-center justify-center bg-[#F8FAFC]">
         <div className="text-center">
           <div className="mx-auto mb-3 h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent shadow-sm" />
-          <p className="text-sm font-semibold text-slate-600">Yuklanmoqda...</p>
+          <p className="text-sm font-semibold text-slate-600">Loading...</p>
         </div>
       </div>
     );
@@ -33,7 +35,7 @@ export function PublishedIssueDetail() {
       <div className="flex h-[50vh] items-center justify-center bg-[#F8FAFC] px-4 text-center">
         <div className="w-full max-w-sm border border-slate-200 bg-white p-8 shadow-sm" style={{ borderRadius: '24px' }}>
           <p className="text-sm font-bold text-rose-600">Issue not found.</p>
-          <Link to="/published" className="mt-3 inline-block text-sm font-semibold text-blue-600 hover:underline">
+          <Link to={toJournal('/published')} className="mt-3 inline-block text-sm font-semibold text-blue-600 hover:underline">
             Go back
           </Link>
         </div>
@@ -47,7 +49,7 @@ export function PublishedIssueDetail() {
         
         {/* -- ORQAGA QAYTISH -- (Katta gap-4 oraliq berildi) */}
         <Link
-          to="/published"
+          to={toJournal('/published')}
           className="group mb-6 inline-flex items-center gap-4 text-sm font-semibold text-slate-500 transition-colors hover:text-blue-600"
         >
           <div className="flex h-8 w-8 items-center justify-center border border-slate-200 bg-white shadow-sm transition-transform group-hover:-translate-x-1" style={{ borderRadius: '50%' }}>
@@ -83,7 +85,7 @@ export function PublishedIssueDetail() {
             {issue.articles.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 text-slate-400">
                 <FileText size={48} className="mb-3 opacity-30" strokeWidth={1.5} />
-                <p className="text-base font-semibold text-slate-500">Hozircha maqolalar mavjud emas.</p>
+                <p className="text-base font-semibold text-slate-500">No articles available yet.</p>
               </div>
             ) : (
               <div className="divide-y divide-slate-100">
@@ -98,7 +100,7 @@ export function PublishedIssueDetail() {
                         {index + 1}. {article.title}
                       </h3>
                       <p className="text-sm font-medium italic text-slate-600">
-                        {article.authors?.map((author) => author.full_name).join(', ') || 'Noma\'lum muallif'}
+                        {article.authors?.map((author) => author.full_name).join(', ') || 'Unknown author'}
                       </p>
                       
                       <div className="mt-3 flex flex-wrap items-center gap-4 text-xs font-bold">
